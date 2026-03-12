@@ -4,19 +4,27 @@ import matplotlib.pyplot as plt
 import os
 from pathlib import Path
 
-st.title("Quality Builder")
+from utils.page_components import add_common_page_elements
+
+sidebar_container = add_common_page_elements()
+page_container = st.sidebar.container()
+sidebar_container = st.sidebar.container()
+
+st.divider()
+
+st.header("Quality Builder")
 
 st.markdown(
     """
     <style>
     /* Multiselect text color */
     div[data-baseweb="select"] > div {
-        color: white !important;
+        color: black !important;
     }
 
     /* Text input */
     input {
-        color: white !important;
+        color: black !important;
     }
 
     /* Placeholder text */
@@ -39,7 +47,7 @@ st.write(
 @st.cache_data
 def load_data():
 
-    data_path = Path("data") / "player_qualities.parquet"
+    data_path = Path("output") / "player_full_stats.parquet"
 
     df = pd.read_parquet(data_path)
 
@@ -62,12 +70,14 @@ All metrics are oriented so **higher = better**.
 
 score_columns = [
     col for col in df.columns
-    if col.endswith("_score") and df[col].notna().sum() > 0
+    if col.endswith("_zscore") and df[col].notna().sum() > 0
 ]
 score_columns = sorted(score_columns)
 
 available_metrics = len(score_columns)
-available_qualities = len([c for c in df.columns if c.endswith("_score")])
+available_qualities = len(
+    [c for c in df.columns if c.startswith("q_") and c.endswith("_zscore")]
+)
 
 st.caption(f"Available metrics: {available_metrics} | Available qualities: {available_qualities}")
 
@@ -139,7 +149,7 @@ for metric in selected_metrics:
 
 st.header("Position filter (for validation)")
 
-positions = sorted(df["role"].dropna().unique())
+positions = sorted(df["main_position"].dropna().unique())
 
 selected_positions = st.multiselect(
     "Filter positions",
@@ -205,7 +215,7 @@ if compute_quality:
     if selected_positions:
 
         df_preview = df_preview[
-            df_preview["role"].isin(selected_positions)
+            df_preview["main_position"].isin(selected_positions)
         ]
 
     df_preview = df_preview[
@@ -225,11 +235,18 @@ if compute_quality:
 
     st.subheader("Top 25 players (preview)")
 
-    cols = ["short_name", "team_name", "role", "preview_quality"]
+    base_cols = ["short_name", "team_name", "main_position", "preview_quality"]
+
+    metric_cols = selected_metrics
+
+    cols = base_cols + metric_cols
 
     cols = [c for c in cols if c in df_preview.columns]
 
-    st.dataframe(top_players[cols])
+    st.dataframe(
+        top_players[cols]
+        .sort_values("preview_quality", ascending=False)
+    )
 # -------------------------
 # CREATE QUALITY
 # -------------------------

@@ -73,6 +73,7 @@ def add_page_selector():
     st.page_link("pages/personality_test.py", label="Personality Test")
     st.page_link("pages/own_page.py", label="Your Own Page")
     st.page_link("pages/quality_builder.py", label="Quality Builder")
+    st.page_link("pages/basic_stats.py", label="Basic Stats Analyst")
 
 
     # st.image("data/ressources/img/TwelveEdu.png")

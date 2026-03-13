@@ -1,122 +1,220 @@
+import re
 import polars as pl
 from pathlib import Path
-import re
+
+from utils.basic_stats.metric_resolver import MetricResolver
+
 
 BASE = Path(__file__).resolve().parents[2]
-
-DATA_PATH = BASE / "output" / "player_full_stats.parquet"
+PLAYER_DATA_PATH = BASE / "output" / "player_full_stats.parquet"
+TEAM_DATA_PATH = BASE / "output" / "team_full_stats.parquet"
 
 
 class QueryEngine:
-
     def __init__(self):
-        self.df = pl.read_parquet(DATA_PATH)
+        self.players_df = pl.read_parquet(PLAYER_DATA_PATH)
+        self.teams_df = pl.read_parquet(TEAM_DATA_PATH)
 
-    def top_players_by_metric(self, metric, n=10):
+        # Derived columns
+        if "goal_contributions" not in self.players_df.columns:
+            if {"total_goals", "total_assists"}.issubset(set(self.players_df.columns)):
+                self.players_df = self.players_df.with_columns(
+                    (pl.col("total_goals") + pl.col("total_assists")).alias("goal_contributions")
+                )
 
-        metric = self.resolve_metric(metric)
+        if "goal_contributions" not in self.teams_df.columns:
+            if {"total_goals", "total_assists"}.issubset(set(self.teams_df.columns)):
+                self.teams_df = self.teams_df.with_columns(
+                    (pl.col("total_goals") + pl.col("total_assists")).alias("goal_contributions")
+                )
 
+        self.metric_resolver = MetricResolver(
+            player_columns=self.players_df.columns,
+            team_columns=self.teams_df.columns,
+        )
+
+    def run_top_player_metric_query(self, question: str, descending: bool = True) -> dict | None:
+        metric = self.metric_resolver.resolve(question, source="players")
         if metric is None:
             return None
 
-        result = (
-            self.df
-            .sort(metric, descending=True)
-            .select([
-                "short_name",
-                "team_name",
-                "main_position",
-                metric
-            ])
+        n = self._extract_top_n(question, default=1)
+
+        result_df = (
+            self.players_df
+            .sort(metric, descending=descending, nulls_last=True)
+            .select(self._safe_player_columns(metric))
             .head(n)
         )
 
-        return result
+        return {
+            "source": "players",
+            "metric": metric,
+            "result_df": result_df,
+            "question": question,
+        }
 
-    def resolve_metric(self, metric_name):
-
-        cols = self.df.columns
-
-        metric_name = metric_name.lower().replace(" ", "_")
-
-        candidates = []
-
-        for col in cols:
-
-            col_lower = col.lower()
-
-            if metric_name in col_lower:
-                candidates.append(col)
-
-        if not candidates:
-            return None
-        ''' Asi podría ser en un determinado momento aunque sería para sacar esos outstanding y que se active cuando se pida la posición
-        
-        # Prioridad
-        for c in candidates:
-            if c.endswith("_p90_zscore"):
-                return c
-
-        for c in candidates:
-            if c.endswith("_p90"):
-                return c
-
-        return candidates[0]
-
-        De momento solo la raw metric
-        '''
-        
-        return candidates[0]
-
-    def best_midfielders_u23_progression(self, n=10):
-
-        df = self.df
-
-        if "age" not in df.columns:
-            return None
-
-        metric = None
-
-        for col in df.columns:
-            if "progressive" in col and "zscore" in col:
-                metric = col
-                break
-
+    def run_top_team_metric_query(self, question: str, descending: bool = True) -> dict | None:
+        metric = self.metric_resolver.resolve(question, source="teams")
         if metric is None:
             return None
 
-        result = (
+        n = self._extract_top_n(question, default=1)
+
+        result_df = (
+            self.teams_df
+            .sort(metric, descending=descending, nulls_last=True)
+            .select(self._safe_team_columns(metric))
+            .head(n)
+        )
+
+        return {
+            "source": "teams",
+            "metric": metric,
+            "result_df": result_df,
+            "question": question,
+        }
+
+    def run_filtered_player_query(self, question: str) -> dict | None:
+        metric = self.metric_resolver.resolve(question, source="players")
+        if metric is None:
+            return None
+
+        df = self.players_df
+
+        position_value = self._extract_position(question)
+        if position_value:
+            df = df.filter(pl.col("main_position").str.to_lowercase().str.contains(position_value))
+
+        age_lt = self._extract_under_age(question)
+        if age_lt is not None:
+            if "birth_date" not in df.columns:
+                return None
+            df = df.with_columns(
+                (2026 - pl.col("birth_date").str.slice(0, 4).cast(pl.Int64)).alias("_age")
+            ).filter(pl.col("_age") < age_lt)
+
+        min_minutes = self._extract_min_minutes(question)
+        if min_minutes is not None and "total_minutes" in df.columns:
+            df = df.filter(pl.col("total_minutes") >= min_minutes)
+
+        n = self._extract_top_n(question, default=5)
+
+        selected_cols = self._safe_player_columns(metric)
+        if "_age" in df.columns and "_age" not in selected_cols:
+            selected_cols.insert(3, "_age")
+
+        result_df = (
             df
-            .filter(pl.col("main_position").str.contains("Mid"))
-            .filter(pl.col("age") < 23)
-            .sort(metric, descending=True)
-            .select([
-                "short_name",
-                "team_name",
-                "main_position",
-                metric
-            ])
+            .sort(metric, descending=True, nulls_last=True)
+            .select(selected_cols)
             .head(n)
         )
 
-        return result
+        return {
+            "source": "players",
+            "metric": metric,
+            "result_df": result_df,
+            "question": question,
+            "filters": {
+                "position": position_value,
+                "age_lt": age_lt,
+                "min_minutes": min_minutes,
+            },
+        }
 
-    def detect_top_query(self, question):
+    def _extract_top_n(self, question: str, default: int = 1) -> int:
+        q = question.lower()
 
-        pattern = r"top\s*(\d+)?\s*players?\s*by\s*([a-zA-Z0-9_]+)"
+        patterns = [
+            r"\btop\s+(\d+)\b",
+            r"\bbest\s+(\d+)\b",
+            r"\bthe\s+(\d+)\s+teams\b",
+            r"\bthe\s+(\d+)\s+players\b",
+            r"\b(\d+)\s+teams\b",
+            r"\b(\d+)\s+players\b",
+        ]
 
-        match = re.search(pattern, question.lower())
+        for pattern in patterns:
+            m = re.search(pattern, q)
+            if m:
+                return int(m.group(1))
 
-        if match:
+        return default
 
-            n = match.group(1)
-            metric = match.group(2)
+    def _extract_under_age(self, question: str) -> int | None:
+        q = question.lower()
 
-            if n is None:
-                n = 10
-            else:
-                n = int(n)
+        m = re.search(r"\bunder\s+(\d+)\b", q)
+        if m:
+            return int(m.group(1))
 
-            return metric, n
+        m = re.search(r"\byounger than\s+(\d+)\b", q)
+        if m:
+            return int(m.group(1))
 
         return None
+
+    def _extract_min_minutes(self, question: str) -> int | None:
+        q = question.lower()
+
+        m = re.search(r"\bwith at least\s+(\d+)\s+minutes\b", q)
+        if m:
+            return int(m.group(1))
+
+        m = re.search(r"\bmore than\s+(\d+)\s+minutes\b", q)
+        if m:
+            return int(m.group(1))
+
+        return None
+
+    def _extract_position(self, question: str) -> str | None:
+        q = question.lower()
+
+        mapping = {
+            "midfielder": "midfielder",
+            "defender": "defender",
+            "forward": "forward",
+            "goalkeeper": "goalkeeper",
+            "full back": "full back",
+            "central defender": "central defender",
+            "winger": "winger",
+            "attacking midfielder": "attacking midfielder",
+        }
+
+        for key, value in mapping.items():
+            if key in q:
+                return value
+
+        return None
+
+    def _unique_preserve_order(self, cols: list[str]) -> list[str]:
+        seen = set()
+        out = []
+        for c in cols:
+            if c not in seen:
+                seen.add(c)
+                out.append(c)
+        return out
+
+    def _safe_team_columns(self, metric: str) -> list[str]:
+        cols = [
+            "team_name",
+            metric,
+            "total_goals",
+            "total_goals_against",
+        ]
+        cols = [c for c in cols if c in self.teams_df.columns]
+        return self._unique_preserve_order(cols)
+
+    def _safe_player_columns(self, metric: str) -> list[str]:
+        cols = [
+            "short_name",
+            "team_name",
+            "main_position",
+            metric,
+            "matches_played",
+            "total_minutes",
+        ]
+        cols = [c for c in cols if c in self.players_df.columns]
+        return self._unique_preserve_order(cols)

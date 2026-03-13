@@ -1,72 +1,111 @@
-import streamlit as st
-from openai import AzureOpenAI
-
+from utils.basic_stats.knowledge_base import KnowledgeBase
+from utils.basic_stats.intent_router import IntentRouter
 from utils.basic_stats.query_engine import QueryEngine
-from utils.basic_stats.verbal_model import VerbalModel
+from utils.basic_stats.response_generator import ResponseGenerator
 
 
 class BasicStatsAgent:
-
     def __init__(self):
-
+        self.kb = KnowledgeBase()
+        self.router = IntentRouter()
         self.query_engine = QueryEngine()
-        self.verbal_model = VerbalModel()
+        self.response_generator = ResponseGenerator()
 
-        self.client = AzureOpenAI(
-            api_key=st.secrets["GPT_KEY"],
-            api_version=st.secrets["GPT_VERSION"],
-            azure_endpoint="https://twelve-courses.openai.azure.com"
-        )
+    def ask(self, question: str) -> dict:
+        route = self.router.route(question)
+        intent = route["intent"]
 
-        self.model = st.secrets["GPT_CHAT_MODEL"]
-
-    def ask(self, question):
-
-        # 1️⃣ Definitional questions
-
-        definition = self.verbal_model.search_definition(question)
-
-        if definition:
-            return {"type": "text", "content": definition}
-
-        # 2️⃣ Detect top queries
-
-        top_query = self.query_engine.detect_top_query(question)
-
-        if top_query:
-
-            metric, n = top_query
-
-            result = self.query_engine.top_players_by_metric(metric, n)
-
-            if result is not None:
-                return {"type": "table", "content": result}
-
-        # 3️⃣ Example special query
-
-        if "midfield" in question.lower() and "23" in question:
-
-            result = self.query_engine.best_midfielders_u23_progression()
-
-            if result is not None:
-                return {"type": "table", "content": result}
-
-        # 4️⃣ Fallback to LLM
-
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a football data analyst. Be concise and explain insights clearly."
-                },
-                {
-                    "role": "user",
-                    "content": question
+        # 1. Definitions / KB
+        if intent == "definition":
+            answer = self.kb.find_answer(question)
+            if answer:
+                return {
+                    "type": "text",
+                    "content": answer,
+                    "debug": {"intent": intent, "source": "knowledge_base"}
                 }
-            ]
-        )
 
-        answer = response.choices[0].message.content
+        # 2. Team factual queries
+        if intent == "top_team_metric":
+            query_result = self.query_engine.run_top_team_metric_query(question, descending=True)
+            if query_result:
+                text = self.response_generator.verbalize_query_result(question, query_result)
+                return {
+                    "type": "text",
+                    "content": text,
+                    "debug": {
+                        "intent": intent,
+                        "source": "teams",
+                        "metric": query_result["metric"],
+                        "rows": query_result["result_df"].to_dicts(),
+                    }
+                }
 
-        return {"type": "text", "content": answer}
+        if intent == "bottom_team_metric":
+            query_result = self.query_engine.run_top_team_metric_query(question, descending=False)
+            if query_result:
+                text = self.response_generator.verbalize_query_result(question, query_result)
+                return {
+                    "type": "text",
+                    "content": text,
+                    "debug": {
+                        "intent": intent,
+                        "source": "teams",
+                        "metric": query_result["metric"],
+                        "rows": query_result["result_df"].to_dicts(),
+                    }
+                }
+
+        # 3. Filtered player queries
+        if intent == "filtered_player_metric":
+            query_result = self.query_engine.run_filtered_player_query(question)
+            if query_result:
+                text = self.response_generator.verbalize_query_result(question, query_result)
+                return {
+                    "type": "text",
+                    "content": text,
+                    "debug": {
+                        "intent": intent,
+                        "source": "players",
+                        "metric": query_result["metric"],
+                        "filters": query_result.get("filters", {}),
+                        "rows": query_result["result_df"].to_dicts(),
+                    }
+                }
+
+        # 4. Player factual queries
+        if intent == "top_player_metric":
+            query_result = self.query_engine.run_top_player_metric_query(question, descending=True)
+            if query_result:
+                text = self.response_generator.verbalize_query_result(question, query_result)
+                return {
+                    "type": "text",
+                    "content": text,
+                    "debug": {
+                        "intent": intent,
+                        "source": "players",
+                        "metric": query_result["metric"],
+                        "rows": query_result["result_df"].to_dicts(),
+                    }
+                }
+
+        if intent == "bottom_player_metric":
+            query_result = self.query_engine.run_top_player_metric_query(question, descending=False)
+            if query_result:
+                text = self.response_generator.verbalize_query_result(question, query_result)
+                return {
+                    "type": "text",
+                    "content": text,
+                    "debug": {
+                        "intent": intent,
+                        "source": "players",
+                        "metric": query_result["metric"],
+                        "rows": query_result["result_df"].to_dicts(),
+                    }
+                }
+
+        return {
+            "type": "text",
+            "content": "I couldn't reliably answer that from the current knowledge base or data queries yet.",
+            "debug": {"intent": intent, "source": "fallback_none"}
+        }

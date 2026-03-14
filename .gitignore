@@ -17,3 +17,8 @@ clustering.ipynb
 # Virtual environments
 venv/
 .venv/
+
+# Data files
+data/*.parquet
+data/*.csv
+data/event_data/

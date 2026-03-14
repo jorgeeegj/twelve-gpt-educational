@@ -40,12 +40,10 @@ class QueryEngine:
 
         n = self._extract_top_n(question, default=1)
 
-        result_df = (
-            self.players_df
-            .sort(metric, descending=descending, nulls_last=True)
-            .select(self._safe_player_columns(metric))
-            .head(n)
-        )
+        sorted_df = self.players_df.sort(metric, descending=descending, nulls_last=True)
+        top_n_df = sorted_df.head(n)
+        boundary_val = top_n_df[metric][-1]
+        result_df = sorted_df.filter(pl.col(metric) == boundary_val).select(self._safe_player_columns(metric)) if n == 1 else top_n_df.select(self._safe_player_columns(metric))
 
         return {
             "source": "players",
@@ -91,7 +89,8 @@ class QueryEngine:
             if "birth_date" not in df.columns:
                 return None
             df = df.with_columns(
-                (2026 - pl.col("birth_date").str.slice(0, 4).cast(pl.Int64)).alias("_age")
+                ((pl.lit(20240801) - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)) / 10000)
+                .cast(pl.Int64).alias("_age")
             ).filter(pl.col("_age") < age_lt)
 
         min_minutes = self._extract_min_minutes(question)
@@ -172,14 +171,21 @@ class QueryEngine:
         q = question.lower()
 
         mapping = {
-            "midfielder": "midfielder",
-            "defender": "defender",
-            "forward": "forward",
-            "goalkeeper": "goalkeeper",
-            "full back": "full back",
-            "central defender": "central defender",
-            "winger": "winger",
-            "attacking midfielder": "attacking midfielder",
+            "attacking midfielder": "attacking midfielder|am|cam",
+            "central defender":     "central defender|cb",
+            "goalkeepers":          "goalkeeper|gk",
+            "goalkeeper":           "goalkeeper|gk",
+            "midfielders":          "midfielder|cm|dm|am",
+            "midfielder":           "midfielder|cm|dm|am",
+            "defenders":            "central defender|full back|cb|lb|rb|wb|back|def",
+            "defender":             "central defender|full back|cb|lb|rb|wb|back|def",
+            "full back":            "full back|lb|rb|wb",
+            "forwards":             "striker|winger|cf|st|lw|rw|forward",
+            "forward":              "striker|winger|cf|st|lw|rw|forward",
+            "strikers":             "striker|cf|st|forward",
+            "striker":              "striker|cf|st|forward",
+            "wingers":              "winger|lw|rw",
+            "winger":               "winger|lw|rw",
         }
 
         for key, value in mapping.items():

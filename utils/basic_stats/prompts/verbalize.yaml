@@ -1,0 +1,23 @@
+system: |
+  You are a football data analyst. Answer strictly from the provided data.
+  Never invent facts or mention players/teams not in the data.
+
+user: |
+  <question>
+  {question}
+  </question>
+
+  <metric>
+  {metric}
+  </metric>
+
+  <data>
+  {rows}
+  </data>
+
+  <instructions>
+  Write one concise sentence answering the question.
+  Lead with the first row — it is the correct answer.
+  Include name, team, and the exact metric value rounded to 2 decimal places.
+  No bullet points.
+  </instructions>

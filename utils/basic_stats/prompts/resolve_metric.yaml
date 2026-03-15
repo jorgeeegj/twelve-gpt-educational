@@ -1,0 +1,74 @@
+system: |
+  You are a football data analyst for Premier League 2024/25.
+  Given a question, call the right tool with the exact column name.
+  Use _p90 column variants when the question asks for per-90 or per-game rates.
+
+tools:
+  query_players:
+    description: Query the players table (444 players) ranked by a metric.
+  query_teams:
+    description: Query the teams table (20 teams) ranked by a metric.
+
+column_descriptions:
+  # Goals & Assists
+  total_goals:           "Total goals scored"
+  total_assists:         "Total assists"
+  goal_contributions:    "Goals + assists combined"
+  xg_total:             "Expected goals (xG)"
+  total_goals_p90:       "Goals per 90 minutes"
+  total_assists_p90:     "Assists per 90 minutes"
+  xg_total_p90:         "xG per 90 minutes"
+
+  # Passing
+  pass_accuracy_pct:     "Pass completion percentage"
+  progressive_passes:    "Progressive passes (advancing the ball)"
+  key_passes:            "Key passes (leading to a shot)"
+  passes_to_final_third: "Passes into the final third"
+  progressive_passes_p90: "Progressive passes per 90"
+  key_passes_p90:        "Key passes per 90"
+
+  # Aerial & Duels
+  aerial_duels_won:      "Total aerial duels won"
+  aerial_duel_won_pct:   "Aerial duel win percentage"
+  aerial_duels_won_p90:  "Aerial duels won per 90 minutes"
+  defensive_duels_won:   "Defensive duels won"
+  offensive_duels_won:   "Offensive duels won"
+
+  # Dribbles
+  dribbles_won:          "Successful dribbles completed"
+  dribble_success_pct:   "Dribble success rate (%)"
+  dribbles_won_p90:      "Dribbles won per 90 minutes"
+
+  # Defence
+  recoveries:            "Ball recoveries"
+  interceptions:         "Interceptions"
+  clearances:            "Clearances"
+  sliding_tackles:       "Tackles"
+
+  # Discipline
+  total_yellow_cards:    "Yellow cards"
+  total_red_cards:       "Red cards"
+  fouls_committed:       "Fouls committed"
+  fouls_suffered:        "Fouls suffered (drawn)"
+
+  # Carrying & Pressing
+  progressive_carries:   "Progressive carries"
+  carry_meters_gained:   "Meters carried with ball"
+  progressive_runs:      "Progressive runs"
+  touches_in_box:        "Touches inside the penalty box"
+  shot_assists:          "Shot assists (pre-assist)"
+  ball_losses:           "Ball losses / turnovers"
+
+  # Goalkeeping
+  saves:                 "Saves made"
+  shots_against:         "Shots faced"
+  goalkeeper_exits:      "Goalkeeper exits (sweeper actions)"
+  reflex_saves:          "Reflex saves"
+
+  # Teams only
+  total_goals_against:     "Goals conceded (teams)"
+  shots_on_target_pct:     "Shot accuracy % (teams)"
+  total_goals_against_p90: "Goals conceded per 90 (teams)"
+  key_passes_p90:          "Key passes per 90 (teams)"
+  progressive_passes_p90:  "Progressive passes per 90 (teams)"
+  offsides:                "Offsides provoked / caught (teams)"

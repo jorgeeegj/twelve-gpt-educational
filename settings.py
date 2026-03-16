@@ -1,18 +1,21 @@
 import os
 import streamlit as st
 
-GPT_EMBEDDINGS_ENGINE = st.secrets.get("GPT_EMBEDDINGS_ENGINE")
-GPT_EMBEDDINGS_KEY = st.secrets.get("GPT_EMBEDDINGS_KEY")
+GPT_EMBEDDINGS_ENGINE = (
+    st.secrets.get("GPT_EMBEDDINGS_ENGINE")
+    or st.secrets.get("GPT_EMBEDDINGS_MODEL")
+)
+GPT_EMBEDDINGS_KEY = st.secrets.get("GPT_EMBEDDINGS_KEY") or st.secrets.get("GPT_KEY")
 
 GPT_DEFAULT = "3.5"
 GPT3_BASE = st.secrets.get("GPT_BASE")
 GPT3_VERSION = st.secrets.get("GPT_VERSION")
 GPT3_KEY = st.secrets.get("GPT_KEY")
-GPT3_ENGINE = st.secrets.get("GPT_ENGINE")
+GPT3_ENGINE = st.secrets.get("GPT_ENGINE") or st.secrets.get("GPT_CHAT_MODEL")
 GPT4_BASE = st.secrets.get('GPT4o_BASE')
 GPT4_VERSION = st.secrets.get('GPT4o_VERSION')
 GPT4_KEY = st.secrets.get('GPT4o_KEY')
-GPT4_ENGINE = st.secrets.get("GPT4o_ENGINE")
+GPT4_ENGINE = st.secrets.get("GPT4o_ENGINE") or st.secrets.get("GPT4o_CHAT_MODEL")
 
 # Gemini secrets
 USE_GEMINI = st.secrets.get("USE_GEMINI", False)

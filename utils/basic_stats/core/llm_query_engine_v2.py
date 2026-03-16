@@ -13,8 +13,14 @@ from pathlib import Path
 import polars as pl
 import yaml
 
-from utils.basic_stats.config import PLAYER_DATA_PATH, TEAM_DATA_PATH, PROMPTS_DIR, get_llm_client, get_model
-from utils.basic_stats.models import MetricResolution, QueryResult
+from utils.basic_stats.core.config import (
+    PLAYER_DATA_PATH,
+    TEAM_DATA_PATH,
+    PROMPTS_DIR,
+    get_llm_client,
+    get_model,
+)
+from utils.basic_stats.core.models import MetricResolution, QueryResult
 
 
 # ── Columns exposed to the LLM (no z-scores, no internal IDs) ──────────────
@@ -99,10 +105,52 @@ class LLMQueryEngineV2:
         self._resolve_prompt   = _load_prompt("resolve_metric")
         self._verbalize_prompt = _load_prompt("verbalize")
 
+    #Helper determinista para preguntas muy simples 
+    def _resolve_fast_path(self, q: str) -> MetricResolution | None:
+        # player basics
+        if "most minutes" in q or "played the most minutes" in q or "most total minutes" in q:
+            return MetricResolution(metric="total_minutes", descending=True, table="players")
+
+        if "most assists" in q:
+            return MetricResolution(metric="total_assists", descending=True, table="players")
+
+        if "most yellow cards" in q or "received the most yellow cards" in q:
+            return MetricResolution(metric="total_yellow_cards", descending=True, table="players")
+
+        # player / team goals
+        if "most goals" in q and "team" not in q:
+            return MetricResolution(metric="total_goals", descending=True, table="players")
+
+        if "most goals" in q and "team" in q:
+            return MetricResolution(metric="total_goals", descending=True, table="teams")
+
+        # team basics
+        if (
+            "fewest goals conceded" in q
+            or "conceded the fewest" in q
+            or "fewest conceded goals" in q
+        ):
+            return MetricResolution(metric="total_goals_against", descending=False, table="teams")
+
+        
+        
+
+        if "provokes the most offsides" in q or "most offsides" in q:
+            return MetricResolution(metric="offsides", descending=True, table="teams")
+
+        return None
+
     # ── Step 1: LLM resolves metric via tool use ────────────────────────────
 
     def _resolve_metric(self, question: str) -> MetricResolution:
         col_descriptions = self._resolve_prompt["column_descriptions"]
+
+        q = question.lower()
+
+        fast = self._resolve_fast_path(q)
+        if fast:
+            return fast
+        
 
         def _tool(name: str, enum: list[str]) -> dict:
             return {
@@ -163,8 +211,8 @@ class LLMQueryEngineV2:
             if age_lt and "birth_date" in df.columns:
                 df = df.with_columns(
                     ((pl.lit(20240801) - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)) / 10000)
-                    .cast(pl.Int64).alias("_age")
-                ).filter(pl.col("_age") < age_lt)
+                    .cast(pl.Int64).alias("age")
+                ).filter(pl.col("age") < age_lt)
                 filters["age_lt"] = age_lt
 
             min_min = _extract(r"\bwith at least\s+(\d+)\s+minutes\b", q) or _extract(r"\bmore than\s+(\d+)\s+minutes\b", q)
@@ -194,10 +242,11 @@ class LLMQueryEngineV2:
             result_df = sorted_df.filter(pl.col(resolution.metric) == boundary)
 
         display = (
-            ["short_name", "team_name", "main_position", resolution.metric, "matches_played", "total_minutes"]
+            ["short_name", "team_name", "main_position", "age", resolution.metric, "matches_played", "total_minutes"]
             if resolution.table == "players"
             else ["team_name", resolution.metric, "total_goals", "total_goals_against"]
         )
+        
         display = list(dict.fromkeys(c for c in display if c in df.columns))
 
         result_df = result_df.select(display)
@@ -232,10 +281,20 @@ class LLMQueryEngineV2:
 
     def ask(self, question: str) -> dict:
         resolution = self._resolve_metric(question)
-        result     = self._execute(question, resolution)
-        answer     = self._verbalize(question, result)
+        result = self._execute(question, resolution)
+        answer = self._verbalize(question, result)
+
         return {
-            "type":    "text",
+            "type": "text",
             "content": answer,
-            "debug":   {"table": result.table, "metric": result.metric, "filters": result.filters_applied, "rows": result.rows},
+            "debug": {
+                "engine": "llm_query_engine_v2",
+                "table": result.table,
+                "metric": result.metric,
+                "descending": resolution.descending,
+                "filters": result.filters_applied,
+                "rows": result.rows,
+            },
         }
+
+    

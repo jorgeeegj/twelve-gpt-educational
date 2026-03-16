@@ -4,7 +4,7 @@ from typing import List, Union, Dict, Optional
 
 import pandas as pd
 import tiktoken
-import openai
+from openai import OpenAI
 import numpy as np
 
 import utils.sentences as sentences
@@ -199,19 +199,18 @@ class Description(ABC):
 
             answer = response.text
         else:
-            # Use OpenAI API
-            openai.api_type = "azure"
-            openai.api_base = GPT_BASE
-            openai.api_version = GPT_VERSION
-            openai.api_key = GPT_KEY
+            client = OpenAI(
+                api_key=GPT_KEY,
+                base_url=GPT_BASE,
+            )
 
-            response = openai.ChatCompletion.create(
-                engine=GPT_ENGINE,
+            response = client.chat.completions.create(
+                model=GPT_ENGINE,
                 messages=self.messages,
                 temperature=temperature,
             )
 
-            answer = response["choices"][0]["message"]["content"]
+            answer = response.choices[0].message.content
 
         return answer
 

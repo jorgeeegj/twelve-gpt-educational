@@ -2,10 +2,10 @@ from pathlib import Path
 import streamlit as st
 from openai import AzureOpenAI
 
-BASE = Path(__file__).resolve().parents[2]
+BASE = Path(__file__).resolve().parents[3]
 PLAYER_DATA_PATH = BASE / "output" / "player_full_stats.parquet"
 TEAM_DATA_PATH   = BASE / "output" / "team_full_stats.parquet"
-PROMPTS_DIR      = Path(__file__).parent / "prompts"
+PROMPTS_DIR      = BASE / "utils" / "basic_stats" / "prompts"
 
 
 def get_llm_client() -> AzureOpenAI:

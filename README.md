@@ -106,3 +106,116 @@ GEMINI_CHAT_MODEL = "gemini-1.5-flash"
 # Can use any embedding model
 GEMINI_EMBEDDING_MODEL = "models/text-embedding-004"
 ```
+
+## Basic Stats Analyst
+
+The repository now also includes a **Basic Stats Analyst** page designed to answer factual football questions directly from structured datasets.
+
+Its purpose is to support questions such as:
+
+- Who scored the most goals?
+- Which team has conceded the fewest goals?
+- Which midfielder has the most progressive passes per 90?
+- Which player under 23 has scored the most goals?
+- What is Breaking the Lines?
+
+### Current architecture
+
+The Basic Stats Analyst follows a grounded hybrid design:
+
+1. **Knowledge base first for definitions**  
+   Questions such as *“What is Breaking the Lines?”* are answered from `data/verbal_model_qa.csv`.
+
+2. **LLM-driven metric resolution**  
+   For factual questions, the system uses `LLMQueryEngineV2` to resolve the intended metric and source table from the user query.
+
+3. **Deterministic filtering and retrieval**  
+   Once the metric is resolved, all filtering and ranking logic is applied deterministically in code using the structured datasets.
+
+4. **Controlled verbalization**  
+   The final answer is verbalized by the LLM, but only from grounded result rows.  
+   The LLM does not invent rankings or statistics.
+
+### Official components
+
+The current official setup for the Basic Stats Analyst is:
+
+- **Main engine:** `utils/basic_stats/core/llm_query_engine_v2.py`
+- **Main agent:** `utils/basic_stats/core/agent.py`
+- **Official benchmark runner:** `eval_runner_v3.py`
+- **Knowledge base:** `data/verbal_model_qa.csv`
+- **Player data source:** `output/player_full_stats.parquet`
+- **Team data source:** `output/team_full_stats.parquet`
+
+### Folder structure
+
+The Basic Stats Analyst backend is currently organised as:
+
+```text
+utils/basic_stats/
+├── core/
+│   ├── agent.py
+│   ├── config.py
+│   ├── models.py
+│   ├── knowledge_base.py
+│   └── llm_query_engine_v2.py
+│
+├── prompts/
+│   ├── resolve_metric.yaml
+│   └── verbalize.yaml
+│
+├── legacy/
+│   ├── llm_query_engine.py
+│   ├── query_engine.py
+│   ├── intent_router.py
+│   ├── response_generator.py
+│   ├── metric_resolver.py
+│   └── partealvaro.py
+```
+
+### Benchmark status
+
+The latest validated benchmark status is:
+
+- **20/20**
+
+Results are saved to:
+
+- `docs/evals/latest_eval_results.json`
+- `docs/evals/YYYY-MM-DD_eval_results.json`
+
+### Design philosophy
+
+The Basic Stats Analyst is not intended to be a generic chatbot.  
+It is designed as a **grounded football data assistant**.
+
+This means:
+
+- structured data is the source of truth
+- definitions come from a controlled knowledge base
+- code applies filters and rankings deterministically
+- the LLM is only used where it adds value:
+  - understanding the question
+  - verbalizing grounded outputs
+
+This keeps the system more robust, explainable, and aligned with real football analysis workflows.
+
+### Current UI
+
+The page `pages/basic_stats.py` now supports:
+
+- chat-style interaction
+- optional debug view
+- optional grounded result rows table
+- benchmark status display
+- clear chat button
+
+### Next steps
+
+The next development steps are likely to focus on:
+
+- improving debugging and traceability further
+- refining verbalization quality
+- integrating custom qualities created in the Quality Builder
+- expanding benchmark coverage
+- adding richer football-specific analytical outputs

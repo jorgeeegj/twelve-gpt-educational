@@ -2,7 +2,7 @@ import polars as pl
 from pathlib import Path
 
 
-BASE = Path(__file__).resolve().parents[2]
+BASE = Path(__file__).resolve().parents[3]
 QA_PATH = BASE / "data" / "verbal_model_qa.csv"
 
 
@@ -35,8 +35,4 @@ class KnowledgeBase:
         if exact:
             return exact
 
-        contained = self.find_contained_answer(question)
-        if contained:
-            return contained
-
-        return None
+        return self.find_contained_answer(question)

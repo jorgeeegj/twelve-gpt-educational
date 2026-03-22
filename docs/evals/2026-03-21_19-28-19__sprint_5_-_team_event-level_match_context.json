@@ -1,0 +1,430 @@
+{
+  "summary": {
+    "benchmark_path": "questions_benchmark_v5.json",
+    "total_passed": 10,
+    "total_questions": 10,
+    "score": "10/10",
+    "by_category": {
+      "player_match_event_context": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "team_match_context": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      }
+    },
+    "by_expected_stage": {
+      "sprint_4": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5",
+        "stage_name": "Sprint 4 - Event-level match context"
+      },
+      "sprint_5": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5",
+        "stage_name": "sprint_5"
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "QV5_41",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+      "expected": {
+        "short_name": "Bruno Fernandes",
+        "team_name": "Manchester United",
+        "progressive_passes_vs_top6": 111
+      },
+      "agent_text": "Bruno Fernandes (Manchester United) completed the most progressive passes against top-6 teams: 111.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "progressive_passes_vs_top6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "progressive_passes",
+          "position": "midfielder",
+          "opponent_rank_lte": 6
+        },
+        "rows": [
+          {
+            "short_name": "Bruno Fernandes",
+            "team_name": "Manchester United",
+            "progressive_passes_vs_top6": 111.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Bruno Fernandes",
+          "team_name": "Manchester United",
+          "progressive_passes_vs_top6": 111.0
+        }
+      }
+    },
+    {
+      "id": "QV5_42",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has recorded the most touches in the box away from home this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "touches_in_box_away": 165
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most touches in the box away from home: 165.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "touches_in_box_away",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "touches_in_box",
+          "is_home": false
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "touches_in_box_away": 165.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "touches_in_box_away": 165.0
+        }
+      }
+    },
+    {
+      "id": "QV5_43",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player made the most key passes between matchdays 25 and 30?",
+      "expected": {
+        "short_name": "L. Díaz",
+        "team_name": "Liverpool",
+        "key_passes_gw_25_30": 8
+      },
+      "agent_text": "L. Díaz (Liverpool) made the most key passes in that matchday range: 8.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "key_passes_gw_25_30",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "key_passes",
+          "matchday_start": 25,
+          "matchday_end": 30
+        },
+        "rows": [
+          {
+            "short_name": "L. Díaz",
+            "team_name": "Liverpool",
+            "key_passes_gw_25_30": 8.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "L. Díaz",
+          "team_name": "Liverpool",
+          "key_passes_gw_25_30": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV5_44",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has the most shot assists against Big Six teams?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most shot assists against Big Six teams: 19.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "shot_assists",
+          "opponent_is_big6": true
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_45",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most shot assists against Big Six teams: 19.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "shot_assists",
+          "opponent_is_big6": true
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_46",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "sprint_5",
+      "question": "Which team won the most points against Big Six teams this season?",
+      "expected": {
+        "team_name": "Brighton",
+        "points_vs_big6": 24
+      },
+      "agent_text": "Brighton won the most points against Big Six teams: 24.",
+      "debug": {
+        "engine": "duckdb_team_match_context",
+        "table": "team_match_stats",
+        "metric": "points_vs_big6",
+        "descending": null,
+        "filters": {
+          "query_type": "team_match_context",
+          "metric": "points",
+          "aggregation": "points",
+          "opponent_is_big6": true
+        },
+        "rows": [
+          {
+            "team_name": "Brighton",
+            "points_vs_big6": 24.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Brighton",
+          "points_vs_big6": 24.0
+        }
+      }
+    },
+    {
+      "id": "QV5_47",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "sprint_5",
+      "question": "Which team scored the most away goals against top-6 teams this season?",
+      "expected": {
+        "team_name": "Bournemouth",
+        "away_goals_vs_top6": 10
+      },
+      "agent_text": "Bournemouth scored the most away goals against top-6 teams: 10.",
+      "debug": {
+        "engine": "duckdb_team_match_context",
+        "table": "team_match_stats",
+        "metric": "away_goals_vs_top6",
+        "descending": null,
+        "filters": {
+          "query_type": "team_match_context",
+          "metric": "team_score",
+          "aggregation": "sum",
+          "is_home": false,
+          "opponent_rank_lte": 6
+        },
+        "rows": [
+          {
+            "team_name": "Bournemouth",
+            "away_goals_vs_top6": 10.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Bournemouth",
+          "away_goals_vs_top6": 10.0
+        }
+      }
+    },
+    {
+      "id": "QV5_48",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "sprint_5",
+      "question": "Which team had the best goal difference between matchdays 25 and 30?",
+      "expected": {
+        "team_name": "Liverpool",
+        "goal_difference_gw_25_30": 8
+      },
+      "agent_text": "Liverpool had the best goal difference in that matchday range: 8.",
+      "debug": {
+        "engine": "duckdb_team_match_context",
+        "table": "team_match_stats",
+        "metric": "goal_difference_gw_25_30",
+        "descending": null,
+        "filters": {
+          "query_type": "team_match_context",
+          "metric": "goal_difference",
+          "aggregation": "goal_difference",
+          "matchday_start": 25,
+          "matchday_end": 30
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "goal_difference_gw_25_30": 8.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "goal_difference_gw_25_30": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV5_49",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "sprint_5",
+      "question": "¿Qué equipo consiguió más victorias fuera de casa esta temporada?",
+      "expected": {
+        "team_name": "Liverpool",
+        "away_wins": 11
+      },
+      "agent_text": "Liverpool recorded the most away wins this season: 11.",
+      "debug": {
+        "engine": "duckdb_team_match_context",
+        "table": "team_match_stats",
+        "metric": "away_wins",
+        "descending": null,
+        "filters": {
+          "query_type": "team_match_context",
+          "metric": "team_score",
+          "aggregation": "wins",
+          "is_home": false
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "away_wins": 11.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "away_wins": 11.0
+        }
+      }
+    },
+    {
+      "id": "QV5_50",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "sprint_5",
+      "question": "Which team had the most actions in z3 against Manchester City this season?",
+      "expected": {
+        "team_name": "Leicester City",
+        "actions_z3_vs_manchester_city": 378
+      },
+      "agent_text": "Leicester City recorded the most actions in z3 against Manchester City: 378.",
+      "debug": {
+        "engine": "duckdb_team_match_context",
+        "table": "team_match_stats",
+        "metric": "actions_z3_vs_manchester_city",
+        "descending": null,
+        "filters": {
+          "query_type": "team_match_context",
+          "metric": "actions_z3",
+          "aggregation": "sum",
+          "opponent_team_name": "Manchester City"
+        },
+        "rows": [
+          {
+            "team_name": "Leicester City",
+            "actions_z3_vs_manchester_city": 378.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Leicester City",
+          "actions_z3_vs_manchester_city": 378.0
+        }
+      }
+    }
+  ]
+}

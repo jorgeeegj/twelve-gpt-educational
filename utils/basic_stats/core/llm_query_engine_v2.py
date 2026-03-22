@@ -1,14 +1,18 @@
 """
-LLMQueryEngine v2 — hybrid deterministic + generative.
+LLMQueryEngine v2 — planner-first + generic DuckDB dispatch.
 
-LLM (tool use)   → resolves metric column from question (constrained to real columns)
-Code             → applies all filters deterministically (your ground truth)
-LLM (verbalize)  → writes final sentence from grounded data
+Flow:
+1. QueryPlanner resolves the question into a structured plan
+2. Engine dispatches by table_scope
+3. DuckDBManager runs a generic query for that scope
+4. LLM verbalizes grounded rows
+
+This version keeps only a small summary fallback path for robustness.
 """
 
 import json
 import re
-from pathlib import Path
+import unicodedata
 
 import polars as pl
 import yaml
@@ -20,10 +24,21 @@ from utils.basic_stats.core.config import (
     get_llm_client,
     get_model,
 )
+from utils.basic_stats.core.duckdb_manager import DuckDBManager
 from utils.basic_stats.core.models import MetricResolution, QueryResult
+from utils.basic_stats.core.query_planner import QueryPlanner
 
 
-# ── Columns exposed to the LLM (no z-scores, no internal IDs) ──────────────
+NEGATIVE_METRICS = {
+    "ball_losses",
+    "fouls_committed",
+    "total_yellow_cards",
+    "total_red_cards",
+    "offsides",
+    "total_goals_against",
+    "shots_against",
+}
+
 PLAYER_COLS = [
     "total_goals", "total_assists", "goal_contributions", "xg_total",
     "total_yellow_cards", "total_red_cards", "total_minutes", "matches_played",
@@ -75,20 +90,130 @@ POSITION_MAP = {
     "winger":               "winger|lw|rw",
 }
 
+ORDINAL_WORDS_EN = {
+    "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,
+    "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,
+    "eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14,
+    "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18,
+    "nineteenth": 19, "twentieth": 20,
+}
+
+ORDINAL_WORDS_ES = {
+    "primero": 1, "segunda": 2, "segundo": 2, "tercero": 3, "tercera": 3,
+    "cuarto": 4, "cuarta": 4, "quinto": 5, "quinta": 5, "sexto": 6, "sexta": 6,
+    "septimo": 7, "septima": 7, "séptimo": 7, "séptima": 7,
+    "octavo": 8, "octava": 8, "noveno": 9, "novena": 9,
+    "decimo": 10, "decima": 10, "décimo": 10, "décima": 10,
+}
+
+TOP_PATTERNS = [
+    r"\btop\s+(\d+)\b",
+    r"\bbest\s+(\d+)\b",
+    r"\bhighest\s+(\d+)\b",
+    r"\b(\d+)\s+(?:teams|players)\b",
+    r"\blos\s+(\d+)\s+mejores\b",
+    r"\blos\s+top\s+(\d+)\b",
+    r"\btop\s+(\d+)\s+(?:jugadores|equipos)\b",
+]
+
 
 def _load_prompt(name: str) -> dict:
-    return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text())
+    return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text(encoding="utf8"))
+
+
+def _normalize_text(text: str) -> str:
+    text = text.strip().lower()
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return re.sub(r"\s+", " ", text)
 
 
 def _extract(pattern: str, text: str) -> int | None:
-    m = re.search(pattern, text.lower())
+    m = re.search(pattern, text)
     return int(m.group(1)) if m else None
 
+
+def _extract_top_n(q: str) -> int:
+    for pattern in TOP_PATTERNS:
+        m = re.search(pattern, q)
+        if m:
+            return int(m.group(1))
+    return 1
+
+
+def _extract_rank_position(q: str) -> int | None:
+    patterns = [
+        r"\b(\d+)(?:st|nd|rd|th)\b",
+        r"\b(\d+)[ºª]\b",
+        r"\bposition\s+(\d+)\b",
+        r"\bpuesto\s+(\d+)\b",
+        r"\bposicion\s+(\d+)\b",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, q)
+        if m:
+            return int(m.group(1))
+
+    for word, value in ORDINAL_WORDS_EN.items():
+        if re.search(rf"\b{re.escape(word)}\b", q):
+            return value
+
+    for word, value in ORDINAL_WORDS_ES.items():
+        if re.search(rf"\b{re.escape(word)}\b", q):
+            return value
+
+    return None
+
+
+def _is_ordinal_query(q: str) -> bool:
+    ordinal_markers = [
+        r"\b\d+(?:st|nd|rd|th)\b",
+        r"\b\d+[ºª]\b",
+        r"\bfirst\b", r"\bsecond\b", r"\bthird\b", r"\bfourth\b", r"\bfifth\b",
+        r"\bseventh\b", r"\btenth\b",
+        r"\bprimero\b", r"\bsegundo\b", r"\btercero\b", r"\bquinto\b", r"\bdecimo\b", r"\bdécimo\b",
+        r"\bposition\b", r"\bpuesto\b", r"\bposicion\b",
+    ]
+    return any(re.search(pattern, q) for pattern in ordinal_markers)
+
+
+def _player_tiebreak_desc_for_minutes(metric: str, descending: bool) -> bool:
+    if metric in NEGATIVE_METRICS:
+        return not descending
+    return False
+
+def _slug_metric_suffix(text: str) -> str:
+    text = _normalize_text(text)
+    text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+    return text
+
+def _has_match_context_filters(filters: dict) -> bool:
+    context_keys = [
+        "opponent_team_name",
+        "is_home",
+        "opponent_rank_lte",
+        "opponent_rank_gte",
+        "opponent_rank_between",
+        "opponent_is_big6",
+        "matchday_start",
+        "matchday_end",
+    ]
+    return any(filters.get(k) is not None for k in context_keys)
+
+def _has_match_level_logic(plan) -> bool:
+    if getattr(plan, "match_conditions", None):
+        return True
+
+    if plan.table_scope in {"player_match", "player_match_event", "team_match"}:
+        if plan.aggregation in {"count_matches_positive", "points", "wins", "goal_difference"}:
+            return True
+
+    return False
 
 class LLMQueryEngineV2:
     def __init__(self):
         self.players_df = pl.read_parquet(PLAYER_DATA_PATH)
-        self.teams_df   = pl.read_parquet(TEAM_DATA_PATH)
+        self.teams_df = pl.read_parquet(TEAM_DATA_PATH)
 
         if "goal_contributions" not in self.players_df.columns:
             self.players_df = self.players_df.with_columns(
@@ -96,61 +221,202 @@ class LLMQueryEngineV2:
             )
 
         self.client = get_llm_client()
-        self.model  = get_model()
+        self.model = get_model()
 
-        # Constrain enums to columns that actually exist in the parquets
         self._player_enum = [c for c in PLAYER_COLS if c in self.players_df.columns]
-        self._team_enum   = [c for c in TEAM_COLS   if c in self.teams_df.columns]
+        self._team_enum = [c for c in TEAM_COLS if c in self.teams_df.columns]
 
-        self._resolve_prompt   = _load_prompt("resolve_metric")
+        self._resolve_prompt = _load_prompt("resolve_metric")
         self._verbalize_prompt = _load_prompt("verbalize")
 
-    #Helper determinista para preguntas muy simples 
-    def _resolve_fast_path(self, q: str) -> MetricResolution | None:
-        # player basics
-        if "most minutes" in q or "played the most minutes" in q or "most total minutes" in q:
-            return MetricResolution(metric="total_minutes", descending=True, table="players")
+        self.duck = DuckDBManager()
+        self.planner = QueryPlanner()
 
-        if "most assists" in q:
+    def _metric_description(self, metric: str) -> str:
+        col_descriptions = self._resolve_prompt.get("column_descriptions", {})
+        col_aliases = self._resolve_prompt.get("column_aliases", {})
+
+        desc = col_descriptions.get(metric, metric)
+        aliases = col_aliases.get(metric, [])
+
+        if aliases:
+            return f"{metric}: {desc}. Aliases/examples: {', '.join(aliases)}"
+        return f"{metric}: {desc}"
+
+    def _resolve_fast_path(self, q: str) -> MetricResolution | None:
+        is_team_query = any(tok in q for tok in [" team ", " teams ", "equipo", "equipos"])
+
+        if any(p in q for p in [
+            "most goals", "top scorer", "scored the most goals",
+            "ha marcado mas goles", "ha metido mas goles", "lidera la liga en goles",
+            "maximo goleador", "maximos goleadores"
+        ]):
+            return MetricResolution(
+                metric="total_goals",
+                descending=True,
+                table="teams" if is_team_query else "players"
+            )
+
+        if any(p in q for p in [
+            "most assists", "highest assists",
+            "mas asistencias", "tiene mas asistencias", "lidera la liga en asistencias"
+        ]):
             return MetricResolution(metric="total_assists", descending=True, table="players")
 
-        if "most yellow cards" in q or "received the most yellow cards" in q:
+        if any(p in q for p in [
+            "most minutes", "played the most minutes", "most total minutes",
+            "mas minutos", "ha jugado mas minutos"
+        ]):
+            return MetricResolution(metric="total_minutes", descending=True, table="players")
+
+        if any(p in q for p in [
+            "most yellow cards", "received the most yellow cards",
+            "mas tarjetas amarillas", "ha visto mas amarillas"
+        ]):
             return MetricResolution(metric="total_yellow_cards", descending=True, table="players")
 
-        # player / team goals
-        if "most goals" in q and "team" not in q:
-            return MetricResolution(metric="total_goals", descending=True, table="players")
-
-        if "most goals" in q and "team" in q:
-            return MetricResolution(metric="total_goals", descending=True, table="teams")
-
-        # team basics
-        if (
-            "fewest goals conceded" in q
-            or "conceded the fewest" in q
-            or "fewest conceded goals" in q
-        ):
+        if any(p in q for p in [
+            "fewest goals conceded", "conceded the fewest", "fewest conceded goals",
+            "menos goles encajados", "ha encajado menos goles"
+        ]):
             return MetricResolution(metric="total_goals_against", descending=False, table="teams")
 
-        
-        
+        if any(p in q for p in [
+            "most accurate passing", "best pass accuracy",
+            "mayor precision de pase", "mejor precision de pase", "mejor porcentaje de pase"
+        ]):
+            return MetricResolution(
+                metric="pass_accuracy_pct",
+                descending=True,
+                table="teams" if is_team_query else "players"
+            )
 
-        if "provokes the most offsides" in q or "most offsides" in q:
+        if any(p in q for p in [
+            "provokes the most offsides", "most offsides",
+            "provoca mas fueras de juego", "mas fueras de juego"
+        ]):
             return MetricResolution(metric="offsides", descending=True, table="teams")
 
         return None
 
-    # ── Step 1: LLM resolves metric via tool use ────────────────────────────
+    def _result_metric_name_from_plan(self, plan, filters: dict) -> str:
+        if plan.table_scope in {"players_summary", "teams_summary"}:
+            return plan.metric
+
+        if plan.table_scope == "player_match":
+
+            if plan.match_conditions:
+                if len(plan.match_conditions) == 2:
+                    cond_metrics = sorted([mc.metric for mc in plan.match_conditions])
+                    if cond_metrics == ["assists", "goals"]:
+                        return "matches_scored_and_assisted"
+
+                if len(plan.match_conditions) == 1:
+                    mc = plan.match_conditions[0]
+                    if mc.metric == "goals" and mc.operator == ">=" and float(mc.value) == 2:
+                        return "two_goal_matches"
+            
+            if plan.metric == "goals" and filters.get("team_name") and filters.get("matchday_start") and filters.get("matchday_end"):
+                return f"goals_gw_{filters['matchday_start']}_{filters['matchday_end']}"
+
+            if plan.metric == "goals" and filters.get("opponent_rank_lte") is not None:
+                return f"goals_vs_top{filters['opponent_rank_lte']}"
+
+            if plan.metric == "goals" and filters.get("is_home") is False:
+                return "away_goals"
+
+            if plan.metric == "goals":
+                if filters.get("team_name") and filters.get("matchday_start") and filters.get("matchday_end"):
+                    return f"goals_gw_{filters['matchday_start']}_{filters['matchday_end']}"
+                if filters.get("opponent_is_big6") is True:
+                    return "goals_vs_big6"
+                if filters.get("opponent_rank_lte") is not None:
+                    return f"goals_vs_top{filters['opponent_rank_lte']}"
+                if filters.get("opponent_rank_gte") is not None:
+                    bottom_n = 21 - filters["opponent_rank_gte"]
+                    return f"goals_vs_bottom{bottom_n}"
+                if filters.get("is_home") is False:
+                    return "away_goals"
+
+            return plan.metric
+
+        if plan.table_scope == "player_match_event":
+            if plan.metric == "progressive_passes" and filters.get("opponent_rank_lte") is not None:
+                return f"progressive_passes_vs_top{filters['opponent_rank_lte']}"
+            if plan.metric == "touches_in_box" and filters.get("is_home") is False:
+                return "touches_in_box_away"
+            if plan.metric == "key_passes" and filters.get("matchday_start") and filters.get("matchday_end"):
+                return f"key_passes_gw_{filters['matchday_start']}_{filters['matchday_end']}"
+            if plan.metric == "shot_assists" and filters.get("opponent_is_big6") is True:
+                return "shot_assists_vs_big6"
+            return plan.metric
+
+        if plan.table_scope == "team_match":
+            if plan.aggregation == "points" and filters.get("opponent_is_big6") is True:
+                return "points_vs_big6"
+
+            if plan.aggregation == "wins" and filters.get("is_home") is False:
+                return "away_wins"
+
+            if plan.aggregation == "goal_difference" and filters.get("matchday_start") and filters.get("matchday_end"):
+                return f"goal_difference_gw_{filters['matchday_start']}_{filters['matchday_end']}"
+
+            if (
+                plan.metric == "team_score"
+                and filters.get("is_home") is False
+                and filters.get("opponent_rank_lte") is None
+                and filters.get("opponent_is_big6") is None
+            ):
+                return "away_goals"
+
+            if plan.metric == "team_score" and filters.get("is_home") is False and filters.get("opponent_rank_lte") is not None:
+                return f"away_goals_vs_top{filters['opponent_rank_lte']}"
+            if plan.metric.startswith("actions_z") and filters.get("opponent_team_name"):
+                suffix = _slug_metric_suffix(filters["opponent_team_name"])
+                return f"{plan.metric}_vs_{suffix}"
+            return plan.metric
+
+        return plan.metric
+
+    def _is_contextual_question(self, question: str) -> bool:
+        q = _normalize_text(question)
+
+        patterns = [
+            "between matchdays",
+            "between gameweeks",
+            "entre jornadas",
+            "against top-",
+            "against top ",
+            "against bottom",
+            "contra top",
+            "contra equipos del top",
+            "against big six",
+            "against big 6",
+            "against big6",
+            "contra equipos del big six",
+            "away from home",
+            "away goals",
+            "away wins",
+            "fuera de casa",
+            "at home",
+            "en casa",
+            "against ",
+            "versus ",
+            "vs ",
+            "contra ",
+            "matches with",
+            "partidos con",
+            "actions in z3",
+            "acciones en z3",
+        ]
+        return any(p in q for p in patterns)
 
     def _resolve_metric(self, question: str) -> MetricResolution:
-        col_descriptions = self._resolve_prompt["column_descriptions"]
+        q_norm = f" {_normalize_text(question)} "
 
-        q = question.lower()
-
-        fast = self._resolve_fast_path(q)
+        fast = self._resolve_fast_path(q_norm)
         if fast:
             return fast
-        
 
         def _tool(name: str, enum: list[str]) -> dict:
             return {
@@ -165,8 +431,7 @@ class LLMQueryEngineV2:
                                 "type": "string",
                                 "enum": enum,
                                 "description": "\n".join(
-                                    f"{c}: {col_descriptions[c]}"
-                                    for c in enum if c in col_descriptions
+                                    self._metric_description(c) for c in enum
                                 ),
                             },
                             "descending": {"type": "boolean"},
@@ -182,22 +447,20 @@ class LLMQueryEngineV2:
             model=self.model,
             messages=[
                 {"role": "system", "content": self._resolve_prompt["system"]},
-                {"role": "user",   "content": question},
+                {"role": "user", "content": question},
             ],
             tools=tools,
             tool_choice="required",
         )
 
-        call  = response.choices[0].message.tool_calls[0]
-        args  = json.loads(call.function.arguments)
+        call = response.choices[0].message.tool_calls[0]
+        args = json.loads(call.function.arguments)
         table = "players" if call.function.name == "query_players" else "teams"
         return MetricResolution(metric=args["metric"], descending=args["descending"], table=table)
 
-    # ── Step 2: Code applies deterministic filters ──────────────────────────
-
-    def _execute(self, question: str, resolution: MetricResolution) -> QueryResult:
-        df      = self.players_df if resolution.table == "players" else self.teams_df
-        q       = question.lower()
+    def _execute_summary(self, question: str, resolution: MetricResolution) -> QueryResult:
+        df = self.players_df if resolution.table == "players" else self.teams_df
+        q = _normalize_text(question)
         filters = {}
 
         if resolution.table == "players":
@@ -207,47 +470,91 @@ class LLMQueryEngineV2:
                     filters["position"] = key
                     break
 
-            age_lt = _extract(r"\bunder\s+(\d+)\b", q) or _extract(r"\byounger than\s+(\d+)\b", q)
+            age_lt = (
+                _extract(r"\bunder\s+(\d+)\b", q)
+                or _extract(r"\byounger than\s+(\d+)\b", q)
+                or _extract(r"\bmenor(?:es)? de\s+(\d+)\b", q)
+                or _extract(r"\bsub[\-\s]?(\d+)\b", q)
+            )
             if age_lt and "birth_date" in df.columns:
                 df = df.with_columns(
                     ((pl.lit(20240801) - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)) / 10000)
-                    .cast(pl.Int64).alias("age")
+                    .cast(pl.Int64)
+                    .alias("age")
                 ).filter(pl.col("age") < age_lt)
                 filters["age_lt"] = age_lt
 
-            min_min = _extract(r"\bwith at least\s+(\d+)\s+minutes\b", q) or _extract(r"\bmore than\s+(\d+)\s+minutes\b", q)
+            min_min = (
+                _extract(r"\bwith at least\s+(\d+)\s+minutes\b", q)
+                or _extract(r"\bmore than\s+(\d+)\s+minutes\b", q)
+                or _extract(r"\bal menos\s+(\d+)\s+minutos\b", q)
+                or _extract(r"\bcon al menos\s+(\d+)\s+minutos\b", q)
+            )
             if min_min:
                 df = df.filter(pl.col("total_minutes") >= min_min)
                 filters["min_minutes"] = min_min
 
-            min_apps = _extract(r"\bminimum\s+(\d+)\s+(?:appearances|matches|games)\b", q) or \
-                       _extract(r"\bat least\s+(\d+)\s+(?:appearances|matches|games)\b", q)
+            min_apps = (
+                _extract(r"\bminimum\s+(\d+)\s+(?:appearances|matches|games)\b", q)
+                or _extract(r"\bat least\s+(\d+)\s+(?:appearances|matches|games)\b", q)
+                or _extract(r"\bal menos\s+(\d+)\s+(?:partidos|apariciones)\b", q)
+                or _extract(r"\bminimo\s+(\d+)\s+(?:partidos|apariciones)\b", q)
+            )
             if min_apps:
                 df = df.filter(pl.col("matches_played") >= min_apps)
                 filters["min_matches"] = min_apps
 
-        top_n  = next(
-            (int(re.search(p, q).group(1)) for p in [
-                r"\btop\s+(\d+)\b", r"\bbest\s+(\d+)\b",
-                r"\b(\d+)\s+(?:teams|players)\b",
-            ] if re.search(p, q)),
-            1,
-        )
+        if resolution.table == "players":
+            sort_cols = [resolution.metric]
+            descending_flags = [resolution.descending]
 
-        sorted_df = df.sort(resolution.metric, descending=resolution.descending, nulls_last=True)
-        result_df = sorted_df.head(top_n)
+            if "total_minutes" in df.columns and resolution.metric != "total_minutes":
+                sort_cols.append("total_minutes")
+                descending_flags.append(
+                    _player_tiebreak_desc_for_minutes(
+                        resolution.metric,
+                        resolution.descending,
+                    )
+                )
 
-        if top_n == 1:
-            boundary  = result_df[resolution.metric][-1]
-            result_df = sorted_df.filter(pl.col(resolution.metric) == boundary)
+            if "short_name" in df.columns:
+                sort_cols.append("short_name")
+                descending_flags.append(False)
+
+            sorted_df = df.sort(by=sort_cols, descending=descending_flags, nulls_last=True)
+        else:
+            sort_cols = [resolution.metric]
+            descending_flags = [resolution.descending]
+
+            if "team_name" in df.columns:
+                sort_cols.append("team_name")
+                descending_flags.append(False)
+
+            sorted_df = df.sort(by=sort_cols, descending=descending_flags, nulls_last=True)
+
+        rank_position = _extract_rank_position(q) if _is_ordinal_query(q) else None
+        top_n = _extract_top_n(q)
+
+        if rank_position is not None:
+            if rank_position < 1 or rank_position > sorted_df.height:
+                result_df = sorted_df.head(0)
+            else:
+                result_df = sorted_df.slice(rank_position - 1, 1)
+            filters["rank_position"] = rank_position
+        else:
+            result_df = sorted_df.head(top_n)
+            filters["top_n"] = top_n
+
+            if top_n == 1 and result_df.height > 0:
+                boundary = result_df[resolution.metric][0]
+                result_df = sorted_df.filter(pl.col(resolution.metric) == boundary)
 
         display = (
             ["short_name", "team_name", "main_position", "age", resolution.metric, "matches_played", "total_minutes"]
             if resolution.table == "players"
             else ["team_name", resolution.metric, "total_goals", "total_goals_against"]
         )
-        
-        display = list(dict.fromkeys(c for c in display if c in df.columns))
+        display = list(dict.fromkeys(c for c in display if c in result_df.columns))
 
         result_df = result_df.select(display)
         result_df = result_df.with_columns([
@@ -263,7 +570,191 @@ class LLMQueryEngineV2:
             filters_applied=filters,
         )
 
-    # ── Step 3: LLM verbalizes grounded result ──────────────────────────────
+    def _execute_planned_query(self, question: str) -> QueryResult | None:
+        
+        try:
+            plan = self.planner.resolve(question)
+        except Exception as e:
+            print(f"[PLANNER ERROR] {question} -> {repr(e)}")
+            return None
+
+        if not self._should_use_planner_result(question, plan):
+            return None
+
+        filters = plan.filters.model_dump()
+        ranking = plan.ranking.model_dump()
+
+        if plan.table_scope == "players_summary":
+            rows = self.duck.query_summary_context(
+                scope="players_summary",
+                metric=plan.metric,
+                descending=(ranking["mode"] != "entity_value"),
+                entity_type=plan.entity_type,
+                player_name=filters.get("player_name"),
+                team_name=filters.get("team_name"),
+                position=filters.get("position"),
+                age_lt=filters.get("age_lt"),
+                min_minutes=filters.get("min_minutes"),
+                min_matches=filters.get("min_matches"),
+                rank_position=ranking.get("ordinal") if ranking.get("mode") == "ordinal" else None,
+                top_n=ranking.get("n") or 1,
+            )
+            result_metric, rows = self._shape_rows_for_result(plan, rows, filters)
+            return QueryResult(
+                table="players_summary",
+                metric=result_metric,
+                rows=rows,
+                filters_applied=filters | {"ranking": ranking},
+            )
+
+        if plan.table_scope == "teams_summary":
+            descending = True
+            if plan.metric == "total_goals_against":
+                descending = False
+
+            rows = self.duck.query_summary_context(
+                scope="teams_summary",
+                metric=plan.metric,
+                descending=descending,
+                entity_type=plan.entity_type,
+                team_name=filters.get("team_name"),
+                rank_position=ranking.get("ordinal") if ranking.get("mode") == "ordinal" else None,
+                top_n=ranking.get("n") or 1,
+            )
+            result_metric, rows = self._shape_rows_for_result(plan, rows, filters)
+            return QueryResult(
+                table="teams_summary",
+                metric=result_metric,
+                rows=rows,
+                filters_applied=filters | {"ranking": ranking},
+            )
+
+        if plan.table_scope == "player_match":
+            rows = self.duck.query_player_match_context(
+                metric=plan.metric,
+                agg=plan.aggregation,
+                player_name=filters.get("player_name"),
+                team_name=filters.get("team_name"),
+                is_home=filters.get("is_home"),
+                opponent_team_name=filters.get("opponent_team_name"),
+                opponent_rank_lte=filters.get("opponent_rank_lte"),
+                opponent_rank_gte=filters.get("opponent_rank_gte"),
+                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_is_big6=filters.get("opponent_is_big6"),
+                matchday_start=filters.get("matchday_start"),
+                matchday_end=filters.get("matchday_end"),
+                match_conditions=(
+                    [mc.model_dump() for mc in plan.match_conditions]
+                    if plan.match_conditions else None
+                ),
+                limit=ranking.get("n") or 1,
+            )
+            result_metric, rows = self._shape_rows_for_result(plan, rows, filters)
+            return QueryResult(
+                table="player_match_stats",
+                metric=result_metric,
+                rows=rows,
+                filters_applied=filters | {"ranking": ranking},
+            )
+
+        if plan.table_scope == "player_match_event":
+            rows = self.duck.query_player_match_event_context(
+                metric=plan.metric,
+                agg=plan.aggregation,
+                player_name=filters.get("player_name"),
+                team_name=filters.get("team_name"),
+                position=filters.get("position"),
+                is_home=filters.get("is_home"),
+                opponent_team_name=filters.get("opponent_team_name"),
+                opponent_rank_lte=filters.get("opponent_rank_lte"),
+                opponent_rank_gte=filters.get("opponent_rank_gte"),
+                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_is_big6=filters.get("opponent_is_big6"),
+                matchday_start=filters.get("matchday_start"),
+                matchday_end=filters.get("matchday_end"),
+                limit=ranking.get("n") or 1,
+            )
+            result_metric, rows = self._shape_rows_for_result(plan, rows, filters)
+            return QueryResult(
+                table="player_match_event_stats",
+                metric=result_metric,
+                rows=rows,
+                filters_applied=filters | {"ranking": ranking, "aggregation": plan.aggregation},
+            )
+
+        if plan.table_scope == "team_match":
+            rows = self.duck.query_team_match_context(
+                metric=plan.metric,
+                agg=plan.aggregation,
+                team_name=filters.get("team_name"),
+                is_home=filters.get("is_home"),
+                opponent_team_name=filters.get("opponent_team_name"),
+                opponent_rank_lte=filters.get("opponent_rank_lte"),
+                opponent_rank_gte=filters.get("opponent_rank_gte"),
+                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_is_big6=filters.get("opponent_is_big6"),
+                matchday_start=filters.get("matchday_start"),
+                matchday_end=filters.get("matchday_end"),
+                limit=ranking.get("n") or 1,
+            )
+            result_metric, rows = self._shape_rows_for_result(plan, rows, filters)
+            return QueryResult(
+                table="team_match_stats",
+                metric=result_metric,
+                rows=rows,
+                filters_applied=filters | {"ranking": ranking, "aggregation": plan.aggregation},
+            )
+
+        return None
+
+    def _shape_rows_for_result(self, plan, rows: list[dict], filters: dict) -> tuple[str, list[dict]]:
+        result_metric = self._result_metric_name_from_plan(plan, filters)
+
+        shaped = []
+        for row in rows:
+            new_row = dict(row)
+            if "metric_value" in new_row:
+                new_row[result_metric] = new_row.pop("metric_value")
+            shaped.append(new_row)
+
+        return result_metric, shaped
+
+    def _should_use_planner_result(self, question: str, plan) -> bool:
+        q = _normalize_text(question)
+        filters = plan.filters.model_dump()
+
+        explicit_team_words = any(w in q for w in [
+            " team ", " teams ", "club", "side", "equipo", "equipos"
+        ])
+        explicit_player_words = any(w in q for w in [
+            "player", "players", "jugador", "jugadores"
+        ])
+
+        has_context = _has_match_context_filters(filters)
+        has_match_logic = _has_match_level_logic(plan)
+        is_contextual = self._is_contextual_question(question)
+
+        if explicit_team_words and plan.entity_type == "player":
+            return False
+
+        if explicit_player_words and plan.entity_type == "team":
+            return False
+
+        # contextual questions must stay on contextual scopes
+        if is_contextual:
+            if not has_context and not has_match_logic:
+                return False
+
+            if plan.table_scope in {"players_summary", "teams_summary"}:
+                return False
+
+        # non-contextual questions should not go to match scopes unless there is real match logic
+        if not has_context and not has_match_logic and plan.table_scope in {
+            "player_match", "player_match_event", "team_match"
+        }:
+            return False
+
+        return True
 
     def _verbalize(self, question: str, result: QueryResult) -> str:
         p = self._verbalize_prompt
@@ -272,16 +763,48 @@ class LLMQueryEngineV2:
             model=self.model,
             messages=[
                 {"role": "system", "content": p["system"]},
-                {"role": "user",   "content": prompt},
+                {"role": "user", "content": prompt},
             ],
         )
         return response.choices[0].message.content.strip()
 
-    # ── Public interface ─────────────────────────────────────────────────────
-
     def ask(self, question: str) -> dict:
+        is_contextual = self._is_contextual_question(question)
+
+        planned_result = self._execute_planned_query(question)
+
+        if planned_result is not None:
+            answer = self._verbalize(question, planned_result)
+            return {
+                "type": "text",
+                "content": answer,
+                "debug": {
+                    "engine": "planner_duckdb",
+                    "table": planned_result.table,
+                    "metric": planned_result.metric,
+                    "descending": None,
+                    "filters": planned_result.filters_applied,
+                    "rows": planned_result.rows,
+                },
+            }
+
+        # if the question is contextual, do NOT silently fall back to legacy summary logic
+        if is_contextual:
+            return {
+                "type": "text",
+                "content": "I could not resolve that contextual query with the current planner.",
+                "debug": {
+                    "engine": "planner_duckdb_failed",
+                    "table": None,
+                    "metric": None,
+                    "descending": None,
+                    "filters": {},
+                    "rows": [],
+                },
+            }
+
         resolution = self._resolve_metric(question)
-        result = self._execute(question, resolution)
+        result = self._execute_summary(question, resolution)
         answer = self._verbalize(question, result)
 
         return {
@@ -297,4 +820,9 @@ class LLMQueryEngineV2:
             },
         }
 
-    
+    def __del__(self):
+        try:
+            if hasattr(self, "duck"):
+                self.duck.close()
+        except Exception:
+            pass

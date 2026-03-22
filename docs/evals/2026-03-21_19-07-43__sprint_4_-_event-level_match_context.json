@@ -1,0 +1,227 @@
+{
+  "summary": {
+    "benchmark_path": "questions_benchmark_v5.json",
+    "total_passed": 5,
+    "total_questions": 5,
+    "score": "5/5",
+    "by_category": {
+      "player_match_event_context": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      }
+    },
+    "by_expected_stage": {
+      "sprint_4": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5",
+        "stage_name": "Sprint 4 - Event-level match context"
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "QV5_41",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+      "expected": {
+        "short_name": "Bruno Fernandes",
+        "team_name": "Manchester United",
+        "progressive_passes_vs_top6": 111
+      },
+      "agent_text": "Bruno Fernandes (Manchester United) completed the most progressive passes against top-6 teams: 111.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "progressive_passes_vs_top6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "progressive_passes",
+          "position": "midfielder",
+          "opponent_rank_lte": 6
+        },
+        "rows": [
+          {
+            "short_name": "Bruno Fernandes",
+            "team_name": "Manchester United",
+            "progressive_passes_vs_top6": 111.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Bruno Fernandes",
+          "team_name": "Manchester United",
+          "progressive_passes_vs_top6": 111.0
+        }
+      }
+    },
+    {
+      "id": "QV5_42",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has recorded the most touches in the box away from home this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "touches_in_box_away": 165
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most touches in the box away from home: 165.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "touches_in_box_away",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "touches_in_box",
+          "is_home": false
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "touches_in_box_away": 165.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "touches_in_box_away": 165.0
+        }
+      }
+    },
+    {
+      "id": "QV5_43",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player made the most key passes between matchdays 25 and 30?",
+      "expected": {
+        "short_name": "L. Díaz",
+        "team_name": "Liverpool",
+        "key_passes_gw_25_30": 8
+      },
+      "agent_text": "L. Díaz (Liverpool) made the most key passes in that matchday range: 8.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "key_passes_gw_25_30",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "key_passes",
+          "matchday_start": 25,
+          "matchday_end": 30
+        },
+        "rows": [
+          {
+            "short_name": "L. Díaz",
+            "team_name": "Liverpool",
+            "key_passes_gw_25_30": 8.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "L. Díaz",
+          "team_name": "Liverpool",
+          "key_passes_gw_25_30": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV5_44",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has the most shot assists against Big Six teams?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most shot assists against Big Six teams: 19.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "shot_assists",
+          "opponent_is_big6": true
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_45",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "agent_text": "Mohamed Salah (Liverpool) recorded the most shot assists against Big Six teams: 19.",
+      "debug": {
+        "engine": "duckdb_player_match_event",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "query_type": "player_match_event_context",
+          "metric": "shot_assists",
+          "opponent_is_big6": true
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ]
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    }
+  ]
+}

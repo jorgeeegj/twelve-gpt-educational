@@ -1,0 +1,535 @@
+[
+  {
+    "id": "QV4_01",
+    "category": "baseline_player_basic",
+    "expected_stage": "baseline",
+    "question": "Who has scored the most goals this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_goals": 29
+    }
+  },
+  {
+    "id": "QV4_02",
+    "category": "baseline_player_basic",
+    "expected_stage": "baseline",
+    "question": "Who has the most assists this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_assists": 16
+    }
+  },
+  {
+    "id": "QV4_03",
+    "category": "baseline_player_basic",
+    "expected_stage": "baseline",
+    "question": "Which player has played the most minutes?",
+    "answer": {
+      "short_name": "B. Leno",
+      "team_name": "Fulham",
+      "total_minutes": 3420
+    }
+  },
+  {
+    "id": "QV4_04",
+    "category": "baseline_player_basic",
+    "expected_stage": "baseline",
+    "question": "Who has received the most yellow cards?",
+    "answer": {
+      "short_name": "S. Lukić",
+      "team_name": "Fulham",
+      "total_yellow_cards": 12
+    }
+  },
+  {
+    "id": "QV4_05",
+    "category": "baseline_player_basic",
+    "expected_stage": "baseline",
+    "question": "Which player has the best goals per 90 minutes (minimum 10 appearances)?",
+    "answer": {
+      "short_name": "J. Durán",
+      "team_name": "Aston Villa",
+      "total_goals_p90": 0.85
+    }
+  },
+  {
+    "id": "QV4_06",
+    "category": "baseline_team_basic",
+    "expected_stage": "baseline",
+    "question": "Which team has scored the most goals?",
+    "answer": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    }
+  },
+  {
+    "id": "QV4_07",
+    "category": "baseline_team_basic",
+    "expected_stage": "baseline",
+    "question": "Which team has conceded the fewest goals?",
+    "answer": {
+      "team_name": "Arsenal",
+      "total_goals_against": 34
+    }
+  },
+  {
+    "id": "QV4_08",
+    "category": "baseline_team_basic",
+    "expected_stage": "baseline",
+    "question": "Which team wins the most aerial duels?",
+    "answer": {
+      "team_name": "Everton",
+      "aerial_duels_won": 691.0
+    }
+  },
+  {
+    "id": "QV4_09",
+    "category": "baseline_team_basic",
+    "expected_stage": "baseline",
+    "question": "Which team has the most accurate passing?",
+    "answer": {
+      "team_name": "Manchester City",
+      "pass_accuracy_pct": 89.84
+    }
+  },
+  {
+    "id": "QV4_10",
+    "category": "baseline_team_basic",
+    "expected_stage": "baseline",
+    "question": "Which team provokes the most offsides?",
+    "answer": {
+      "team_name": "Nottingham Forest",
+      "offsides": 87.0
+    }
+  },
+  {
+    "id": "QV4_11",
+    "category": "baseline_player_advanced",
+    "expected_stage": "baseline",
+    "question": "Which midfielder has the most progressive passes per 90?",
+    "answer": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "progressive_passes_p90": 11.03
+    }
+  },
+  {
+    "id": "QV4_12",
+    "category": "baseline_player_advanced",
+    "expected_stage": "baseline",
+    "question": "Which player has the highest dribble success rate (minimum 10 appearances)?",
+    "answer": {
+      "short_name": "K. Walker",
+      "team_name": "Manchester City",
+      "dribble_success_pct": 100.0
+    }
+  },
+  {
+    "id": "QV4_13",
+    "category": "baseline_player_advanced",
+    "expected_stage": "baseline",
+    "question": "Which forward has the most shots on target per 90?",
+    "answer": {
+      "short_name": "D. Malen",
+      "team_name": "Aston Villa",
+      "shots_on_target_p90": 1.89
+    }
+  },
+  {
+    "id": "QV4_14",
+    "category": "baseline_player_advanced",
+    "expected_stage": "baseline",
+    "question": "Which player makes the most recoveries per 90?",
+    "answer": {
+      "short_name": "M. Senesi",
+      "team_name": "Bournemouth",
+      "recoveries_p90": 13.9
+    }
+  },
+  {
+    "id": "QV4_15",
+    "category": "baseline_player_advanced",
+    "expected_stage": "baseline",
+    "question": "Which defender wins the most aerial duels per 90?",
+    "answer": {
+      "short_name": "D. Burn",
+      "team_name": "Newcastle United",
+      "aerial_duels_won_p90": 3.95
+    }
+  },
+  {
+    "id": "QV4_16",
+    "category": "baseline_player_filtered",
+    "expected_stage": "baseline",
+    "question": "Which player under 23 has scored the most goals?",
+    "answer": {
+      "short_name": "C. Palmer",
+      "team_name": "Chelsea",
+      "age": 22,
+      "total_goals": 15
+    }
+  },
+  {
+    "id": "QV4_17",
+    "category": "baseline_player_filtered",
+    "expected_stage": "baseline",
+    "question": "Which midfielder has the best pass accuracy?",
+    "answer": {
+      "short_name": "C. Jones",
+      "team_name": "Liverpool",
+      "pass_accuracy_pct": 94.02
+    }
+  },
+  {
+    "id": "QV4_18",
+    "category": "baseline_player_filtered",
+    "expected_stage": "baseline",
+    "question": "Which forward has the most touches in the box per 90?",
+    "answer": {
+      "short_name": "J. Doku",
+      "team_name": "Manchester City",
+      "touches_in_box_p90": 8.91
+    }
+  },
+  {
+    "id": "QV4_19",
+    "category": "baseline_team_advanced",
+    "expected_stage": "baseline",
+    "question": "Which team has the most progressive passes per 90?",
+    "answer": {
+      "team_name": "Liverpool",
+      "progressive_passes_p90": 70.38
+    }
+  },
+  {
+    "id": "QV4_20",
+    "category": "baseline_team_advanced",
+    "expected_stage": "baseline",
+    "question": "Which team has the most key passes per 90?",
+    "answer": {
+      "team_name": "Liverpool",
+      "key_passes_p90": 5.12
+    }
+  },
+  {
+    "id": "QV4_21",
+    "category": "rephrase_en",
+    "expected_stage": "sprint_1",
+    "question": "Who is the top scorer this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_goals": 29
+    }
+  },
+  {
+    "id": "QV4_22",
+    "category": "rephrase_en",
+    "expected_stage": "sprint_1",
+    "question": "Which club has the best attack by total goals this season?",
+    "answer": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    }
+  },
+  {
+    "id": "QV4_23",
+    "category": "rephrase_en",
+    "expected_stage": "sprint_1",
+    "question": "Which side allowed the fewest goals this season?",
+    "answer": {
+      "team_name": "Arsenal",
+      "total_goals_against": 34
+    }
+  },
+  {
+    "id": "QV4_24",
+    "category": "rephrase_es",
+    "expected_stage": "sprint_1",
+    "question": "¿Quién lidera la liga en asistencias esta temporada?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_assists": 16
+    }
+  },
+  {
+    "id": "QV4_25",
+    "category": "rephrase_es",
+    "expected_stage": "sprint_1",
+    "question": "¿Qué equipo ha marcado más goles esta temporada?",
+    "answer": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    }
+  },
+  {
+    "id": "QV4_26",
+    "category": "rephrase_es",
+    "expected_stage": "sprint_1",
+    "question": "¿Qué jugador ha jugado más minutos esta temporada?",
+    "answer": {
+      "short_name": "B. Leno",
+      "team_name": "Fulham",
+      "total_minutes": 3420
+    }
+  },
+  {
+    "id": "QV4_27",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Who is 2nd in assists this season?",
+    "answer": {
+      "short_name": "J. Murphy",
+      "team_name": "Newcastle United",
+      "total_assists": 11
+    }
+  },
+  {
+    "id": "QV4_28",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Who is 7th for total minutes played this season?",
+    "answer": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_minutes": 3413
+    }
+  },
+  {
+    "id": "QV4_29",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Who is 6th in the top scoring list this season?",
+    "answer": {
+      "short_name": "Y. Wissa",
+      "team_name": "Brentford",
+      "total_goals": 18
+    }
+  },
+  {
+    "id": "QV4_30",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Which team is 3rd in goals scored this season?",
+    "answer": {
+      "team_name": "Arsenal",
+      "total_goals": 69
+    }
+  },
+  {
+    "id": "QV4_31",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Which team has the 3rd fewest goals conceded this season?",
+    "answer": {
+      "team_name": "Chelsea",
+      "total_goals_against": 43
+    }
+  },
+  {
+    "id": "QV4_32",
+    "category": "ordinal_ranking",
+    "expected_stage": "sprint_1",
+    "question": "Who is 20th in goals scored this season?",
+    "answer": {
+      "short_name": "João Pedro",
+      "team_name": "Brighton",
+      "total_goals": 10
+    }
+  },
+  {
+    "id": "QV4_33",
+    "category": "match_level_minutes",
+    "expected_stage": "sprint_2",
+    "question": "Which player has the most matches with both a goal and an assist?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "matches_scored_and_assisted": 10
+    }
+  },
+  {
+    "id": "QV4_34",
+    "category": "match_level_minutes",
+    "expected_stage": "sprint_2",
+    "question": "Which player has the most matches with 2 or more goals?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "two_goal_matches": 5
+    }
+  },
+  {
+    "id": "QV4_35",
+    "category": "match_level_minutes",
+    "expected_stage": "sprint_2",
+    "question": "Which Liverpool player scored the most goals between matchdays 25 and 30?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "goals_gw_25_30": 5
+    }
+  },
+  {
+    "id": "QV4_36",
+    "category": "match_level_minutes",
+    "expected_stage": "sprint_2",
+    "question": "Which Manchester City player scored the most goals between matchdays 25 and 30?",
+    "answer": {
+      "short_name": "Omar Marmoush",
+      "team_name": "Manchester City",
+      "goals_gw_25_30": 5
+    }
+  },
+  {
+    "id": "QV4_37",
+    "category": "opponent_context",
+    "expected_stage": "sprint_3",
+    "question": "Which player has scored the most goals against top-6 teams this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "goals_vs_top6": 8
+    }
+  },
+  {
+    "id": "QV4_38",
+    "category": "opponent_context",
+    "expected_stage": "sprint_3",
+    "question": "How many goals has E. Haaland scored against top-6 teams this season?",
+    "answer": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "goals_vs_top6": 4
+    }
+  },
+  {
+    "id": "QV4_39",
+    "category": "home_away_context",
+    "expected_stage": "sprint_3",
+    "question": "Which player has scored the most away goals this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "away_goals": 16
+    }
+  },
+  {
+    "id": "QV4_40",
+    "category": "home_away_context",
+    "expected_stage": "sprint_3",
+    "question": "Which team has scored the most away goals this season?",
+    "answer": {
+      "team_name": "Liverpool",
+      "away_goals": 44
+    }
+  },
+  {
+    "id": "QV5_41",
+    "category": "player_match_event_context",
+    "expected_stage": "sprint_4",
+    "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+    "answer": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "progressive_passes_vs_top6": 111
+    }
+  },
+  {
+    "id": "QV5_42",
+    "category": "player_match_event_context",
+    "expected_stage": "sprint_4",
+    "question": "Which player has recorded the most touches in the box away from home this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "touches_in_box_away": 165
+    }
+  },
+  {
+    "id": "QV5_43",
+    "category": "player_match_event_context",
+    "expected_stage": "sprint_4",
+    "question": "Which player made the most key passes between matchdays 25 and 30?",
+    "answer": {
+      "short_name": "L. Díaz",
+      "team_name": "Liverpool",
+      "key_passes_gw_25_30": 8
+    }
+  },
+  {
+    "id": "QV5_44",
+    "category": "player_match_event_context",
+    "expected_stage": "sprint_4",
+    "question": "Which player has the most shot assists against Big Six teams?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "shot_assists_vs_big6": 19
+    }
+  },
+  {
+    "id": "QV5_45",
+    "category": "player_match_event_context",
+    "expected_stage": "sprint_4",
+    "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "shot_assists_vs_big6": 19
+    }
+  },
+  {
+    "id": "QV5_46",
+    "category": "team_match_context",
+    "expected_stage": "sprint_5",
+    "question": "Which team won the most points against Big Six teams this season?",
+    "answer": {
+      "team_name": "Brighton",
+      "points_vs_big6": 24
+    }
+  },
+  {
+    "id": "QV5_47",
+    "category": "team_match_context",
+    "expected_stage": "sprint_5",
+    "question": "Which team scored the most away goals against top-6 teams this season?",
+    "answer": {
+      "team_name": "Bournemouth",
+      "away_goals_vs_top6": 10
+    }
+  },
+  {
+    "id": "QV5_48",
+    "category": "team_match_context",
+    "expected_stage": "sprint_5",
+    "question": "Which team had the best goal difference between matchdays 25 and 30?",
+    "answer": {
+      "team_name": "Liverpool",
+      "goal_difference_gw_25_30": 8
+    }
+  },
+  {
+    "id": "QV5_49",
+    "category": "team_match_context",
+    "expected_stage": "sprint_5",
+    "question": "¿Qué equipo consiguió más victorias fuera de casa esta temporada?",
+    "answer": {
+      "team_name": "Liverpool",
+      "away_wins": 11
+    }
+  },
+  {
+    "id": "QV5_50",
+    "category": "team_match_context",
+    "expected_stage": "sprint_5",
+    "question": "Which team had the most actions in z3 against Manchester City this season?",
+    "answer": {
+      "team_name": "Leicester City",
+      "actions_z3_vs_manchester_city": 378
+    }
+  }
+]

@@ -72,3 +72,81 @@ column_descriptions:
   key_passes_p90:          "Key passes per 90 (teams)"
   progressive_passes_p90:  "Progressive passes per 90 (teams)"
   offsides:                "Offsides provoked / caught (teams)"
+
+column_aliases:
+  total_goals:
+    - goals
+    - goals scored
+    - top scorer
+    - scoring
+    - goleador
+    - goles
+    - marcado
+    - metido goles
+
+  total_assists:
+    - assists
+    - assist tally
+    - asistencias
+    - dar asistencias
+
+  total_minutes:
+    - minutes played
+    - playing time
+    - minutos
+    - minutos jugados
+
+  total_yellow_cards:
+    - yellow cards
+    - bookings
+    - tarjetas amarillas
+    - amarillas
+
+  pass_accuracy_pct:
+    - pass accuracy
+    - passing accuracy
+    - accurate passing
+    - precision de pase
+    - porcentaje de pase
+
+  total_goals_against:
+    - goals conceded
+    - conceded goals
+    - encajados
+    - goles encajados
+
+  progressive_passes_p90:
+    - progressive passes per 90
+    - progressive passing rate
+    - pases progresivos por 90
+
+  key_passes_p90:
+    - key passes per 90
+    - chance creation per 90
+    - pases clave por 90
+
+  shots_on_target_p90:
+    - shots on target per 90
+    - on-target shots per 90
+    - tiros a puerta por 90
+
+  touches_in_box_p90:
+    - touches in the box per 90
+    - box touches per 90
+    - toques en el area por 90
+
+  aerial_duels_won_p90:
+    - aerial duels won per 90
+    - aerial wins per 90
+    - duelos aereos ganados por 90
+
+  recoveries_p90:
+    - recoveries per 90
+    - ball recoveries per 90
+    - recuperaciones por 90
+
+  dribble_success_pct:
+    - dribble success rate
+    - successful dribble percentage
+    - exito en regate
+    - porcentaje de regate

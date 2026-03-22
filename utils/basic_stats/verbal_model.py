@@ -540,7 +540,7 @@ QUALITY_DEFINITIONS = {
     "Breaking the Lines": {
         "formula": "pass_z2_to_z4_p90 (40%) + carry_z2_to_z4_p90 (40%) + progressive_passes_p90 (20%)",
         "columns": ["pass_z2_to_z4_p90", "carry_z2_to_z4_p90", "progressive_passes_p90"],
-        "weights": [0.40, 0.40, 0.20],
+        "weights": [0.40, 0.40, 0.20], #Estos pesos y stats podrían tener sentido
     },
     "Vertical Box Threat": {
         "formula": "carry_z3_to_z5_p90 (40%) + progressive_runs_p90 (35%) + pct_actions_z5 (25%)",

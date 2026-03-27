@@ -126,6 +126,31 @@ TEST_CASES = [
             "ranking_mode": "top_n",
         },
     },
+    {
+        "id": "P11",
+        "question": "Which player under 23 has scored the most goals?",
+        "expected": {
+            "table_scope": "players_summary",
+            "entity_type": "player",
+            "metric": "total_goals",
+            "aggregation": "sum",
+            "age_lt": 23,
+            "ranking_mode": "top_n",
+        },
+    },
+    {
+        "id": "P12",
+        "question": "Which team scored the most away goals against top-6 teams this season?",
+        "expected": {
+            "table_scope": "team_match",
+            "entity_type": "team",
+            "metric": "team_score",
+            "aggregation": "sum",
+            "is_home": False,
+            "opponent_rank_lte": 6,
+            "ranking_mode": "top_n",
+        },
+    },
 ]
 
 
@@ -147,7 +172,7 @@ def check_expected(plan_dict: dict, expected: dict) -> list[str]:
     filters = plan_dict.get("filters", {})
     ranking = plan_dict.get("ranking", {})
 
-    for key in ["team_name", "player_name", "opponent_team_name", "position", "is_home", "opponent_rank_lte", "opponent_is_big6", "matchday_start", "matchday_end"]:
+    for key in ["team_name", "player_name", "opponent_team_name", "position", "is_home", "opponent_rank_lte", "opponent_is_big6", "matchday_start", "matchday_end", "age_lt"]:
         if key in expected and filters.get(key) != expected[key]:
             errors.append(f"filters.{key} -> expected {expected[key]}, got {filters.get(key)}")
 
@@ -193,5 +218,59 @@ def main():
     print(f"PLANNER SCORE: {passed}/{len(TEST_CASES)}")
 
 
+CANONICALIZE_CASES = [
+    # metric alias normalization (no LLM)
+    {"id": "C01", "plan": {"metric": "yellow_cards", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_yellow_cards"},
+    {"id": "C02", "plan": {"metric": "yellow_card", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_yellow_cards"},
+    {"id": "C03", "plan": {"metric": "goals_per_90", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_goals_p90"},
+    {"id": "C04", "plan": {"metric": "progressive_passes_per_90", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "progressive_passes_p90"},
+    {"id": "C05", "plan": {"metric": "passing_accuracy", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "pass_accuracy_pct"},
+    {"id": "C06", "plan": {"metric": "offsides_drawn", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "offsides"},
+    {"id": "C07", "plan": {"metric": "team_score", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "total_goals"},
+    # aggregation canonicalization
+    {"id": "C08", "plan": {"metric": "total_goals", "table_scope": "players_summary", "aggregation": "mean", "entity_type": "player"}, "expect_aggregation": "avg"},
+    {"id": "C09", "plan": {"metric": "total_goals", "table_scope": "players_summary", "aggregation": "average", "entity_type": "player"}, "expect_aggregation": "avg"},
+    # per_90 aggregation: must NOT be converted (leave for legacy fallback)
+    {"id": "C10", "plan": {"metric": "recoveries", "table_scope": "players_summary", "aggregation": "per_90", "entity_type": "player"}, "expect_aggregation": "per_90"},
+    # scope guard: total_goals must NOT become team_score in teams_summary
+    {"id": "C11", "plan": {"metric": "total_goals", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "total_goals"},
+]
+
+
+def run_canonicalize_tests():
+    planner = QueryPlanner()
+    passed = 0
+
+    print("\n" + "=" * 100)
+    print("CANONICALIZE UNIT TESTS (no LLM)")
+    print("=" * 100)
+
+    for case in CANONICALIZE_CASES:
+        plan_in = dict(case["plan"])
+        try:
+            result = planner._canonicalize_raw_plan(question="", raw_plan=plan_in)
+            ok = True
+            errors = []
+            if "expect_metric" in case and result.get("metric") != case["expect_metric"]:
+                ok = False
+                errors.append(f"metric -> expected {case['expect_metric']}, got {result.get('metric')}")
+            if "expect_aggregation" in case and result.get("aggregation") != case["expect_aggregation"]:
+                ok = False
+                errors.append(f"aggregation -> expected {case['expect_aggregation']}, got {result.get('aggregation')}")
+
+            if ok:
+                passed += 1
+                print(f"{case['id']}: PASS")
+            else:
+                print(f"{case['id']}: FAIL - {'; '.join(errors)}")
+        except Exception as e:
+            print(f"{case['id']}: ERROR - {repr(e)}")
+
+    print(f"\nCANONICALIZE SCORE: {passed}/{len(CANONICALIZE_CASES)}")
+    return passed == len(CANONICALIZE_CASES)
+
+
 if __name__ == "__main__":
+    all_ok = run_canonicalize_tests()
+    print()
     main()

@@ -9,14 +9,14 @@ Requirements for ongoing brownfield work. Each maps to a roadmap phase.
 
 ### Project Baseline
 
-- [ ] **BASE-01**: GSD planning structure initialized and committed (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md, config.json)
-- [ ] **BASE-02**: Benchmark baseline confirmed — current eval_runner_v4 pass rate documented before any new changes
+- [x] **BASE-01**: GSD planning structure initialized and committed (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md, config.json)
+- [x] **BASE-02**: Benchmark baseline confirmed — current eval_runner_v4 pass rate documented before any new changes
 
 ### Query Planner
 
-- [ ] **PLAN-01**: Known failing benchmark cases resolved: QV4_37, QV4_38, QV5_41
-- [ ] **PLAN-02**: Any new planner fix is accompanied by a targeted test case in `test_query_planner.py`
-- [ ] **PLAN-03**: Planner changes validated with `eval_runner_v4` before merging (no regressions)
+- [x] **PLAN-01**: Any planner improvement work must start from the validated 50/50 baseline and preserve it
+- [x] **PLAN-02**: Any new planner fix is accompanied by a targeted test case in `test_query_planner.py`
+- [x] **PLAN-03**: Planner changes validated with `eval_runner_v4` before merging (no regressions)
 
 ### Verbalization
 
@@ -67,11 +67,11 @@ Deferred. Not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 1 | In Progress |
-| BASE-02 | Phase 1 | Pending |
-| PLAN-01 | Phase 2 | Pending |
-| PLAN-02 | Phase 2 | Pending |
-| PLAN-03 | Phase 2 | Pending |
+| BASE-01 | Phase 1 | Complete |
+| BASE-02 | Phase 1 | Complete |
+| PLAN-01 | Phase 2 | Complete |
+| PLAN-02 | Phase 2 | Complete |
+| PLAN-03 | Phase 2 | Complete |
 | VERB-01 | Phase 3 | Pending |
 | VERB-02 | Phase 3 | Pending |
 | EXEC-01 | Phase 2 | Pending |
@@ -86,4 +86,4 @@ Deferred. Not in current roadmap.
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after brownfield initialization*
+*Last updated: 2026-03-27 after Phase 2 (planner noise reduction, 50/50 preserved)*

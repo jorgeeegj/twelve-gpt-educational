@@ -14,3 +14,8 @@ class QueryResult(BaseModel):
     metric:          str
     rows:            list[dict]
     filters_applied: dict
+
+
+    is_tie: bool = False
+    ranking_mode: str | None = None
+    ranking_n: int | None = None

@@ -1,0 +1,1258 @@
+{
+  "benchmark_path": "questions_benchmark_v5.json",
+  "focus_ids": [
+    "QV4_16",
+    "QV4_37",
+    "QV4_38",
+    "QV5_41",
+    "QV5_44",
+    "QV5_45",
+    "QV5_47",
+    "QV5_50"
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 4,
+    "failed": 4,
+    "score": "4/8",
+    "by_expected_stage": {
+      "baseline": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1",
+        "stage_name": "Baseline regression"
+      },
+      "sprint_3": {
+        "passed": 0,
+        "total": 2,
+        "score": "0/2",
+        "stage_name": "Sprint 3 - Opponent and home/away context"
+      },
+      "sprint_4": {
+        "passed": 1,
+        "total": 3,
+        "score": "1/3",
+        "stage_name": "Sprint 4 - Event-level match context"
+      },
+      "sprint_5": {
+        "passed": 2,
+        "total": 2,
+        "score": "2/2",
+        "stage_name": "Sprint 5 - Team match context"
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "QV4_16",
+      "category": "baseline_player_filtered",
+      "expected_stage": "baseline",
+      "question": "Which player under 23 has scored the most goals?",
+      "expected": {
+        "short_name": "C. Palmer",
+        "team_name": "Chelsea",
+        "age": 22,
+        "total_goals": 15
+      },
+      "raw_llm_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "total_goals",
+        "aggregation": "sum",
+        "filters": {
+          "age": {
+            "operator": "<",
+            "value": 23
+          }
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "total_goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": 23,
+          "age": {
+            "operator": "<",
+            "value": 23
+          }
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "total_goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": 23
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": true,
+        "reasons": [],
+        "signals": {
+          "explicit_team_words": false,
+          "explicit_player_words": true,
+          "has_context_filters": false,
+          "has_match_logic": false,
+          "is_contextual_question": false
+        }
+      },
+      "planned_query_result": {
+        "table": "players_summary",
+        "metric": "total_goals",
+        "filters_applied": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": 23,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "C. Palmer",
+            "team_name": "Chelsea",
+            "main_position": "Midfielder",
+            "age": 22,
+            "total_minutes": 3200,
+            "matches_played": 37,
+            "total_goals": 15.0
+          }
+        ]
+      },
+      "planned_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "C. Palmer",
+          "team_name": "Chelsea",
+          "main_position": "Midfielder",
+          "age": 22,
+          "total_minutes": 3200,
+          "matches_played": 37,
+          "total_goals": 15.0
+        }
+      },
+      "agent_result": {
+        "type": "text",
+        "content": "C. Palmer, Chelsea, 15.00",
+        "debug": {
+          "engine": "planner_duckdb",
+          "table": "players_summary",
+          "metric": "total_goals",
+          "descending": null,
+          "filters": {
+            "player_name": null,
+            "team_name": null,
+            "opponent_team_name": null,
+            "position": null,
+            "is_home": null,
+            "opponent_rank_lte": null,
+            "opponent_rank_gte": null,
+            "opponent_rank_between": null,
+            "opponent_is_big6": null,
+            "matchday_start": null,
+            "matchday_end": null,
+            "min_minutes": null,
+            "min_matches": null,
+            "age_lt": 23,
+            "ranking": {
+              "mode": "top_n",
+              "n": 1,
+              "ordinal": null
+            }
+          },
+          "rows": [
+            {
+              "short_name": "C. Palmer",
+              "team_name": "Chelsea",
+              "main_position": "Midfielder",
+              "age": 22,
+              "total_minutes": 3200,
+              "matches_played": 37,
+              "total_goals": 15.0
+            }
+          ]
+        }
+      },
+      "agent_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "C. Palmer",
+          "team_name": "Chelsea",
+          "main_position": "Midfielder",
+          "age": 22,
+          "total_minutes": 3200,
+          "matches_played": 37,
+          "total_goals": 15.0
+        }
+      }
+    },
+    {
+      "id": "QV4_37",
+      "category": "opponent_context",
+      "expected_stage": "sprint_3",
+      "question": "Which player has scored the most goals against top-6 teams this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "goals_vs_top6": 8
+      },
+      "raw_llm_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "total_goals",
+        "aggregation": "sum",
+        "filters": {
+          "opponent_is_big6": true,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": false,
+        "reasons": [
+          "explicit_team_words_but_plan_entity_is_player"
+        ],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": true,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": null,
+      "planned_eval": null,
+      "agent_result": {
+        "type": "text",
+        "content": "I could not resolve that contextual query with the current planner.",
+        "debug": {
+          "engine": "planner_duckdb_failed",
+          "table": null,
+          "metric": null,
+          "descending": null,
+          "filters": {},
+          "rows": []
+        }
+      },
+      "agent_eval": {
+        "passed": false,
+        "reason": "no_rows",
+        "matched_row": null
+      }
+    },
+    {
+      "id": "QV4_38",
+      "category": "opponent_context",
+      "expected_stage": "sprint_3",
+      "question": "How many goals has E. Haaland scored against top-6 teams this season?",
+      "expected": {
+        "short_name": "E. Haaland",
+        "team_name": "Manchester City",
+        "goals_vs_top6": 4
+      },
+      "raw_llm_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": "E. Haaland",
+          "opponent_rank_lte": 6,
+          "season": "2023/2024"
+        },
+        "ranking": {
+          "mode": "entity_value"
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "season": "2023/2024"
+        },
+        "ranking": {
+          "mode": "entity_value",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "entity_value",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": false,
+        "reasons": [
+          "explicit_team_words_but_plan_entity_is_player"
+        ],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": false,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": null,
+      "planned_eval": null,
+      "agent_result": {
+        "type": "text",
+        "content": "I could not resolve that contextual query with the current planner.",
+        "debug": {
+          "engine": "planner_duckdb_failed",
+          "table": null,
+          "metric": null,
+          "descending": null,
+          "filters": {},
+          "rows": []
+        }
+      },
+      "agent_eval": {
+        "passed": false,
+        "reason": "no_rows",
+        "matched_row": null
+      }
+    },
+    {
+      "id": "QV5_41",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+      "expected": {
+        "short_name": "Bruno Fernandes",
+        "team_name": "Manchester United",
+        "progressive_passes_vs_top6": 111
+      },
+      "raw_llm_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "progressive_passes",
+        "aggregation": "sum",
+        "filters": {
+          "position": "midfielder",
+          "opponent_rank_lte": 6,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "progressive_passes",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": "midfielder",
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "progressive_passes",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": "midfielder",
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": false,
+        "reasons": [
+          "explicit_team_words_but_plan_entity_is_player"
+        ],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": false,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": null,
+      "planned_eval": null,
+      "agent_result": {
+        "type": "text",
+        "content": "I could not resolve that contextual query with the current planner.",
+        "debug": {
+          "engine": "planner_duckdb_failed",
+          "table": null,
+          "metric": null,
+          "descending": null,
+          "filters": {},
+          "rows": []
+        }
+      },
+      "agent_eval": {
+        "passed": false,
+        "reason": "no_rows",
+        "matched_row": null
+      }
+    },
+    {
+      "id": "QV5_44",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "question": "Which player has the most shot assists against Big Six teams?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "raw_llm_plan": {
+        "table_scope": "player_match",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "opponent_is_big6": true
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        },
+        "match_conditions": null
+      },
+      "canonical_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": true,
+        "reasons": [],
+        "signals": {
+          "explicit_team_words": false,
+          "explicit_player_words": true,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": {
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "filters_applied": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ]
+      },
+      "planned_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      },
+      "agent_result": {
+        "type": "text",
+        "content": "Mohamed Salah of Liverpool has 19.00 shot assists against Big Six teams.",
+        "debug": {
+          "engine": "planner_duckdb",
+          "table": "player_match_event_stats",
+          "metric": "shot_assists_vs_big6",
+          "descending": null,
+          "filters": {
+            "player_name": null,
+            "team_name": null,
+            "opponent_team_name": null,
+            "position": null,
+            "is_home": null,
+            "opponent_rank_lte": null,
+            "opponent_rank_gte": null,
+            "opponent_rank_between": null,
+            "opponent_is_big6": true,
+            "matchday_start": null,
+            "matchday_end": null,
+            "min_minutes": null,
+            "min_matches": null,
+            "age_lt": null,
+            "ranking": {
+              "mode": "top_n",
+              "n": 1,
+              "ordinal": null
+            },
+            "aggregation": "sum"
+          },
+          "rows": [
+            {
+              "short_name": "Mohamed Salah",
+              "team_name": "Liverpool",
+              "shot_assists_vs_big6": 19.0
+            }
+          ]
+        }
+      },
+      "agent_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_45",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "raw_llm_plan": {
+        "table_scope": "players_summary",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "opponent_is_big6": true,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "player",
+        "metric": "shot_assists",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": false,
+        "reasons": [
+          "explicit_team_words_but_plan_entity_is_player"
+        ],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": true,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": null,
+      "planned_eval": null,
+      "agent_result": {
+        "type": "text",
+        "content": "I could not resolve that contextual query with the current planner.",
+        "debug": {
+          "engine": "planner_duckdb_failed",
+          "table": null,
+          "metric": null,
+          "descending": null,
+          "filters": {},
+          "rows": []
+        }
+      },
+      "agent_eval": {
+        "passed": false,
+        "reason": "no_rows",
+        "matched_row": null
+      }
+    },
+    {
+      "id": "QV5_47",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "question": "Which team scored the most away goals against top-6 teams this season?",
+      "expected": {
+        "team_name": "Bournemouth",
+        "away_goals_vs_top6": 10
+      },
+      "raw_llm_plan": {
+        "table_scope": "team_match",
+        "entity_type": "team",
+        "metric": "team_score",
+        "aggregation": "sum",
+        "filters": {
+          "season": "this_season",
+          "opponent_is_big6": true,
+          "is_home": false
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        }
+      },
+      "canonical_plan": {
+        "table_scope": "team_match",
+        "entity_type": "team",
+        "metric": "goals",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "team_match",
+        "entity_type": "team",
+        "metric": "team_score",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": true,
+        "reasons": [],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": false,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": {
+        "table": "team_match_stats",
+        "metric": "away_goals_vs_top6",
+        "filters_applied": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "team_name": "Bournemouth",
+            "away_goals_vs_top6": 10.0
+          }
+        ]
+      },
+      "planned_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Bournemouth",
+          "away_goals_vs_top6": 10.0
+        }
+      },
+      "agent_result": {
+        "type": "text",
+        "content": "Bournemouth — 10.00 away goals against top-6 teams this season.",
+        "debug": {
+          "engine": "planner_duckdb",
+          "table": "team_match_stats",
+          "metric": "away_goals_vs_top6",
+          "descending": null,
+          "filters": {
+            "player_name": null,
+            "team_name": null,
+            "opponent_team_name": null,
+            "position": null,
+            "is_home": false,
+            "opponent_rank_lte": 6,
+            "opponent_rank_gte": null,
+            "opponent_rank_between": null,
+            "opponent_is_big6": null,
+            "matchday_start": null,
+            "matchday_end": null,
+            "min_minutes": null,
+            "min_matches": null,
+            "age_lt": null,
+            "ranking": {
+              "mode": "top_n",
+              "n": 1,
+              "ordinal": null
+            },
+            "aggregation": "sum"
+          },
+          "rows": [
+            {
+              "team_name": "Bournemouth",
+              "away_goals_vs_top6": 10.0
+            }
+          ]
+        }
+      },
+      "agent_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Bournemouth",
+          "away_goals_vs_top6": 10.0
+        }
+      }
+    },
+    {
+      "id": "QV5_50",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "question": "Which team had the most actions in z3 against Manchester City this season?",
+      "expected": {
+        "team_name": "Leicester City",
+        "actions_z3_vs_manchester_city": 378
+      },
+      "raw_llm_plan": {
+        "table_scope": "team_match",
+        "entity_type": "team",
+        "metric": "actions",
+        "aggregation": "sum",
+        "filters": {
+          "opponent": "Manchester City",
+          "zone": "z3",
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1
+        },
+        "match_conditions": null
+      },
+      "canonical_plan": {
+        "table_scope": "player_match_event",
+        "entity_type": "team",
+        "metric": "actions_z3",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "opponent": "Manchester City",
+          "zone": "z3",
+          "season": "this_season"
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "post_processed_plan": {
+        "table_scope": "team_match",
+        "entity_type": "team",
+        "metric": "actions_z3",
+        "aggregation": "sum",
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": "Manchester City",
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null
+        },
+        "ranking": {
+          "mode": "top_n",
+          "n": 1,
+          "ordinal": null
+        },
+        "match_conditions": null
+      },
+      "planner_error": null,
+      "should_use_planner": {
+        "should_use": true,
+        "reasons": [],
+        "signals": {
+          "explicit_team_words": true,
+          "explicit_player_words": false,
+          "has_context_filters": true,
+          "has_match_logic": false,
+          "is_contextual_question": true
+        }
+      },
+      "planned_query_result": {
+        "table": "team_match_stats",
+        "metric": "actions_z3_vs_manchester_city",
+        "filters_applied": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": "Manchester City",
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "team_name": "Leicester City",
+            "actions_z3_vs_manchester_city": 378.0
+          }
+        ]
+      },
+      "planned_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Leicester City",
+          "actions_z3_vs_manchester_city": 378.0
+        }
+      },
+      "agent_result": {
+        "type": "text",
+        "content": "Leicester City, 378.00 actions in z3 against Manchester City this season.",
+        "debug": {
+          "engine": "planner_duckdb",
+          "table": "team_match_stats",
+          "metric": "actions_z3_vs_manchester_city",
+          "descending": null,
+          "filters": {
+            "player_name": null,
+            "team_name": null,
+            "opponent_team_name": "Manchester City",
+            "position": null,
+            "is_home": null,
+            "opponent_rank_lte": null,
+            "opponent_rank_gte": null,
+            "opponent_rank_between": null,
+            "opponent_is_big6": null,
+            "matchday_start": null,
+            "matchday_end": null,
+            "min_minutes": null,
+            "min_matches": null,
+            "age_lt": null,
+            "ranking": {
+              "mode": "top_n",
+              "n": 1,
+              "ordinal": null
+            },
+            "aggregation": "sum"
+          },
+          "rows": [
+            {
+              "team_name": "Leicester City",
+              "actions_z3_vs_manchester_city": 378.0
+            }
+          ]
+        }
+      },
+      "agent_eval": {
+        "passed": true,
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Leicester City",
+          "actions_z3_vs_manchester_city": 378.0
+        }
+      }
+    }
+  ]
+}

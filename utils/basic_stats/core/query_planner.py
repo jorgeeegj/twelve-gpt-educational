@@ -37,6 +37,39 @@ def _extract_numeric_ordinal(q: str) -> int | None:
             return int(m.group(1))
     return None
 
+
+def _extract_top_rank_bucket(q: str) -> int | None:
+    patterns = [
+        r"\bagainst\s+top[-\s]?(\d+)\b",
+        r"\bvs\.?\s+top[-\s]?(\d+)\b",
+        r"\bversus\s+top[-\s]?(\d+)\b",
+        r"\bcontra\s+top[-\s]?(\d+)\b",
+        r"\bagainst\s+top\s+(\d+)\s+teams\b",
+        r"\bvs\.?\s+top\s+(\d+)\s+teams\b",
+        r"\bversus\s+top\s+(\d+)\s+teams\b",
+        r"\bcontra\s+equipos?\s+del\s+top[-\s]?(\d+)\b",
+        r"\bequipos?\s+del\s+top[-\s]?(\d+)\b",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, q)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+def _extract_bottom_rank_bucket(q: str) -> int | None:
+    patterns = [
+        r"\bbottom[-\s]?(\d+)\b",
+        r"\blast[-\s]?(\d+)\b",
+        r"\bultimos?\s+(\d+)\b",
+        r"\búltimos?\s+(\d+)\b",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, q)
+        if m:
+            return int(m.group(1))
+    return None
+
 def _targets_player_subject(q: str) -> bool:
     patterns = [
         r"^\s*which player\b",
@@ -47,6 +80,12 @@ def _targets_player_subject(q: str) -> bool:
     ]
     return any(re.search(p, q) for p in patterns)
 
+def _normalize_metric_key(metric: str) -> str:
+    metric = metric.strip().lower()
+    metric = metric.replace("-", "_")
+    metric = metric.replace(" ", "_")
+    metric = re.sub(r"_+", "_", metric)
+    return metric
 
 def _targets_team_subject(q: str) -> bool:
     patterns = [
@@ -75,10 +114,32 @@ def _has_match_like_question(q: str) -> bool:
         "big six" in q,
         "big6" in q,
         "big 6" in q,
-        "top-" in q,
-        "top " in q,
-        "bottom" in q,
+        _extract_top_rank_bucket(q) is not None,
+        _extract_bottom_rank_bucket(q) is not None,
     ])
+
+PLAYER_MATCH_CONDITION_ALLOWED_METRICS = {
+    "goals",
+    "assists",
+    "minutes_played",
+    "own_goals",
+    "red_card",
+    "yellow_card",
+}
+
+FILTER_LIKE_MATCH_CONDITION_MAP = {
+    "opponent_is_big6": "opponent_is_big6",
+    "is_home": "is_home",
+    "player_name": "player_name",
+    "team_name": "team_name",
+    "opponent_team_name": "opponent_team_name",
+    "position": "position",
+    "matchday_start": "matchday_start",
+    "matchday_end": "matchday_end",
+    "min_minutes": "min_minutes",
+    "min_matches": "min_matches",
+    "age_lt": "age_lt",
+}
 
 class QueryFilters(BaseModel):
     player_name: str | None = None
@@ -211,7 +272,73 @@ class QueryPlanner:
             "team_match": "actions_z3",
             "player_match_event": "actions_z3",
         },
+        "passes_to_box": {
+            "players_summary": "passes_to_box",
+        },
+        "passes_into_box": {
+            "players_summary": "passes_to_box",
+        },
+        "yellow_cards": {"players_summary": "total_yellow_cards"},
+        "yellow_card": {"players_summary": "total_yellow_cards"},
+        "goals_per_90": {"players_summary": "total_goals_p90", "teams_summary": "total_goals_p90"},
+        "progressive_passes_per_90": {"players_summary": "progressive_passes_p90", "teams_summary": "progressive_passes_p90"},
+        "passing_accuracy": {"players_summary": "pass_accuracy_pct", "teams_summary": "pass_accuracy_pct"},
+        "offsides_drawn": {"teams_summary": "offsides"},
+        "team_score": {"players_summary": "total_goals", "teams_summary": "total_goals"},
     }
+
+    def _sanitize_match_conditions(self, plan: QueryPlan) -> QueryPlan:
+        """
+        match_conditions solo deben usarse para lógica derivada a nivel player_match,
+        y solo con métricas válidas del scope.
+
+        Si el LLM mete cosas como opponent_is_big6 ahí, las movemos a filters
+        o las descartamos.
+        """
+        if not plan.match_conditions:
+            return plan
+
+        # Fuera de player_match, no queremos match_conditions
+        if plan.table_scope != "player_match":
+            plan.match_conditions = None
+            return plan
+
+        sanitized = []
+
+        for cond in plan.match_conditions:
+            metric = cond.metric
+
+            # Si es realmente un filtro contextual, no debe vivir en match_conditions
+            if metric in FILTER_LIKE_MATCH_CONDITION_MAP:
+                filter_name = FILTER_LIKE_MATCH_CONDITION_MAP[metric]
+
+                # movemos solo si tiene sentido
+                if metric == "opponent_is_big6":
+                    # solo aceptar boolean true/false
+                    if cond.value in [True, False]:
+                        setattr(plan.filters, filter_name, bool(cond.value))
+                elif metric == "is_home":
+                    if cond.value in [True, False]:
+                        setattr(plan.filters, filter_name, bool(cond.value))
+                elif metric in {"matchday_start", "matchday_end", "min_minutes", "min_matches", "age_lt"}:
+                    try:
+                        setattr(plan.filters, filter_name, int(cond.value))
+                    except Exception:
+                        pass
+                elif metric in {"player_name", "team_name", "opponent_team_name", "position"}:
+                    if cond.value is not None:
+                        setattr(plan.filters, filter_name, str(cond.value))
+
+                continue
+
+            # Si no es una métrica válida de match condition, se descarta
+            if metric not in PLAYER_MATCH_CONDITION_ALLOWED_METRICS:
+                continue
+
+            sanitized.append(cond)
+
+        plan.match_conditions = sanitized or None
+        return plan
 
     def _default_filters_dict(self) -> dict:
         return {
@@ -257,9 +384,8 @@ class QueryPlanner:
             "big six" in q,
             "big6" in q,
             "big 6" in q,
-            "top-" in q,
-            "top " in q,
-            "bottom" in q,
+            _extract_top_rank_bucket(q) is not None,
+            _extract_bottom_rank_bucket(q) is not None,
         ])
 
         player_match_metrics = {
@@ -558,6 +684,17 @@ class QueryPlanner:
                     plan["filters"]["min_matches"] = int(m.group(1))
                     break
 
+        top_rank_bucket = _extract_top_rank_bucket(q)
+        bottom_rank_bucket = _extract_bottom_rank_bucket(q)
+
+        if top_rank_bucket is not None:
+            plan["filters"]["opponent_rank_lte"] = top_rank_bucket
+            plan["filters"]["opponent_is_big6"] = None
+
+        if bottom_rank_bucket is not None:
+            plan["filters"]["opponent_rank_gte"] = max(1, 21 - bottom_rank_bucket)
+            plan["filters"]["opponent_is_big6"] = None
+
         # --- normalize ranking ---
         ranking = plan.get("ranking")
         if ranking is None or not isinstance(ranking, dict):
@@ -609,6 +746,55 @@ class QueryPlanner:
 
         else:
             plan["match_conditions"] = None
+
+        has_rank_bucket = top_rank_bucket is not None or bottom_rank_bucket is not None
+        mentions_big_six = any(tok in q for tok in [
+            "big six", "big6", "big 6", "equipos del big six", "del big six"
+        ])
+        mentions_progressive_passes = "progressive passes" in q or "pases progresivos" in q
+        mentions_shot_assists = "shot assists" in q
+        mentions_actions_z3 = any(tok in q for tok in ["actions in z3", "actions_z3", "acciones en z3"])
+        mentions_goals = "goals" in q or "goles" in q
+        mentions_away_goals = "away goals" in q or "goles fuera de casa" in q
+
+        # generic contextual repairs: prefer broad, reusable rules over benchmark-only rules
+        if mentions_goals and (has_rank_bucket or mentions_big_six) and (matched_player is not None or _targets_player_subject(q)):
+            plan["table_scope"] = "player_match"
+            plan["entity_type"] = "player"
+            plan["metric"] = "goals"
+            plan["aggregation"] = "sum"
+
+        if mentions_progressive_passes and has_rank_bucket and (plan["filters"].get("position") is not None or matched_player is not None or _targets_player_subject(q)):
+            plan["table_scope"] = "player_match_event"
+            plan["entity_type"] = "player"
+            plan["metric"] = "progressive_passes"
+            plan["aggregation"] = "sum"
+
+        if mentions_shot_assists and mentions_big_six:
+            plan["table_scope"] = "player_match_event"
+            plan["entity_type"] = "player"
+            plan["metric"] = "shot_assists"
+            plan["aggregation"] = "sum"
+            plan["filters"]["opponent_is_big6"] = True
+
+        if mentions_away_goals and _targets_team_subject(q):
+            plan["table_scope"] = "team_match"
+            plan["entity_type"] = "team"
+            plan["metric"] = "team_score"
+            plan["aggregation"] = "sum"
+            plan["filters"]["is_home"] = False
+        elif mentions_away_goals:
+            plan["table_scope"] = "player_match"
+            plan["entity_type"] = "player"
+            plan["metric"] = "goals"
+            plan["aggregation"] = "sum"
+            plan["filters"]["is_home"] = False
+
+        if mentions_actions_z3 and (plan["filters"].get("opponent_team_name") is not None or matched_team is not None) and _targets_team_subject(q):
+            plan["table_scope"] = "team_match"
+            plan["entity_type"] = "team"
+            plan["metric"] = "actions_z3"
+            plan["aggregation"] = "sum"
 
         # --- strong deterministic overrides for common contextual questions ---
         # Sprint 2 - derived player match questions
@@ -763,6 +949,12 @@ class QueryPlanner:
         if plan.get("aggregation") == "count":
             plan["aggregation"] = "count_matches_positive"
 
+        if plan.get("aggregation") in {"mean", "average"}:
+            plan["aggregation"] = "avg"
+        # per_90/per90 aggregations are intentionally left as-is here so they fail
+        # _validate_scope_and_metric and fall back to the legacy _resolve_metric path,
+        # which handles per-90 queries correctly for all position filters.
+
         if (
             aggregation is None
             or aggregation == "sum"
@@ -791,6 +983,9 @@ class QueryPlanner:
         # --- normalize metric aliases depending on scope ---
         scope = plan.get("table_scope")
         metric = plan.get("metric")
+        metric = _normalize_metric_key(metric)
+        if isinstance(metric, str):
+            plan["metric"] = metric
 
         if isinstance(metric, str) and metric in self.METRIC_ALIASES:
             scoped_alias = self.METRIC_ALIASES[metric]
@@ -947,11 +1142,18 @@ class QueryPlanner:
             if plan["filters"]["is_home"] is None:
                 plan["filters"]["is_home"] = True
 
-        if "top-6" in q or "top 6" in q:
-            plan["filters"]["opponent_rank_lte"] = 6
+        top_rank_bucket = _extract_top_rank_bucket(q)
+        bottom_rank_bucket = _extract_bottom_rank_bucket(q)
+
+        if top_rank_bucket is not None:
+            plan["filters"]["opponent_rank_lte"] = top_rank_bucket
             plan["filters"]["opponent_is_big6"] = None
 
-        elif "big six" in q or "big6" in q or "big 6" in q:
+        elif bottom_rank_bucket is not None:
+            plan["filters"]["opponent_rank_gte"] = max(1, 21 - bottom_rank_bucket)
+            plan["filters"]["opponent_is_big6"] = None
+
+        elif "big six" in q or "big6" in q or "big 6" in q or "equipos del big six" in q or "del big six" in q:
             plan["filters"]["opponent_is_big6"] = True
 
         m = re.search(r"\bbetween matchdays?\s+(\d+)\s+and\s+(\d+)\b", q)
@@ -1097,10 +1299,64 @@ class QueryPlanner:
         if plan.entity_type == "team" and plan.filters.position is not None:
             plan.filters.position = None
 
+        # Final deterministic entity/scope guards
+        if matched_player:
+            plan.entity_type = "player"
+        elif plan.filters.position is not None or _targets_player_subject(q):
+            plan.entity_type = "player"
+        elif _targets_team_subject(q):
+            plan.entity_type = "team"
+
+        if plan.filters.player_name:
+            plan.entity_type = "player"
+        if plan.filters.team_name and _targets_team_subject(q):
+            plan.entity_type = "team"
+
+        has_context = any([
+            plan.filters.is_home is not None,
+            plan.filters.opponent_rank_lte is not None,
+            plan.filters.opponent_rank_gte is not None,
+            plan.filters.opponent_rank_between is not None,
+            plan.filters.opponent_is_big6 is not None,
+            plan.filters.matchday_start is not None,
+            plan.filters.matchday_end is not None,
+            plan.filters.opponent_team_name is not None,
+        ])
+
+        if plan.metric in {"actions_z3", "actions_in_z3", "z3_actions"} and plan.filters.opponent_team_name and plan.entity_type == "team":
+            plan.metric = "actions_z3"
+            plan.table_scope = "team_match"
+            plan.aggregation = "sum"
+
+        if plan.metric == "goals" and has_context and plan.entity_type == "player":
+            plan.table_scope = "player_match"
+
+        if plan.metric in {"progressive_passes", "shot_assists", "key_passes", "touches_in_box"} and has_context and plan.entity_type == "player":
+            plan.table_scope = "player_match_event"
+
+        if plan.entity_type == "team" and plan.metric in {"goals", "total_goals", "away_goals"} and plan.table_scope == "team_match":
+            plan.metric = "team_score"
+
+        if plan.metric == "team_score" and has_context and plan.entity_type == "team":
+            plan.table_scope = "team_match"
+
+        if plan.entity_type == "team" and plan.table_scope == "player_match_event":
+            plan.table_scope = "team_match"
+
+        if plan.entity_type == "team" and plan.table_scope == "player_match":
+            plan.table_scope = "team_match"
+            if plan.metric == "goals":
+                plan.metric = "team_score"
+
+        if plan.entity_type == "player" and plan.table_scope == "teams_summary" and not has_context:
+            plan.table_scope = "players_summary"
+
         # If question explicitly says "against X", that team should not also become team_name
         if plan.filters.team_name and plan.filters.opponent_team_name:
             if plan.filters.team_name == plan.filters.opponent_team_name:
                 plan.filters.team_name = None
+        
+        plan = self._sanitize_match_conditions(plan)
 
         self._validate_scope_and_metric(plan)
         return plan

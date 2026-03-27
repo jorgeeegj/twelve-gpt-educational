@@ -22,11 +22,12 @@ Every answer must stay grounded in actual data — no invented metrics, entities
 
 ### Active
 
-- [ ] Claude Code project baseline: clean GSD structure for ongoing brownfield work
-- [ ] Accurate STATE.md and REQUIREMENTS.md that eliminate repeated briefing
-- [ ] Verified benchmark baseline — confirm current pass rate before any future change
-- [ ] Planner edge case fixes for known failing cases (QV4_37, QV4_38, QV5_41)
+- [x] Claude Code project baseline: clean GSD structure for ongoing brownfield work
+- [x] Accurate STATE.md and REQUIREMENTS.md that eliminate repeated briefing
+- [x] Verified benchmark baseline — current validated pass rate documented before future changes
+- [ ] Decide the next highest-value task now that the benchmark baseline is fully green
 - [ ] Verbalization quality: output matches grounded rows and avoids hallucinated phrasing
+- [x] Reduce internal planner fragility/noise where it adds value without risking benchmark regressions
 
 ### Out of Scope
 
@@ -42,7 +43,7 @@ Every answer must stay grounded in actual data — no invented metrics, entities
 - **Brownfield codebase**: pipeline already works end-to-end; the most valuable work is targeted fixes and validations, not greenfield builds.
 - **Benchmark history**: `docs/progress/` contains session-by-session improvement logs; `docs/evals/` holds JSON eval outputs. Do not treat these as the live planning surface — read them for historical context only.
 - **QueryPlanner fragility**: ~1405 lines of mixed regex + LLM logic; highly sensitive; modify only with targeted tests and eval validation.
-- **Known issues**: Three benchmark cases fail (QV4_37, QV4_38, QV5_41); async embedding functions are broken but unused in the active path.
+- **Known issues**: The current validated benchmark baseline is 50/50 with no failing cases. After Phase 2 noise reduction, ~8 `[PLANNER ERROR]` cases remain per run — these are intentional (legacy fallback gives correct answers for per_90 + position-filter queries). Safe metric aliases have been added for the other noisy cases.
 - **Tech debt to note but not fix urgently**: openai SDK version mismatch, hardcoded Azure endpoint, legacy code in `utils/basic_stats/legacy/`.
 - **Sensitivity map**:
   - Very sensitive: `query_planner.py`, `duckdb_manager.py`, `llm_query_engine_v2.py`
@@ -61,10 +62,10 @@ Every answer must stay grounded in actual data — no invented metrics, entities
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| LLMQueryEngineV2 as main engine | Tool-use pattern + deterministic filters → 20/20 benchmark | ✓ Good |
+| LLMQueryEngineV2 as main engine | Tool-use pattern + deterministic filters provide the current validated end-to-end baseline | ✓ Good |
 | DuckDB as query engine | In-process, fast, parquet-native, no infra overhead | ✓ Good |
 | YAML-based prompts | Editable without code changes; version-trackable | ✓ Good |
-| eval_runner_v4 as official benchmark | Stable 66-question set, reference quality bar | ✓ Good |
+| eval_runner_v4 as official benchmark | Use the latest real benchmark run as source of truth for quality status | ✓ Good |
 | eval_runner_v5 for targeted debug | Focused subset runner, faster iteration loop | ✓ Good |
 | Keep legacy/ directory untouched | Reference only; no active imports; safe to ignore | — Pending |
 
@@ -86,4 +87,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after brownfield GSD initialization*
+*Last updated: 2026-03-27 after Phase 2 planner noise reduction — 50/50 preserved*

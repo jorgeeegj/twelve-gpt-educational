@@ -127,6 +127,32 @@ def _normalize_text(text: str) -> str:
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     return re.sub(r"\s+", " ", text)
 
+def _detect_subject_entity(question: str) -> str | None:
+    q = _normalize_text(question)
+
+    player_patterns = [
+        r"^\s*which player\b",
+        r"^\s*what player\b",
+        r"^\s*who\b",
+        r"^\s*how many\b.*\bhas\b",
+        r"^\s*que jugador\b",
+        r"^\s*qué jugador\b",
+    ]
+    if any(re.search(p, q) for p in player_patterns):
+        return "player"
+
+    team_patterns = [
+        r"^\s*which team\b",
+        r"^\s*what team\b",
+        r"^\s*which club\b",
+        r"^\s*which side\b",
+        r"^\s*que equipo\b",
+        r"^\s*qué equipo\b",
+    ]
+    if any(re.search(p, q) for p in team_patterns):
+        return "team"
+
+    return None
 
 def _extract(pattern: str, text: str) -> int | None:
     m = re.search(pattern, text)
@@ -139,6 +165,36 @@ def _extract_top_n(q: str) -> int:
         if m:
             return int(m.group(1))
     return 1
+
+def _detect_true_tie(rows: list[dict], metric: str, ranking: dict | None) -> bool:
+    if not rows or len(rows) <= 1:
+        return False
+
+    ranking = ranking or {}
+    mode = ranking.get("mode")
+    n = ranking.get("n")
+
+    # Solo hay empate "real" si la consulta pedía un único líder
+    if mode == "top_n" and (n is not None and n > 1):
+        return False
+
+    if mode in {"ordinal", "entity_value"}:
+        return False
+
+    values = []
+    for row in rows:
+        val = row.get(metric)
+        if isinstance(val, (int, float)):
+            values.append(float(val))
+
+    if len(values) <= 1:
+        return False
+
+    best = values[0]
+    tied_count = sum(1 for v in values if v == best)
+
+    return tied_count > 1
+
 
 
 def _extract_rank_position(q: str) -> int | None:
@@ -458,6 +514,81 @@ class LLMQueryEngineV2:
         table = "players" if call.function.name == "query_players" else "teams"
         return MetricResolution(metric=args["metric"], descending=args["descending"], table=table)
 
+    def _answer_type_from_result(self, result: QueryResult) -> str:
+        filters = result.filters_applied or {}
+        ranking = filters.get("ranking", {})
+
+        if ranking:
+            mode = ranking.get("mode")
+            n = ranking.get("n")
+
+            if mode == "entity_value":
+                return "entity_value"
+            if mode == "ordinal":
+                return "ordinal"
+            if mode == "top_n":
+                return "top_n" if (n or 1) > 1 else "top_1"
+
+        # summary fallback path
+        if "rank_position" in filters:
+            return "ordinal"
+        if filters.get("top_n", 1) > 1:
+            return "top_n"
+        return "top_1"
+
+
+    def _metric_label(self, metric: str) -> str:
+        labels = {
+            "total_goals": "goals",
+            "total_assists": "assists",
+            "total_minutes": "minutes",
+            "total_yellow_cards": "yellow cards",
+            "total_goals_against": "goals conceded",
+            "pass_accuracy_pct": "pass accuracy",
+            "offsides": "offsides",
+            "goals_vs_top6": "goals against top-6 teams",
+            "goals_vs_big6": "goals against Big Six teams",
+            "away_goals": "away goals",
+            "progressive_passes_vs_top6": "progressive passes against top-6 teams",
+            "touches_in_box_away": "touches in the box away from home",
+            "key_passes_gw_25_30": "key passes between matchdays 25 and 30",
+            "shot_assists_vs_big6": "shot assists against Big Six teams",
+            "points_vs_big6": "points against Big Six teams",
+            "away_goals_vs_top6": "away goals against top-6 teams",
+            "goal_difference_gw_25_30": "goal difference between matchdays 25 and 30",
+            "away_wins": "away wins",
+            "actions_z3_vs_manchester_city": "actions in z3 against Manchester City",
+            "passes_to_box": "passes to the box",
+        }
+        return labels.get(metric, metric.replace("_", " "))
+
+
+    def _context_label_from_result(self, result: QueryResult) -> str:
+        filters = result.filters_applied or {}
+        parts = []
+
+        if filters.get("matchday_start") and filters.get("matchday_end"):
+            parts.append(f"between matchdays {filters['matchday_start']} and {filters['matchday_end']}")
+
+        if filters.get("opponent_team_name"):
+            parts.append(f"against {filters['opponent_team_name']}")
+
+        if filters.get("opponent_is_big6") is True:
+            parts.append("against Big Six teams")
+
+        if filters.get("opponent_rank_lte") is not None:
+            parts.append(f"against top-{filters['opponent_rank_lte']} teams")
+
+        if filters.get("is_home") is False:
+            parts.append("away from home")
+        elif filters.get("is_home") is True:
+            parts.append("at home")
+
+        if not parts:
+            parts.append("this season")
+
+        return ", ".join(parts)
+
     def _execute_summary(self, question: str, resolution: MetricResolution) -> QueryResult:
         df = self.players_df if resolution.table == "players" else self.teams_df
         q = _normalize_text(question)
@@ -723,24 +854,19 @@ class LLMQueryEngineV2:
         q = _normalize_text(question)
         filters = plan.filters.model_dump()
 
-        explicit_team_words = any(w in q for w in [
-            " team ", " teams ", "club", "side", "equipo", "equipos"
-        ])
-        explicit_player_words = any(w in q for w in [
-            "player", "players", "jugador", "jugadores"
-        ])
-
+        subject_entity = _detect_subject_entity(question)
         has_context = _has_match_context_filters(filters)
         has_match_logic = _has_match_level_logic(plan)
         is_contextual = self._is_contextual_question(question)
 
-        if explicit_team_words and plan.entity_type == "player":
+        # Solo rechazar si el SUJETO de la pregunta contradice claramente el plan.
+        if subject_entity == "team" and plan.entity_type == "player":
             return False
 
-        if explicit_player_words and plan.entity_type == "team":
+        if subject_entity == "player" and plan.entity_type == "team":
             return False
 
-        # contextual questions must stay on contextual scopes
+        # Si la pregunta es contextual, debe resolverse en scopes contextuales
         if is_contextual:
             if not has_context and not has_match_logic:
                 return False
@@ -748,7 +874,7 @@ class LLMQueryEngineV2:
             if plan.table_scope in {"players_summary", "teams_summary"}:
                 return False
 
-        # non-contextual questions should not go to match scopes unless there is real match logic
+        # Si NO es contextual, no debería ir a match scopes salvo que haya lógica real de partido
         if not has_context and not has_match_logic and plan.table_scope in {
             "player_match", "player_match_event", "team_match"
         }:
@@ -758,7 +884,35 @@ class LLMQueryEngineV2:
 
     def _verbalize(self, question: str, result: QueryResult) -> str:
         p = self._verbalize_prompt
-        prompt = p["user"].format(question=question, metric=result.metric, rows=result.rows)
+
+        filters = result.filters_applied or {}
+        ranking = filters.get("ranking", {}) or {}
+
+        answer_type = self._answer_type_from_result(result)
+        metric_label = self._metric_label(result.metric)
+        context_label = self._context_label_from_result(result)
+
+        ordinal_position = None
+        requested_top_n = 1
+
+        if ranking:
+            ordinal_position = ranking.get("ordinal")
+            requested_top_n = ranking.get("n") or 1
+        else:
+            ordinal_position = filters.get("rank_position")
+            requested_top_n = filters.get("top_n", 1)
+
+        prompt = p["user"].format(
+            question=question,
+            metric=result.metric,
+            rows=result.rows,
+            answer_type=answer_type,
+            metric_label=metric_label,
+            context_label=context_label,
+            ordinal_position=ordinal_position,
+            requested_top_n=requested_top_n,
+        )
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -774,6 +928,13 @@ class LLMQueryEngineV2:
         planned_result = self._execute_planned_query(question)
 
         if planned_result is not None:
+            ranking = (planned_result.filters_applied or {}).get("ranking", {}) or {}
+            is_tie = _detect_true_tie(
+                planned_result.rows,
+                planned_result.metric,
+                ranking,
+            )
+
             answer = self._verbalize(question, planned_result)
             return {
                 "type": "text",
@@ -785,6 +946,9 @@ class LLMQueryEngineV2:
                     "descending": None,
                     "filters": planned_result.filters_applied,
                     "rows": planned_result.rows,
+                    "is_tie": is_tie,
+                    "ranking_mode": ranking.get("mode"),
+                    "ranking_n": ranking.get("n"),
                 },
             }
 
@@ -800,11 +964,25 @@ class LLMQueryEngineV2:
                     "descending": None,
                     "filters": {},
                     "rows": [],
+                    "is_tie": False,
+                    "ranking_mode": None,
+                    "ranking_n": None,
                 },
             }
 
         resolution = self._resolve_metric(question)
         result = self._execute_summary(question, resolution)
+
+        ranking = (result.filters_applied or {})
+        is_tie = _detect_true_tie(
+            result.rows,
+            result.metric,
+            {
+                "mode": "top_n" if ranking.get("top_n", 1) >= 1 else None,
+                "n": ranking.get("top_n", 1),
+            },
+        )
+
         answer = self._verbalize(question, result)
 
         return {
@@ -817,6 +995,9 @@ class LLMQueryEngineV2:
                 "descending": resolution.descending,
                 "filters": result.filters_applied,
                 "rows": result.rows,
+                "is_tie": is_tie,
+                "ranking_mode": "ordinal" if "rank_position" in result.filters_applied else "top_n",
+                "ranking_n": result.filters_applied.get("top_n", 1),
             },
         }
 

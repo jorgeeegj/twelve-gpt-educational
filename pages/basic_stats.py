@@ -14,7 +14,7 @@ st.header("Basic Stats Analyst")
 
 st.write(
     """
-Ask factual questions about players, teams, metrics and qualities.
+Ask factual football questions about players, teams, rankings and contextual statistics.
 """
 )
 
@@ -22,35 +22,49 @@ st.markdown(
     """
 **Examples**
 
-**Definitions**
-- What is Breaking the Lines?
+**Season summary**
+- Who has scored the most goals this season?
+- Which team has conceded the fewest goals?
+- Who is 7th for total minutes played this season?
 
-**Players**
-- Who scored the most goals?
-- Which player has played the most minutes?
-- Which midfielder has the most progressive passes per 90?
+**Player contextual**
+- How many goals has E. Haaland scored against top-6 teams this season?
+- Which player has scored the most away goals this season?
+- Which Liverpool player scored the most goals between matchdays 25 and 30?
 
-**Teams**
-- Which team has scored the most goals?
-- Which team wins the most aerial duels?
-- Which team has the most accurate passing?
+**Event-level**
+- Which player made the most key passes between matchdays 25 and 30?
+- Which midfielder has played the most progressive passes against top-6 teams this season?
+- Which player has the most shot assists against Big Six teams?
 
-**Filtered**
-- Who are the best midfielders under 23 with progressive passing?
-- Which player under 23 has scored the most goals?
+**Team contextual**
+- Which team won the most points against Big Six teams this season?
+- Which team scored the most away goals against top-6 teams this season?
+- Which team had the most actions in z3 against Manchester City this season?
+
+**Top N**
+- Top 5 players with the most away goals
+- Top 4 forwards with the most passes to the box
 """
 )
 
 # ── Benchmark status ──────────────────────────────────────────────
-eval_path = Path("docs/evals/latest_eval_results.json")
-if eval_path.exists():
-    try:
-        eval_data = json.loads(eval_path.read_text(encoding="utf8"))
-        summary = eval_data.get("summary", {})
-        score = summary.get("score", "unknown")
-        st.caption(f"Benchmark status: {score}")
-    except Exception:
-        st.caption("Benchmark status: unavailable")
+eval_candidates = [
+    Path("docs/evals/latest_eval_results_v4.json"),
+    Path("docs/evals/latest_eval_results.json"),
+]
+
+for eval_path in eval_candidates:
+    if eval_path.exists():
+        try:
+            eval_data = json.loads(eval_path.read_text(encoding="utf8"))
+            summary = eval_data.get("summary", eval_data.get("SUMMARY", {}))
+            score = summary.get("score", "unknown")
+            st.caption(f"Benchmark status: {score}")
+            break
+        except Exception:
+            st.caption("Benchmark status: unavailable")
+            break
 
 agent = BasicStatsAgent()
 
@@ -79,8 +93,9 @@ for message in st.session_state[CHAT_KEY]:
         rows = debug.get("rows", []) or []
 
         if message["role"] == "assistant":
-            if len(rows) > 1:
-                st.info("Tie detected: multiple top rows matched the same best value.")
+            # Mostrar aviso de empate solo si el backend lo marca explícitamente
+            if debug.get("is_tie") is True:
+                st.info("Tie detected: multiple rows matched the same top value.")
 
             if show_rows_table and rows:
                 st.dataframe(pd.DataFrame(rows), use_container_width=True)
@@ -97,13 +112,22 @@ for message in st.session_state[CHAT_KEY]:
                     st.write(debug.get("metric"))
 
                     st.markdown("**Sort direction**")
-                    st.write("descending" if debug.get("descending") else "ascending")
+                    descending = debug.get("descending")
+                    if descending is None:
+                        st.write("n/a")
+                    else:
+                        st.write("descending" if descending else "ascending")
 
                     st.markdown("**Filters**")
                     st.json(debug.get("filters", {}))
 
                     st.markdown("**Rows**")
                     st.json(rows)
+
+                    error = debug.get("error")
+                    if error:
+                        st.markdown("**Error**")
+                        st.code(error)
 
 # ── Chat input ────────────────────────────────────────────────────
 question = st.chat_input("Ask a question")
@@ -129,7 +153,7 @@ if question:
     except Exception as e:
         st.session_state[CHAT_KEY].append({
             "role": "assistant",
-            "content": f"Something went wrong: {e}",
+            "content": "Sorry, I couldn't answer that question. Enable debug info for details.",
             "debug": {"error": repr(e)},
         })
         st.rerun()

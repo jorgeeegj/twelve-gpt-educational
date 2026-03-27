@@ -361,6 +361,7 @@ class DuckDBManager:
                 ps.short_name,
                 ps.team_name,
                 ps.main_position,
+                CAST(((20240801 - CAST(replace(ps.birth_date, '-', '') AS BIGINT)) / 10000) AS BIGINT) AS age,
                 ps.total_minutes,
                 ps.matches_played,
                 {value_expr} AS metric_value
@@ -371,6 +372,7 @@ class DuckDBManager:
                 ps.short_name,
                 ps.team_name,
                 ps.main_position,
+                age,
                 ps.total_minutes,
                 ps.matches_played
             ORDER BY

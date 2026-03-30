@@ -60,7 +60,7 @@ def _extract_top_rank_bucket(q: str) -> int | None:
 def _extract_bottom_rank_bucket(q: str) -> int | None:
     patterns = [
         r"\bbottom[-\s]?(\d+)\b",
-        r"\blast[-\s]?(\d+)\b",
+        r"\blast[-\s]?(\d+)\s+teams?\b",  # "last N teams" only — NOT "last N gameweeks/rounds/weeks"
         r"\bultimos?\s+(\d+)\b",
         r"\búltimos?\s+(\d+)\b",
     ]
@@ -69,6 +69,84 @@ def _extract_bottom_rank_bucket(q: str) -> int | None:
         if m:
             return int(m.group(1))
     return None
+
+
+# Mid-table bucket: positions 7–14 in a 20-team Premier League season.
+# Simple stable rule: middle 8 teams by final standings rank.
+MID_TABLE_RANGE: tuple[int, int] = (7, 14)
+
+
+def _extract_recent_window(q: str) -> int | None:
+    """Extract N from 'last N gameweeks/rounds/matchdays/weeks/jornadas'.
+    Returns the integer window size, or None if not detected.
+    Only matches patterns with an explicit numeric N followed by a time-unit word."""
+    patterns = [
+        r"\blast\s+(\d+)\s+(?:gameweeks?|game\s*weeks?|rounds?|matchdays?|jornadas?|weeks?)\b",
+        r"\b[uú]ltimas?\s+(\d+)\s+(?:jornadas?|semanas?|gameweeks?|rondas?)\b",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, q)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+def _extract_mid_table_bucket(q: str) -> bool:
+    patterns = [
+        r"\bmid[-\s]?table\b",
+        r"\bmidtable\b",
+        r"\bmiddle\s+of\s+the\s+table\b",
+        r"\bmiddle\s+teams\b",
+        r"\bmedia\s+tabla\b",
+    ]
+    return any(re.search(p, q) for p in patterns)
+
+
+def _classify_all_buckets(q: str) -> list[dict]:
+    """
+    Return one filter-dict per opponent bucket detected in q.
+    Recognises: top-N, bottom-N, mid-table, big-six.
+    Order matches detection order; at most one entry per bucket type.
+    """
+    buckets: list[dict] = []
+
+    top_n = _extract_top_rank_bucket(q)
+    if top_n is not None:
+        buckets.append({"opponent_rank_lte": top_n})
+
+    bottom_n = _extract_bottom_rank_bucket(q)
+    if bottom_n is not None:
+        buckets.append({"opponent_rank_gte": max(1, 21 - bottom_n)})
+
+    if _extract_mid_table_bucket(q):
+        lo, hi = MID_TABLE_RANGE
+        buckets.append({"opponent_rank_between": [lo, hi]})
+
+    if re.search(r"\bbig\s*s?ix\b|\bbig\s*6\b", q, re.IGNORECASE):
+        buckets.append({"opponent_is_big6": True})
+
+    return buckets
+
+
+def _detect_dual_bucket_comparison(q: str) -> tuple[dict, dict] | None:
+    """
+    Detect a two-bucket comparison intent.
+
+    Returns (filters_a, filters_b) when:
+    - the question contains 'or' (conjunction between two opponent groups), AND
+    - exactly two distinct opponent buckets are found via _classify_all_buckets.
+
+    Returns None for single-bucket questions, zero-bucket questions,
+    and three-or-more-bucket questions (ambiguous).
+    No plan dict is modified; this is detection only.
+    """
+    if not re.search(r"\bor\b", q, re.IGNORECASE):
+        return None
+    buckets = _classify_all_buckets(q)
+    if len(buckets) == 2:
+        return (buckets[0], buckets[1])
+    return None
+
 
 def _targets_player_subject(q: str) -> bool:
     patterns = [
@@ -116,6 +194,7 @@ def _has_match_like_question(q: str) -> bool:
         "big 6" in q,
         _extract_top_rank_bucket(q) is not None,
         _extract_bottom_rank_bucket(q) is not None,
+        _extract_mid_table_bucket(q),
     ])
 
 PLAYER_MATCH_CONDITION_ALLOWED_METRICS = {
@@ -386,6 +465,7 @@ class QueryPlanner:
             "big 6" in q,
             _extract_top_rank_bucket(q) is not None,
             _extract_bottom_rank_bucket(q) is not None,
+            _extract_mid_table_bucket(q),
         ])
 
         player_match_metrics = {
@@ -466,6 +546,7 @@ class QueryPlanner:
 
         self.player_names = self._load_player_names()
         self.team_names = self._load_team_names()
+        self.max_matchday = self._load_max_matchday()
 
     def _load_prompt(self, name: str) -> dict:
         return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text(encoding="utf8"))
@@ -493,6 +574,16 @@ class QueryPlanner:
             .to_series()
             .to_list()
         )
+
+    def _load_max_matchday(self) -> int:
+        """Load the highest gameweek number present in the player match stats parquet.
+        Used to translate 'last N gameweeks' into a concrete matchday_start."""
+        match_path = PLAYER_DATA_PATH.parent / "player_match_stats.parquet"
+        try:
+            df = pl.read_parquet(match_path, columns=["gameweek"])
+            return int(df["gameweek"].max())
+        except Exception:
+            return 38  # safe default for a standard 38-matchday season
 
     def _extract_opponent_team_hint(self, question: str) -> str | None:
         q = _normalize_text(question)
@@ -544,6 +635,30 @@ class QueryPlanner:
             cand_norm = _normalize_text(candidate)
             if cand_norm and cand_norm in q:
                 return candidate
+        return None
+
+    def _resolve_player_suffix(self, name: str) -> str | None:
+        """Resolve a partial or full player name to the canonical DB form.
+        Tries:
+          1. Exact or suffix match on the whole name (e.g. 'Haaland' → 'E. Haaland')
+          2. Suffix match on the last word of a multi-word name
+             (e.g. 'Bruno Fernandes' → last word 'fernandes' → 'B. Fernandes')
+        """
+        name_norm = _normalize_text(name)
+        # Pass 1: full-name exact or suffix match
+        for candidate in sorted(self.player_names, key=len, reverse=True):
+            cand_norm = _normalize_text(candidate)
+            if cand_norm == name_norm or cand_norm.endswith(" " + name_norm):
+                return candidate
+        # Pass 2: last-word surname suffix (for names like "Bruno Fernandes")
+        words = name_norm.split()
+        if len(words) >= 2:
+            last_word = words[-1]
+            if len(last_word) >= 4:
+                for candidate in sorted(self.player_names, key=len, reverse=True):
+                    cand_norm = _normalize_text(candidate)
+                    if cand_norm.endswith(" " + last_word):
+                        return candidate
         return None
 
     def _infer_position_hint(self, question: str) -> str | None:
@@ -695,6 +810,13 @@ class QueryPlanner:
             plan["filters"]["opponent_rank_gte"] = max(1, 21 - bottom_rank_bucket)
             plan["filters"]["opponent_is_big6"] = None
 
+        if _extract_mid_table_bucket(q):
+            lo, hi = MID_TABLE_RANGE
+            plan["filters"]["opponent_rank_between"] = [lo, hi]
+            plan["filters"]["opponent_rank_lte"] = None
+            plan["filters"]["opponent_rank_gte"] = None
+            plan["filters"]["opponent_is_big6"] = None
+
         # --- normalize ranking ---
         ranking = plan.get("ranking")
         if ranking is None or not isinstance(ranking, dict):
@@ -758,7 +880,7 @@ class QueryPlanner:
         mentions_away_goals = "away goals" in q or "goles fuera de casa" in q
 
         # generic contextual repairs: prefer broad, reusable rules over benchmark-only rules
-        if mentions_goals and (has_rank_bucket or mentions_big_six) and (matched_player is not None or _targets_player_subject(q)):
+        if mentions_goals and (has_rank_bucket or mentions_big_six) and (matched_player is not None or _targets_player_subject(q) or plan["filters"].get("player_name") is not None):
             plan["table_scope"] = "player_match"
             plan["entity_type"] = "player"
             plan["metric"] = "goals"
@@ -1145,7 +1267,14 @@ class QueryPlanner:
         top_rank_bucket = _extract_top_rank_bucket(q)
         bottom_rank_bucket = _extract_bottom_rank_bucket(q)
 
-        if top_rank_bucket is not None:
+        if _extract_mid_table_bucket(q):
+            lo, hi = MID_TABLE_RANGE
+            plan["filters"]["opponent_rank_between"] = [lo, hi]
+            plan["filters"]["opponent_rank_lte"] = None
+            plan["filters"]["opponent_rank_gte"] = None
+            plan["filters"]["opponent_is_big6"] = None
+
+        elif top_rank_bucket is not None:
             plan["filters"]["opponent_rank_lte"] = top_rank_bucket
             plan["filters"]["opponent_is_big6"] = None
 
@@ -1167,7 +1296,16 @@ class QueryPlanner:
             a, b = int(m.group(1)), int(m.group(2))
             plan["filters"]["matchday_start"] = min(a, b)
             plan["filters"]["matchday_end"] = max(a, b)
-        
+
+        # "last N gameweeks/rounds" → concrete matchday window
+        # Only fires when no explicit matchday range is already set.
+        if plan["filters"]["matchday_start"] is None:
+            recent_n = _extract_recent_window(q)
+            if recent_n is not None:
+                end_gw = self.max_matchday
+                plan["filters"]["matchday_end"] = end_gw
+                plan["filters"]["matchday_start"] = max(1, end_gw - recent_n + 1)
+
         # Strong scope corrections from obvious context
         has_context = any([
             plan["filters"]["is_home"] is not None,
@@ -1182,6 +1320,11 @@ class QueryPlanner:
 
         if has_context:
             if plan["entity_type"] == "player":
+                # LLM may return summary-scope names; convert to match-level equivalents
+                if plan["metric"] == "total_goals":
+                    plan["metric"] = "goals"
+                elif plan["metric"] == "total_assists":
+                    plan["metric"] = "assists"
                 if plan["metric"] in {
                     "goals", "assists", "own_goals", "yellow_card", "red_card", "minutes_played"
                 }:
@@ -1254,6 +1397,26 @@ class QueryPlanner:
 
         if matched_player and not plan.filters.player_name:
             plan.filters.player_name = matched_player
+
+        # Resolve partial player names (e.g. LLM returns "Haaland", DB has "E. Haaland")
+        if plan.filters.player_name and not matched_player:
+            resolved = self._resolve_player_suffix(plan.filters.player_name)
+            if resolved:
+                plan.filters.player_name = resolved
+
+        # Temporal-window fallback: when the question has a 'last N gameweeks' window but
+        # neither the LLM nor _match_known_name found a player, scan the question word-by-word.
+        # Gated on matchday_start being set so this only fires for temporal-window queries.
+        if (not plan.filters.player_name and not matched_player
+                and plan.filters.matchday_start is not None):
+            for word in question.split():
+                candidate = word.strip("?.,!'\"")
+                if len(candidate) >= 4:
+                    resolved = self._resolve_player_suffix(candidate)
+                    if resolved:
+                        plan.filters.player_name = resolved
+                        plan.entity_type = "player"
+                        break
 
         # Prefer explicit own-team hint when present
         if own_team_hint and not plan.filters.team_name:

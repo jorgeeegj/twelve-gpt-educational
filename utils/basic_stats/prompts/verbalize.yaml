@@ -45,7 +45,7 @@ user: |
   - The rows already contain the final answer.
   - If answer_type is "ordinal", assume the first row is exactly the requested ordinal result.
   - If answer_type is "top_1", state who or which team leads and give the exact value.
-  - If answer_type is "entity_value", state the exact value for that player or team.
+  - If answer_type is "entity_value", state the exact value for that player or team, and include the context_label in your answer (e.g., "in the last 3 rounds", "between matchdays X and Y", "against Arsenal", "this season").
   - If answer_type is "ordinal", state the requested ordinal position naturally and always include the exact metric value from the first row.
   - If answer_type is "top_n", summarise the ranking using multiple returned rows, not just the first one.
   - "requested_top_n" refers to how many ranked results were requested. It is not opponent context.

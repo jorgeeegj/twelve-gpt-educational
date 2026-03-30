@@ -122,7 +122,7 @@
         "team_name": "Liverpool",
         "total_goals": 29
       },
-      "agent_text": "Mohamed Salah has scored 29 goals this season.",
+      "agent_text": "Mohamed Salah leads this season with 29 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -189,7 +189,7 @@
         "team_name": "Liverpool",
         "total_assists": 16
       },
-      "agent_text": "Mohamed Salah of Liverpool leads the season with 16 assists.",
+      "agent_text": "Mohamed Salah leads this season with 16 assists.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -256,7 +256,7 @@
         "team_name": "Fulham",
         "total_minutes": 3420
       },
-      "agent_text": "B. Leno has played the most minutes with 3420 minutes.",
+      "agent_text": "B. Leno has the most minutes this season, with 3420.0 minutes.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -321,7 +321,7 @@
         "team_name": "Fulham",
         "total_yellow_cards": 12
       },
-      "agent_text": "S. Lukić has the most yellow cards this season, with 12.",
+      "agent_text": "S. Lukić has the most yellow cards with 12.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -388,7 +388,7 @@
         "team_name": "Aston Villa",
         "total_goals_p90": 0.85
       },
-      "agent_text": "J. Durán leads with 0.8536585365853657 goals per 90 minutes.",
+      "agent_text": "J. Durán has the best goals per 90 minutes this season, at 0.8536585365853657.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -454,7 +454,7 @@
         "team_name": "Liverpool",
         "total_goals": 86
       },
-      "agent_text": "Liverpool leads with 86 goals.",
+      "agent_text": "Liverpool has scored 86 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -510,7 +510,7 @@
         "team_name": "Arsenal",
         "total_goals_against": 34
       },
-      "agent_text": "Arsenal have conceded 34 goals this season, the fewest.",
+      "agent_text": "Arsenal has conceded the fewest goals this season, with 34.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -566,7 +566,7 @@
         "team_name": "Everton",
         "aerial_duels_won": 691.0
       },
-      "agent_text": "Everton leads with 691 aerial duels won.",
+      "agent_text": "Everton have the most aerial duels won this season, with 691.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -622,7 +622,7 @@
         "team_name": "Manchester City",
         "pass_accuracy_pct": 89.84
       },
-      "agent_text": "Manchester City has the most accurate passing, with a pass accuracy of 89.84278471305015%.",
+      "agent_text": "Manchester City has the highest pass accuracy this season at 89.84278471305015%.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -678,21 +678,37 @@
         "team_name": "Nottingham Forest",
         "offsides": 87.0
       },
-      "agent_text": "Nottingham Forest lead with 87 offsides.",
+      "agent_text": "Nottingham Forest lead this season with 87 offsides.",
       "debug": {
-        "engine": "llm_query_engine_v2",
-        "table": "teams",
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
         "metric": "offsides",
-        "descending": true,
+        "descending": null,
         "filters": {
-          "top_n": 1
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
         },
         "rows": [
           {
             "team_name": "Nottingham Forest",
-            "offsides": 87.0,
-            "total_goals": 58,
-            "total_goals_against": 46
+            "offsides": 87.0
           }
         ],
         "is_tie": false,
@@ -704,9 +720,7 @@
         "reason": "matched",
         "matched_row": {
           "team_name": "Nottingham Forest",
-          "offsides": 87.0,
-          "total_goals": 58,
-          "total_goals_against": 46
+          "offsides": 87.0
         }
       }
     },
@@ -721,24 +735,42 @@
         "team_name": "Manchester United",
         "progressive_passes_p90": 11.03
       },
-      "agent_text": "Bruno Fernandes of Manchester United leads with 11.03 progressive passes per 90.",
+      "agent_text": "Bruno Fernandes of Manchester United leads with 11.034368803701257 progressive passes per 90.",
       "debug": {
-        "engine": "llm_query_engine_v2",
-        "table": "players",
+        "engine": "planner_duckdb",
+        "table": "players_summary",
         "metric": "progressive_passes_p90",
-        "descending": true,
+        "descending": null,
         "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
           "position": "midfielder",
-          "top_n": 1
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
         },
         "rows": [
           {
             "short_name": "Bruno Fernandes",
             "team_name": "Manchester United",
             "main_position": "Midfielder",
-            "progressive_passes_p90": 11.03,
+            "age": 30,
+            "total_minutes": 3026,
             "matches_played": 36,
-            "total_minutes": 3026
+            "progressive_passes_p90": 11.034368803701257
           }
         ],
         "is_tie": false,
@@ -752,9 +784,10 @@
           "short_name": "Bruno Fernandes",
           "team_name": "Manchester United",
           "main_position": "Midfielder",
-          "progressive_passes_p90": 11.03,
+          "age": 30,
+          "total_minutes": 3026,
           "matches_played": 36,
-          "total_minutes": 3026
+          "progressive_passes_p90": 11.034368803701257
         }
       }
     },
@@ -769,7 +802,7 @@
         "team_name": "Manchester City",
         "dribble_success_pct": 100.0
       },
-      "agent_text": "K. Tierney (Arsenal) leads with a dribble success rate of 100.0%.",
+      "agent_text": "The highest dribble success rate is 100.0%, and it is achieved by a large group of players with at least 10 appearances (for example K. Tierney, W. Endo, D. Ings, E. Krafth, J. Araujo, N. Clyne, O. Zinchenko, I. Sangaré, R. Barkley, Jorginho, V. Lindelöf, W. Smallbone, N. Wood, R. Lavia, Diego Carlos, N. Füllkrug, C. Kelleher, Igor Julio, K. Walker, L. Thomas, M. Senesi, C. Okoli, Ł. Fabiański, O. Skipp, R. Drăgușin, B. Davies, J. Vestergaard, E. Agbadou, T. Adarabioyo, C. Coady, M. Akanji, L. Dunk, G. Vicario, A. Aréola, Rúben Dias, Gabriel Magalhaes, Dean Huijsen, Alisson, J. Bednarek, José Sá, J. Andersen, J. van Hecke, A. Onana, D. O'Shea, E. Martínez, B. Verbruggen, D. Burn, V. van Dijk).",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1193,7 +1226,7 @@
         "team_name": "Aston Villa",
         "shots_on_target_p90": 1.89
       },
-      "agent_text": "D. Malen of Aston Villa leads with 1.89 shots on target per 90.",
+      "agent_text": "D. Malen leads with 1.89 shots on target per 90.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1337,7 +1370,7 @@
         "age": 22,
         "total_goals": 15
       },
-      "agent_text": "C. Palmer (Chelsea) is the top scorer under 23 with 15 goals.",
+      "agent_text": "C. Palmer of Chelsea, aged 22, has 15 goals—the most by a player under 23.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1404,7 +1437,7 @@
         "team_name": "Liverpool",
         "pass_accuracy_pct": 94.02
       },
-      "agent_text": "C. Jones, the Liverpool midfielder, has the best pass accuracy at 94.02%.",
+      "agent_text": "C. Jones of Liverpool has the best pass accuracy among midfielders this season, at 94.02%.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1499,37 +1532,21 @@
         "team_name": "Liverpool",
         "progressive_passes_p90": 70.38
       },
-      "agent_text": "Liverpool leads with 70.37622115984203 progressive passes per 90.",
+      "agent_text": "Liverpool leads with 70.38 progressive passes per 90.",
       "debug": {
-        "engine": "planner_duckdb",
-        "table": "teams_summary",
+        "engine": "llm_query_engine_v2",
+        "table": "teams",
         "metric": "progressive_passes_p90",
-        "descending": null,
+        "descending": true,
         "filters": {
-          "player_name": null,
-          "team_name": null,
-          "opponent_team_name": null,
-          "position": null,
-          "is_home": null,
-          "opponent_rank_lte": null,
-          "opponent_rank_gte": null,
-          "opponent_rank_between": null,
-          "opponent_is_big6": null,
-          "matchday_start": null,
-          "matchday_end": null,
-          "min_minutes": null,
-          "min_matches": null,
-          "age_lt": null,
-          "ranking": {
-            "mode": "top_n",
-            "n": 1,
-            "ordinal": null
-          }
+          "top_n": 1
         },
         "rows": [
           {
             "team_name": "Liverpool",
-            "progressive_passes_p90": 70.37622115984203
+            "progressive_passes_p90": 70.38,
+            "total_goals": 86,
+            "total_goals_against": 41
           }
         ],
         "is_tie": false,
@@ -1541,7 +1558,9 @@
         "reason": "matched",
         "matched_row": {
           "team_name": "Liverpool",
-          "progressive_passes_p90": 70.37622115984203
+          "progressive_passes_p90": 70.38,
+          "total_goals": 86,
+          "total_goals_against": 41
         }
       }
     },
@@ -1598,7 +1617,7 @@
         "team_name": "Liverpool",
         "total_goals": 29
       },
-      "agent_text": "Mohamed Salah leads this season with 29 goals.",
+      "agent_text": "Mohamed Salah of Liverpool is the top scorer this season with 29 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1664,7 +1683,7 @@
         "team_name": "Liverpool",
         "total_goals": 86
       },
-      "agent_text": "Liverpool has the best attack this season with 86 goals.",
+      "agent_text": "Liverpool leads with 86 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -1720,7 +1739,7 @@
         "team_name": "Arsenal",
         "total_goals_against": 34
       },
-      "agent_text": "Arsenal has the fewest goals conceded this season, with 34.0.",
+      "agent_text": "Arsenal conceded 34 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -1777,7 +1796,7 @@
         "team_name": "Liverpool",
         "total_assists": 16
       },
-      "agent_text": "Mohamed Salah lidera la liga en asistencias esta temporada con 16 asistencias.",
+      "agent_text": "Mohamed Salah lidera la liga en asistencias esta temporada, con 16 asistencias.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1843,7 +1862,7 @@
         "team_name": "Liverpool",
         "total_goals": 86
       },
-      "agent_text": "Liverpool lidera esta temporada con 86 goles.",
+      "agent_text": "Liverpool ha marcado 86 goles esta temporada.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -1865,7 +1884,7 @@
           "min_matches": null,
           "age_lt": null,
           "ranking": {
-            "mode": "top_n",
+            "mode": "entity_value",
             "n": 1,
             "ordinal": null
           }
@@ -1877,7 +1896,7 @@
           }
         ],
         "is_tie": false,
-        "ranking_mode": "top_n",
+        "ranking_mode": "entity_value",
         "ranking_n": 1
       },
       "passed": true,
@@ -1900,7 +1919,7 @@
         "team_name": "Fulham",
         "total_minutes": 3420
       },
-      "agent_text": "B. Leno es el jugador que más minutos ha disputado esta temporada, con 3420 minutos.",
+      "agent_text": "B. Leno ha sido el jugador que más minutos ha disputado esta temporada, con 3420 minutos.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1965,7 +1984,7 @@
         "team_name": "Newcastle United",
         "total_assists": 11
       },
-      "agent_text": "J. Murphy is second in assists this season with 11 assists.",
+      "agent_text": "J. Murphy is 2nd in assists this season with 11.0 assists.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2097,7 +2116,7 @@
         "team_name": "Brentford",
         "total_goals": 18
       },
-      "agent_text": "6th is Y. Wissa of Brentford with 18.0 goals.",
+      "agent_text": "Sixth in the top scoring list this season is Y. Wissa with 18 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2219,7 +2238,7 @@
         "team_name": "Chelsea",
         "total_goals_against": 43
       },
-      "agent_text": "Chelsea is third in the fewest goals conceded this season, with 43.0 goals conceded.",
+      "agent_text": "Chelsea has the third-fewest goals conceded this season, with 43 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -2276,7 +2295,7 @@
         "team_name": "Brighton",
         "total_goals": 10
       },
-      "agent_text": "João Pedro of Brighton is 20th in goals scored this season, with 10 goals.",
+      "agent_text": "João Pedro is 20th in goals this season with 10 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2402,7 +2421,7 @@
         "team_name": "Liverpool",
         "two_goal_matches": 5
       },
-      "agent_text": "Mohamed Salah (Liverpool) leads with 5 two-goal matches this season.",
+      "agent_text": "Mohamed Salah leads this season with 5 two-goal matches.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2461,7 +2480,7 @@
         "team_name": "Liverpool",
         "goals_gw_25_30": 5
       },
-      "agent_text": "Mohamed Salah leads with 5 goals between matchdays 25 and 30.",
+      "agent_text": "Mohamed Salah scored the most goals for Liverpool between matchdays 25 and 30, with 5 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2520,7 +2539,7 @@
         "team_name": "Manchester City",
         "goals_gw_25_30": 5
       },
-      "agent_text": "Omar Marmoush (Manchester City) leads with 5 goals between matchdays 25 and 30.",
+      "agent_text": "Omar Marmoush of Manchester City scored 5 goals between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2755,7 +2774,7 @@
         "team_name": "Liverpool",
         "away_goals": 44
       },
-      "agent_text": "Liverpool have the most away goals this season, with 44.",
+      "agent_text": "Liverpool leads with 44.0 away goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -2813,7 +2832,7 @@
         "team_name": "Manchester United",
         "progressive_passes_vs_top6": 111
       },
-      "agent_text": "Bruno Fernandes of Manchester United leads with 111 progressive passes against top-6 teams this season.",
+      "agent_text": "Bruno Fernandes leads with 111.0 progressive passes against top-6 teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -2873,7 +2892,7 @@
         "team_name": "Liverpool",
         "touches_in_box_away": 165
       },
-      "agent_text": "Mohamed Salah leads with 165 touches in the box away from home this season.",
+      "agent_text": "Mohamed Salah of Liverpool leads with 165 touches in the box away from home this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -2933,7 +2952,7 @@
         "team_name": "Liverpool",
         "key_passes_gw_25_30": 8
       },
-      "agent_text": "L. Díaz of Liverpool led with 8 key passes between matchdays 25 and 30.",
+      "agent_text": "L. Díaz (Liverpool) leads with 8 key passes between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -2993,7 +3012,7 @@
         "team_name": "Liverpool",
         "shot_assists_vs_big6": 19
       },
-      "agent_text": "Mohamed Salah of Liverpool leads with 19 shot assists against Big Six teams.",
+      "agent_text": "Mohamed Salah (Liverpool) leads with 19 shot assists against Big Six teams.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -3053,7 +3072,7 @@
         "team_name": "Liverpool",
         "shot_assists_vs_big6": 19
       },
-      "agent_text": "Mohamed Salah lidera con 19 shot assists contra equipos del Big Six esta temporada.",
+      "agent_text": "Mohamed Salah, de Liverpool, lidera con 19 shot assists contra equipos del Big Six esta temporada.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -3112,7 +3131,7 @@
         "team_name": "Brighton",
         "points_vs_big6": 24
       },
-      "agent_text": "Brighton tops the list with 24 points against Big Six teams.",
+      "agent_text": "Brighton leads with 24 points against Big Six teams.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3169,7 +3188,7 @@
         "team_name": "Bournemouth",
         "away_goals_vs_top6": 10
       },
-      "agent_text": "Bournemouth leads with 10 away goals against top-6 teams.",
+      "agent_text": "Bournemouth leads with 10 away goals against top-6 teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3283,7 +3302,7 @@
         "team_name": "Liverpool",
         "away_wins": 11
       },
-      "agent_text": "Liverpool lidera con 11 victorias como visitante esta temporada.",
+      "agent_text": "Liverpool lidera con 11 victorias fuera de casa.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3340,7 +3359,7 @@
         "team_name": "Leicester City",
         "actions_z3_vs_manchester_city": 378
       },
-      "agent_text": "Leicester City led with 378 actions in z3 against Manchester City this season.",
+      "agent_text": "Leicester City leads with 378 actions in z3 against Manchester City this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",

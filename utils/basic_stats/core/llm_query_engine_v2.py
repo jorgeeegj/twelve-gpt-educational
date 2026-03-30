@@ -26,7 +26,7 @@ from utils.basic_stats.core.config import (
 )
 from utils.basic_stats.core.duckdb_manager import DuckDBManager
 from utils.basic_stats.core.models import MetricResolution, QueryResult
-from utils.basic_stats.core.query_planner import QueryPlanner
+from utils.basic_stats.core.query_planner import QueryPlanner, _detect_dual_bucket_comparison, _classify_all_buckets
 
 
 NEGATIVE_METRICS = {
@@ -265,6 +265,201 @@ def _has_match_level_logic(plan) -> bool:
             return True
 
     return False
+
+
+def _bucket_label(bucket: dict) -> str:
+    """Return a short human-readable label for an opponent-bucket filter dict."""
+    if "opponent_rank_lte" in bucket:
+        return f"top {bucket['opponent_rank_lte']} teams"
+    if "opponent_rank_gte" in bucket:
+        bottom_n = 21 - bucket["opponent_rank_gte"]
+        return f"bottom {bottom_n} teams"
+    if "opponent_rank_between" in bucket:
+        lo, hi = bucket["opponent_rank_between"]
+        return f"mid-table teams (positions {lo}–{hi})"
+    if bucket.get("opponent_is_big6"):
+        return "Big Six teams"
+    return "that group"
+
+
+def _compute_p90(val: float, denominator: int | None, is_player: bool) -> float | None:
+    """
+    Compute per-90 rate for a subset.
+    Player: val / minutes * 90.  Team: val / match_count (standard 90-min-per-match).
+    Returns None when denominator is absent or zero.
+    """
+    if not denominator:
+        return None
+    if is_player:
+        return round(float(val) / denominator * 90, 2)
+    return round(float(val) / denominator, 2)
+
+
+_PLAYER_P90_MAP: dict[str, str] = {
+    "goals":               "total_goals_p90",
+    "assists":             "total_assists_p90",
+    "shot_assists":        "shot_assists_p90",
+    "key_passes":          "key_passes_p90",
+    "progressive_passes":  "progressive_passes_p90",
+    "passes_to_box":       "passes_to_box_p90",
+    "crosses":             "crosses_p90",
+    "forward_passes":      "forward_passes_p90",
+    "smart_passes":        "smart_passes_p90",
+    "through_passes":      "through_passes_p90",
+}
+
+_TEAM_P90_MAP: dict[str, str] = {
+    "team_score":     "total_goals_p90",
+    "opponent_score": "total_goals_against_p90",
+}
+
+
+def _detect_home_away_comparison(q: str) -> tuple[dict, dict] | None:
+    """
+    Detect a home-vs-away comparison intent.
+
+    Returns ({"is_home": False}, {"is_home": True}) when:
+    - question contains both 'home' and 'away'
+    - question contains 'or'
+    - question does NOT contain opponent-rank bucket language
+      (to avoid colliding with dual-bucket detection)
+
+    Returns None otherwise.
+    """
+    ql = q.lower()
+    if "home" not in ql or "away" not in ql:
+        return None
+    if not re.search(r"\bor\b", ql):
+        return None
+    # Exclude questions that also have rank buckets — those belong to dual-bucket path
+    rank_patterns = [
+        r"\btop[-\s]?\d+\b",
+        r"\bbottom[-\s]?\d+\b",
+        r"\bmid.?table\b",
+        r"\bbig.?six\b",
+        r"\bbig\s*6\b",
+    ]
+    for pat in rank_patterns:
+        if re.search(pat, ql):
+            return None
+    return ({"is_home": False}, {"is_home": True})
+
+
+# ── metric-derived opponent bucket ────────────────────────────────────────────
+
+_METRIC_BUCKET_RE = re.compile(
+    r"\bthe\s+(\d+)\s+teams?\s+that\s+"
+    r"(?:have\s+)?"
+    r"(score[ds]?|concede[ds]?|take[ns]?|took|attempt(?:s|ed)?|allow(?:s|ed)?|face[ds]?)"
+    r"\s+the\s+(most|fewest)"
+    r"(?:\s+(goals?|shots?))?",
+    re.IGNORECASE,
+)
+
+# verbs that pair naturally only with shots; default trailing noun is "shots" for these
+_SHOTS_ONLY_VERBS = frozenset({
+    "take", "takes", "taken", "took",
+    "attempt", "attempts", "attempted",
+    "allow", "allows", "allowed",
+    "face", "faces", "faced",
+})
+
+# keyed by (verb, trailing_noun) — trailing noun defaults to "goals" or "shots" by verb family
+_BUCKET_VERB_METRIC: dict[tuple[str, str], str] = {
+    ("score",     "goals"): "total_goals",
+    ("scores",    "goals"): "total_goals",
+    ("scored",    "goals"): "total_goals",
+    ("concede",   "goals"): "total_goals_against",
+    ("concedes",  "goals"): "total_goals_against",
+    ("conceded",  "goals"): "total_goals_against",
+    # score/concede + shots
+    ("concede",   "shots"): "shots_against",
+    ("concedes",  "shots"): "shots_against",
+    ("conceded",  "shots"): "shots_against",
+    ("score",     "shots"): "shots",
+    ("scores",    "shots"): "shots",
+    ("scored",    "shots"): "shots",
+    # take/attempt → shots (offensive)
+    ("take",      "shots"): "shots",
+    ("takes",     "shots"): "shots",
+    ("taken",     "shots"): "shots",
+    ("took",      "shots"): "shots",
+    ("attempt",   "shots"): "shots",
+    ("attempts",  "shots"): "shots",
+    ("attempted", "shots"): "shots",
+    # allow/face → shots_against (defensive)
+    ("allow",     "shots"): "shots_against",
+    ("allows",    "shots"): "shots_against",
+    ("allowed",   "shots"): "shots_against",
+    ("face",      "shots"): "shots_against",
+    ("faces",     "shots"): "shots_against",
+    ("faced",     "shots"): "shots_against",
+}
+
+# canonical human-readable label for each (bucket_metric, descending) combo
+_BUCKET_METRIC_LABEL: dict[tuple[str, bool], str] = {
+    ("total_goals",         True):  "have scored the most goals",
+    ("total_goals",         False): "have scored the fewest goals",
+    ("total_goals_against", True):  "have conceded the most goals",
+    ("total_goals_against", False): "have conceded the fewest goals",
+    ("shots_against",       True):  "concede the most shots",
+    ("shots_against",       False): "concede the fewest shots",
+    ("shots",               True):  "take the most shots",
+    ("shots",               False): "take the fewest shots",
+}
+
+
+def _detect_metric_derived_bucket(q: str) -> dict | None:
+    """
+    Detect a metric-derived opponent bucket intent.
+
+    Matches: "the N teams that [have] score[d]/concede[d] the most/fewest [goals|shots]"
+    Returns a spec dict or None.
+
+    Guard: if any fixed rank bucket (top-N, bottom-N, big-six, mid-table) is
+    already present in q, returns None and lets existing paths handle the question.
+    """
+    if _classify_all_buckets(q):
+        return None
+
+    m = _METRIC_BUCKET_RE.search(q)
+    if not m:
+        return None
+
+    n = int(m.group(1))
+    verb = m.group(2).lower()
+    direction = m.group(3).lower()
+    trailing = m.group(4).lower().rstrip("s") + "s" if m.group(4) else ("shots" if verb in _SHOTS_ONLY_VERBS else "goals")
+
+    bucket_metric = _BUCKET_VERB_METRIC.get((verb, trailing))
+    if not bucket_metric:
+        return None
+
+    descending = direction == "most"
+    label = _BUCKET_METRIC_LABEL.get((bucket_metric, descending), "")
+
+    return {
+        "n": n,
+        "bucket_metric": bucket_metric,
+        "descending": descending,
+        "label": label,
+    }
+
+
+def _derive_teams_for_bucket(
+    teams_df: "pl.DataFrame", n: int, bucket_metric: str, descending: bool
+) -> list[str]:
+    """Return N team names sorted by bucket_metric (descending=True for 'most')."""
+    if bucket_metric not in teams_df.columns:
+        return []
+    return (
+        teams_df
+        .select(["team_name", bucket_metric])
+        .sort(bucket_metric, descending=descending)
+        .head(n)["team_name"]
+        .to_list()
+    )
+
 
 class LLMQueryEngineV2:
     def __init__(self):
@@ -922,7 +1117,721 @@ class LLMQueryEngineV2:
         )
         return response.choices[0].message.content.strip()
 
+    def _run_bucket_sub_query(
+        self, plan, bucket: dict
+    ) -> tuple[float | int | None, list[dict]]:
+        """
+        Run one duck sub-query for a single opponent bucket.
+        Clears all opponent-rank fields from plan.filters, then applies `bucket`.
+        Returns (numeric_value_or_None, rows).
+        """
+        filters = plan.filters.model_dump()
+        for key in ("opponent_rank_lte", "opponent_rank_gte", "opponent_rank_between", "opponent_is_big6"):
+            filters[key] = None
+        filters.update(bucket)
+
+        try:
+            if plan.table_scope == "player_match":
+                rows = self.duck.query_player_match_context(
+                    metric=plan.metric,
+                    agg=plan.aggregation,
+                    player_name=filters.get("player_name"),
+                    team_name=filters.get("team_name"),
+                    is_home=filters.get("is_home"),
+                    opponent_team_name=filters.get("opponent_team_name"),
+                    opponent_rank_lte=filters.get("opponent_rank_lte"),
+                    opponent_rank_gte=filters.get("opponent_rank_gte"),
+                    opponent_rank_between=(
+                        tuple(filters["opponent_rank_between"])
+                        if filters.get("opponent_rank_between") else None
+                    ),
+                    opponent_is_big6=filters.get("opponent_is_big6"),
+                    matchday_start=filters.get("matchday_start"),
+                    matchday_end=filters.get("matchday_end"),
+                    match_conditions=None,
+                    limit=1,
+                )
+            elif plan.table_scope == "team_match":
+                rows = self.duck.query_team_match_context(
+                    metric=plan.metric,
+                    agg=plan.aggregation,
+                    team_name=filters.get("team_name"),
+                    is_home=filters.get("is_home"),
+                    opponent_team_name=filters.get("opponent_team_name"),
+                    opponent_rank_lte=filters.get("opponent_rank_lte"),
+                    opponent_rank_gte=filters.get("opponent_rank_gte"),
+                    opponent_rank_between=(
+                        tuple(filters["opponent_rank_between"])
+                        if filters.get("opponent_rank_between") else None
+                    ),
+                    opponent_is_big6=filters.get("opponent_is_big6"),
+                    matchday_start=filters.get("matchday_start"),
+                    matchday_end=filters.get("matchday_end"),
+                    limit=1,
+                )
+            else:
+                return None, []
+        except Exception as e:
+            print(f"[DUAL-BUCKET SUB-QUERY ERROR] bucket={bucket} -> {repr(e)}")
+            return None, []
+
+        if not rows:
+            # Return None (not 0) so the caller can distinguish "no data" from a
+            # grounded zero value.  An unknown player or a player with no games
+            # in this bucket both produce empty rows; we cannot tell them apart,
+            # so the safe choice is to signal "untrustworthy" and fall through.
+            return None, []
+
+        val = rows[0].get("metric_value")
+        if isinstance(val, (int, float)):
+            return val, rows
+        return None, rows
+
+    def _fetch_subset_denominator(self, plan, bucket: dict) -> int | None:
+        """
+        Fetch the subset denominator for per-90 enrichment, mirroring the filter
+        logic of _run_bucket_sub_query without touching duckdb_manager.py.
+
+        player_match scope  → SUM(pms.minutes)
+        team_match scope    → COUNT(*) (match count, standard 90-min-per-match)
+
+        Returns None on any failure (enrichment is always best-effort).
+        """
+        filters = plan.filters.model_dump()
+        for key in ("opponent_rank_lte", "opponent_rank_gte",
+                    "opponent_rank_between", "opponent_is_big6"):
+            filters[key] = None
+        filters.update(bucket)
+
+        where: list[str] = []
+        params: list = []
+        need_rank_join = False
+
+        def _add_rank_filters(alias: str) -> None:
+            nonlocal need_rank_join
+            rank_lte = filters.get("opponent_rank_lte")
+            rank_gte = filters.get("opponent_rank_gte")
+            rank_between = filters.get("opponent_rank_between")
+            is_big6 = filters.get("opponent_is_big6")
+            if rank_lte is not None:
+                where.append(f"{alias}.final_rank <= ?")
+                params.append(rank_lte)
+                need_rank_join = True
+            if rank_gte is not None:
+                where.append(f"{alias}.final_rank >= ?")
+                params.append(rank_gte)
+                need_rank_join = True
+            if rank_between is not None:
+                a, b = rank_between
+                lo, hi = min(a, b), max(a, b)
+                where.append(f"{alias}.final_rank BETWEEN ? AND ?")
+                params.extend([lo, hi])
+                need_rank_join = True
+            if is_big6 is not None:
+                where.append(f"{alias}.is_big6 = ?")
+                params.append(is_big6)
+                need_rank_join = True
+
+        try:
+            if plan.table_scope == "player_match":
+                player_name = filters.get("player_name")
+                if player_name:
+                    where.append("lower(pms.short_name) = lower(?)")
+                    params.append(player_name)
+                is_home = filters.get("is_home")
+                if is_home is not None:
+                    where.append("pms.is_home = ?")
+                    params.append(is_home)
+                _add_rank_filters("opp")
+                ms = filters.get("matchday_start")
+                me = filters.get("matchday_end")
+                if ms is not None:
+                    where.append("pms.gameweek >= ?")
+                    params.append(ms)
+                if me is not None:
+                    where.append("pms.gameweek <= ?")
+                    params.append(me)
+                join_sql = (
+                    "LEFT JOIN league_table opp ON pms.opponent_team_id = opp.team_id"
+                    if need_rank_join else ""
+                )
+                where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+                sql = (
+                    f"SELECT SUM(pms.minutes) AS denom "
+                    f"FROM player_match_stats pms {join_sql} {where_sql}"
+                )
+
+            elif plan.table_scope == "team_match":
+                team_name = filters.get("team_name")
+                if team_name:
+                    where.append("lower(tms.team_name) = lower(?)")
+                    params.append(team_name)
+                is_home = filters.get("is_home")
+                if is_home is not None:
+                    where.append("tms.is_home = ?")
+                    params.append(is_home)
+                _add_rank_filters("opp")
+                ms = filters.get("matchday_start")
+                me = filters.get("matchday_end")
+                if ms is not None:
+                    where.append("tms.gameweek >= ?")
+                    params.append(ms)
+                if me is not None:
+                    where.append("tms.gameweek <= ?")
+                    params.append(me)
+                join_sql = (
+                    "LEFT JOIN league_table opp ON tms.opponent_team_id = opp.team_id"
+                    if need_rank_join else ""
+                )
+                where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+                sql = (
+                    f"SELECT COUNT(*) AS denom "
+                    f"FROM team_match_stats tms {join_sql} {where_sql}"
+                )
+
+            else:
+                return None
+
+            rows = self.duck.query_dicts(sql, params)
+            if rows and rows[0].get("denom") is not None:
+                return int(rows[0]["denom"])
+        except Exception:
+            pass
+        return None
+
+    def _fetch_temporal_denominator(
+        self,
+        table: str,
+        player_name: str | None,
+        team_name: str | None,
+        matchday_start: int | None,
+        matchday_end: int | None,
+    ) -> int | None:
+        """
+        Fetch per-90 denominator for a temporal entity-value query.
+
+        Player tables  → SUM(minutes) from player_match_stats (includes player_match_event).
+        Team table     → COUNT(*) from team_match_stats (standard 90-min-per-match).
+        Returns None on any failure; enrichment is always best-effort.
+        """
+        try:
+            where: list[str] = []
+            params: list = []
+            if table in ("player_match_stats", "player_match_event_stats"):
+                if player_name:
+                    where.append("lower(pms.short_name) = lower(?)")
+                    params.append(player_name)
+                if matchday_start is not None:
+                    where.append("pms.gameweek >= ?")
+                    params.append(matchday_start)
+                if matchday_end is not None:
+                    where.append("pms.gameweek <= ?")
+                    params.append(matchday_end)
+                where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+                sql = f"SELECT SUM(pms.minutes) AS denom FROM player_match_stats pms {where_sql}"
+            elif table == "team_match_stats":
+                if team_name:
+                    where.append("lower(tms.team_name) = lower(?)")
+                    params.append(team_name)
+                if matchday_start is not None:
+                    where.append("tms.gameweek >= ?")
+                    params.append(matchday_start)
+                if matchday_end is not None:
+                    where.append("tms.gameweek <= ?")
+                    params.append(matchday_end)
+                where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+                sql = f"SELECT COUNT(*) AS denom FROM team_match_stats tms {where_sql}"
+            else:
+                return None
+            rows = self.duck.query_dicts(sql, params)
+            if rows and rows[0].get("denom") is not None:
+                return int(rows[0]["denom"])
+        except Exception:
+            pass
+        return None
+
+    def _append_temporal_p90_enrichment(self, answer: str, result) -> str:
+        """
+        Append per-90 contextual enrichment to a temporal entity-value answer.
+        Enrichment is appended only when both subset p90 and season p90 are available.
+        Returns answer unmodified on any failure.
+        """
+        filters = result.filters_applied or {}
+        player_name = filters.get("player_name")
+        team_name = filters.get("team_name")
+        ms = filters.get("matchday_start")
+        me = filters.get("matchday_end")
+        metric = result.metric
+
+        if not result.rows:
+            return answer
+        val = result.rows[0].get(metric)
+        if val is None or not isinstance(val, (int, float)):
+            return answer
+
+        is_player = player_name is not None
+        denom = self._fetch_temporal_denominator(result.table, player_name, team_name, ms, me)
+        subset_p90 = _compute_p90(float(val), denom, is_player)
+        if subset_p90 is None:
+            return answer
+
+        season_p90 = None
+        if is_player:
+            p90_col = _PLAYER_P90_MAP.get(metric)
+            if p90_col:
+                p_row = self.players_df.filter(
+                    pl.col("short_name").str.to_lowercase() == player_name.lower()
+                )
+                if p_row.height > 0 and p90_col in p_row.columns:
+                    season_p90 = round(float(p_row[p90_col][0]), 2)
+        elif team_name:
+            p90_col = _TEAM_P90_MAP.get(metric)
+            if p90_col:
+                t_row = self.teams_df.filter(
+                    pl.col("team_name").str.to_lowercase() == team_name.lower()
+                )
+                if t_row.height > 0 and p90_col in t_row.columns:
+                    season_p90 = round(float(t_row[p90_col][0]), 2)
+
+        if season_p90 is not None:
+            answer += (
+                f" That is {subset_p90:.2f} per 90 in this subset, "
+                f"compared with {season_p90:.2f} per 90 across the full season."
+            )
+        return answer
+
+    def _execute_dual_bucket_comparison(
+        self, question: str, dual: tuple[dict, dict]
+    ) -> dict | None:
+        """
+        Execute a two-bucket comparison for a named subject + single metric.
+        Returns a structured answer dict, or None to fall through to normal path.
+        """
+        try:
+            plan = self.planner.resolve(question)
+        except Exception as e:
+            print(f"[DUAL-BUCKET PLANNER ERROR] {question} -> {repr(e)}")
+            return None
+
+        # LLM-independent subject extraction — don't rely solely on what the LLM
+        # put in filters; the LLM may have returned player_name=null.
+        resolved_player = self.planner._match_known_name(question, self.planner.player_names)
+        if not resolved_player:
+            for word in question.split():
+                candidate = word.strip("?.,!'\"")
+                if len(candidate) >= 4:
+                    resolved_player = self.planner._resolve_player_suffix(candidate)
+                    if resolved_player:
+                        break
+
+        if resolved_player:
+            plan.table_scope = "player_match"
+            plan.filters.player_name = resolved_player
+            # summary-scope metric names are invalid in player_match context
+            if plan.metric == "total_goals":
+                plan.metric = "goals"
+            elif plan.metric == "total_assists":
+                plan.metric = "assists"
+        elif plan.table_scope not in {"player_match", "team_match"}:
+            return None
+
+        filters = plan.filters.model_dump()
+        subject = filters.get("player_name") or filters.get("team_name")
+        if not subject:
+            return None
+
+        bucket_a, bucket_b = dual
+        val_a, _ = self._run_bucket_sub_query(plan, bucket_a)
+        val_b, _ = self._run_bucket_sub_query(plan, bucket_b)
+
+        if val_a is None or val_b is None:
+            return None
+
+        label_a = _bucket_label(bucket_a)
+        label_b = _bucket_label(bucket_b)
+
+        # Metric base noun and action verb (with team_score normalisation)
+        _METRIC_BASE = {"goals": "goals", "team_score": "goals", "assists": "assists"}
+        _METRIC_ACTION_VERB = {"goals": "scored", "team_score": "scored", "assists": "made"}
+        metric_base = _METRIC_BASE.get(plan.metric, plan.metric.replace("_", " "))
+        action_verb = _METRIC_ACTION_VERB.get(plan.metric, "scored")
+
+        # Carry is_home modifier when baked into the plan (e.g. "away goals against top 6")
+        if plan.filters.is_home is False:
+            metric_label = f"away {metric_base}"
+        elif plan.filters.is_home is True:
+            metric_label = f"home {metric_base}"
+        else:
+            metric_label = metric_base
+
+        def _fmt(v: float) -> str:
+            return str(int(v)) if v == int(v) else str(round(v, 2))
+
+        def _val_label(v: float) -> str:
+            # Singularize "goals" → "goal", "assists" → "assist" when value is 1
+            if v == 1 and metric_label.endswith(("goals", "assists")):
+                return f"{_fmt(v)} {metric_label[:-1]}"
+            return f"{_fmt(v)} {metric_label}"
+
+        # "has" for named players, "have" for teams
+        verb = "has" if plan.filters.player_name is not None else "have"
+
+        if val_a > val_b:
+            conclusion = f"so {subject} {verb} {action_verb} more {metric_label} against the {label_a}"
+        elif val_b > val_a:
+            conclusion = f"so {subject} {verb} {action_verb} more {metric_label} against the {label_b}"
+        else:
+            conclusion = "so it is equal against both"
+
+        answer = (
+            f"{subject} {verb} {action_verb} {_val_label(val_a)} against the {label_a} and "
+            f"{_val_label(val_b)} against the {label_b}, {conclusion}."
+        )
+
+        # Per-90 enrichment (best-effort)
+        is_player = plan.filters.player_name is not None
+        p90_a = p90_b = None
+        try:
+            denom_a = self._fetch_subset_denominator(plan, bucket_a)
+            denom_b = self._fetch_subset_denominator(plan, bucket_b)
+            p90_a = _compute_p90(val_a, denom_a, is_player)
+            p90_b = _compute_p90(val_b, denom_b, is_player)
+            if p90_a is not None and p90_b is not None:
+                answer += (
+                    f" That is {p90_a:.2f} per 90 against the {label_a} "
+                    f"and {p90_b:.2f} per 90 against the {label_b}."
+                )
+        except Exception:
+            pass
+
+        return {
+            "type": "text",
+            "content": answer,
+            "debug": {
+                "engine": "dual_bucket_comparison",
+                "table": plan.table_scope,
+                "metric": plan.metric,
+                "subject": subject,
+                "bucket_a": {"filters": bucket_a, "value": val_a, "p90": p90_a},
+                "bucket_b": {"filters": bucket_b, "value": val_b, "p90": p90_b},
+            },
+        }
+
+    def _execute_home_away_comparison(
+        self, question: str, sides: tuple[dict, dict]
+    ) -> dict | None:
+        """
+        Execute a home-vs-away comparison for a named subject + single metric.
+        sides = ({"is_home": False}, {"is_home": True})
+        Returns a structured answer dict, or None to fall through to normal path.
+        """
+        try:
+            plan = self.planner.resolve(question)
+        except Exception as e:
+            print(f"[HOME-AWAY PLANNER ERROR] {question} -> {repr(e)}")
+            return None
+
+        # LLM-independent subject extraction (same pattern as dual-bucket)
+        resolved_player = self.planner._match_known_name(question, self.planner.player_names)
+        if not resolved_player:
+            for word in question.split():
+                candidate = word.strip("?.,!'\"")
+                if len(candidate) >= 4:
+                    resolved_player = self.planner._resolve_player_suffix(candidate)
+                    if resolved_player:
+                        break
+
+        if resolved_player:
+            plan.table_scope = "player_match"
+            plan.filters.player_name = resolved_player
+            if plan.metric == "total_goals":
+                plan.metric = "goals"
+            elif plan.metric == "total_assists":
+                plan.metric = "assists"
+        elif plan.table_scope not in {"player_match", "team_match"}:
+            return None
+
+        # Clear is_home so each sub-query sets its own side
+        plan.filters.is_home = None
+
+        filters = plan.filters.model_dump()
+        subject = filters.get("player_name") or filters.get("team_name")
+        if not subject:
+            return None
+
+        away_side, home_side = sides
+        val_away, _ = self._run_bucket_sub_query(plan, away_side)
+        val_home, _ = self._run_bucket_sub_query(plan, home_side)
+
+        if val_away is None or val_home is None:
+            return None
+
+        # Metric-to-noun: explicit mapping for currently supported metrics
+        _METRIC_NOUN = {
+            "goals": "goals",
+            "team_score": "goals",
+        }
+        metric_noun = _METRIC_NOUN.get(plan.metric, plan.metric.replace("_", " "))
+
+        def _fmt(v: float) -> str:
+            return str(int(v)) if v == int(v) else str(round(v, 2))
+
+        def _sng(v: float, noun: str) -> str:
+            """Singularize 'goals'/'assists' when value is 1."""
+            if v == 1 and noun in ("goals", "assists"):
+                return noun[:-1]
+            return noun
+
+        # "has" for players, "have" for teams
+        verb = "has" if plan.filters.player_name is not None else "have"
+
+        if val_away > val_home:
+            conclusion = f"so {subject} {verb} scored more away {metric_noun}"
+        elif val_home > val_away:
+            conclusion = f"so {subject} {verb} scored more {metric_noun} at home"
+        else:
+            conclusion = "so the totals are equal"
+
+        answer = (
+            f"{subject} {verb} scored {_fmt(val_away)} away {_sng(val_away, metric_noun)} and "
+            f"{_fmt(val_home)} home {_sng(val_home, metric_noun)}, {conclusion}."
+        )
+
+        # Per-90 enrichment (best-effort)
+        is_player = plan.filters.player_name is not None
+        p90_away = p90_home = None
+        try:
+            denom_away = self._fetch_subset_denominator(plan, away_side)
+            denom_home = self._fetch_subset_denominator(plan, home_side)
+            p90_away = _compute_p90(val_away, denom_away, is_player)
+            p90_home = _compute_p90(val_home, denom_home, is_player)
+            if p90_away is not None and p90_home is not None:
+                answer += (
+                    f" That is {p90_away:.2f} per 90 away "
+                    f"and {p90_home:.2f} per 90 at home."
+                )
+        except Exception:
+            pass
+
+        return {
+            "type": "text",
+            "content": answer,
+            "debug": {
+                "engine": "home_away_comparison",
+                "table": plan.table_scope,
+                "metric": plan.metric,
+                "subject": subject,
+                "away": val_away,
+                "home": val_home,
+                "p90_away": p90_away,
+                "p90_home": p90_home,
+            },
+        }
+
+    def _execute_metric_derived_bucket(
+        self, question: str, bucket_spec: dict
+    ) -> dict | None:
+        """
+        Execute a metric-derived opponent bucket query.
+        Derives opponent team set from teams_df, then runs a grounded SQL query.
+        Returns a structured answer dict, or None to fall through to normal path.
+        """
+        ql = question.lower()
+        n = bucket_spec["n"]
+
+        # 1. identify subject first (needed to exclude subject team from derived bucket)
+        player_name = self.planner._match_known_name(question, self.planner.player_names)
+        team_name = None
+        if not player_name:
+            team_name = self.planner._match_known_name(question, self.planner.team_names)
+        if not player_name and not team_name:
+            for word in question.split():
+                candidate = word.strip("?.,!'\"")
+                if len(candidate) >= 4:
+                    player_name = self.planner._resolve_player_suffix(candidate)
+                    if player_name:
+                        break
+        if not player_name and not team_name:
+            return None
+
+        # 2. determine subject team name for exclusion from derived bucket
+        subject_team_lower = None
+        if team_name:
+            subject_team_lower = team_name.lower()
+        elif player_name and "team_name" in self.players_df.columns:
+            rows_p = self.players_df.filter(
+                pl.col("short_name").str.to_lowercase() == player_name.lower()
+            )
+            if rows_p.height > 0:
+                subject_team_lower = rows_p["team_name"][0].lower()
+
+        # 3. derive opponent team names (n+1 to allow one exclusion slot)
+        team_names_raw = _derive_teams_for_bucket(
+            self.teams_df,
+            n + 1,
+            bucket_spec["bucket_metric"],
+            bucket_spec["descending"],
+        )
+        if subject_team_lower:
+            team_names = [t for t in team_names_raw if t.lower() != subject_team_lower][:n]
+        else:
+            team_names = team_names_raw[:n]
+        if not team_names:
+            return None
+
+        # 3. resolve final answer metric; fall through if unsupported
+        if player_name:
+            if "shot assist" in ql:
+                # player_match_stats has no match-level shot_assists — not supported
+                return None
+            elif "assist" in ql:
+                final_col, action, metric_singular = "assists", "made", "assist"
+            elif "goal" in ql or "scored" in ql or "conceded" in ql:
+                final_col, action, metric_singular = "goals", "scored", "goal"
+            else:
+                return None
+        else:
+            if "conceded" in ql or "concede" in ql or "concedes" in ql:
+                final_col, action, metric_singular = "opponent_score", "conceded", "goal"
+            elif "goal" in ql or "scored" in ql:
+                final_col, action, metric_singular = "team_score", "scored", "goal"
+            else:
+                return None
+
+        lower_names = [t.lower() for t in team_names]
+        placeholders = ", ".join(["?" for _ in team_names])
+
+        if player_name:
+            sql = (
+                f"SELECT SUM(pms.{final_col}) AS metric_value, "
+                f"SUM(pms.minutes) AS subset_minutes "
+                f"FROM player_match_stats pms "
+                f"WHERE lower(pms.short_name) = lower(?) "
+                f"AND lower(pms.opponent_team_name) IN ({placeholders})"
+            )
+            params = [player_name] + lower_names
+            subject = player_name
+            verb = "has"
+        else:
+            sql = (
+                f"SELECT SUM(tms.{final_col}) AS metric_value, "
+                f"COUNT(*) AS subset_matches "
+                f"FROM team_match_stats tms "
+                f"WHERE lower(tms.team_name) = lower(?) "
+                f"AND lower(tms.opponent_team_name) IN ({placeholders})"
+            )
+            params = [team_name] + lower_names
+            subject = team_name
+            verb = "have"
+
+        # 4. execute
+        try:
+            rows = self.duck.query_dicts(sql, params)
+        except Exception as e:
+            print(f"[METRIC-BUCKET QUERY ERROR] {question!r} -> {repr(e)}")
+            return None
+
+        if not rows:
+            return None
+        val = rows[0].get("metric_value")
+        if val is None:
+            return None
+        val = int(val) if isinstance(val, float) and val == int(val) else val
+
+        # 5. compose answer
+        metric_word = metric_singular if val == 1 else metric_singular + "s"
+        n = bucket_spec["n"]
+        label = bucket_spec["label"]
+        if n == 1:
+            teams_str = team_names[0]
+        elif n == 2:
+            teams_str = f"{team_names[0]} and {team_names[1]}"
+        else:
+            teams_str = ", ".join(team_names[:-1]) + f" and {team_names[-1]}"
+
+        answer = (
+            f"{subject} {verb} {action} {val} {metric_word} against the {n} teams that "
+            f"{label}: {teams_str}."
+        )
+
+        # 6. per-90 enrichment (best-effort; skipped silently on missing data)
+        subset_p90 = None
+        season_p90 = None
+        p90_context = None
+
+        try:
+            if player_name:
+                subset_minutes = rows[0].get("subset_minutes")
+                if subset_minutes and float(subset_minutes) > 0:
+                    subset_p90 = round(float(val) / float(subset_minutes) * 90, 2)
+                # season baseline from player_full_stats (already loaded)
+                p_row = self.players_df.filter(
+                    pl.col("short_name").str.to_lowercase() == player_name.lower()
+                )
+                if p_row.height > 0:
+                    p90_col = "total_goals_p90" if final_col == "goals" else "total_assists_p90"
+                    if p90_col in p_row.columns:
+                        season_p90 = round(float(p_row[p90_col][0]), 2)
+            else:
+                subset_matches = rows[0].get("subset_matches")
+                if subset_matches and int(subset_matches) > 0:
+                    subset_p90 = round(float(val) / int(subset_matches), 2)
+                # season baseline from team_full_stats (already loaded)
+                t_row = self.teams_df.filter(
+                    pl.col("team_name").str.to_lowercase() == team_name.lower()
+                )
+                if t_row.height > 0:
+                    p90_col = "total_goals_p90" if final_col == "team_score" else "total_goals_against_p90"
+                    if p90_col in t_row.columns:
+                        season_p90 = round(float(t_row[p90_col][0]), 2)
+
+            if subset_p90 is not None and season_p90 is not None:
+                p90_context = (
+                    f" That is {subset_p90:.2f} per 90 in this subset, "
+                    f"compared with {season_p90:.2f} per 90 across the full season."
+                )
+        except Exception:
+            pass  # enrichment failure must not affect the main answer
+
+        if p90_context:
+            answer = answer + p90_context
+
+        return {
+            "type": "text",
+            "content": answer,
+            "debug": {
+                "engine": "metric_derived_bucket",
+                "table": "player_match_stats" if player_name else "team_match_stats",
+                "metric": final_col,
+                "descending": bucket_spec["descending"],
+                "bucket_spec": bucket_spec,
+                "team_names": team_names,
+                "subject": subject,
+                "value": val,
+                "subset_p90": subset_p90,
+                "season_p90": season_p90,
+            },
+        }
+
     def ask(self, question: str) -> dict:
+        dual = _detect_dual_bucket_comparison(question)
+        if dual is not None:
+            comparison_result = self._execute_dual_bucket_comparison(question, dual)
+            if comparison_result is not None:
+                return comparison_result
+
+        home_away = _detect_home_away_comparison(question)
+        if home_away is not None:
+            comparison_result = self._execute_home_away_comparison(question, home_away)
+            if comparison_result is not None:
+                return comparison_result
+
+        metric_bucket = _detect_metric_derived_bucket(question)
+        if metric_bucket is not None:
+            bucket_result = self._execute_metric_derived_bucket(question, metric_bucket)
+            if bucket_result is not None:
+                return bucket_result
+
         is_contextual = self._is_contextual_question(question)
 
         planned_result = self._execute_planned_query(question)
@@ -936,6 +1845,18 @@ class LLMQueryEngineV2:
             )
 
             answer = self._verbalize(question, planned_result)
+
+            # Temporal entity-value enrichment: only for named-entity value queries
+            # with a real temporal subset (matchday_start or matchday_end set).
+            if ranking.get("mode") == "entity_value":
+                filters_ = planned_result.filters_applied or {}
+                if (filters_.get("matchday_start") is not None
+                        or filters_.get("matchday_end") is not None):
+                    try:
+                        answer = self._append_temporal_p90_enrichment(answer, planned_result)
+                    except Exception:
+                        pass
+
             return {
                 "type": "text",
                 "content": answer,

@@ -1350,11 +1350,12 @@ class LLMQueryEngineV2:
             pass
         return None
 
-    def _append_temporal_p90_enrichment(self, answer: str, result) -> str:
+    def _append_temporal_p90_enrichment(self, answer: str, result) -> tuple[str, dict]:
         """
         Append per-90 contextual enrichment to a temporal entity-value answer.
         Enrichment is appended only when both subset p90 and season p90 are available.
-        Returns answer unmodified on any failure.
+        Returns (answer, p90_debug) where p90_debug contains subset_p90 and season_p90
+        when enrichment fires, or {} otherwise.
         """
         filters = result.filters_applied or {}
         player_name = filters.get("player_name")
@@ -1364,16 +1365,16 @@ class LLMQueryEngineV2:
         metric = result.metric
 
         if not result.rows:
-            return answer
+            return answer, {}
         val = result.rows[0].get(metric)
         if val is None or not isinstance(val, (int, float)):
-            return answer
+            return answer, {}
 
         is_player = player_name is not None
         denom = self._fetch_temporal_denominator(result.table, player_name, team_name, ms, me)
         subset_p90 = _compute_p90(float(val), denom, is_player)
         if subset_p90 is None:
-            return answer
+            return answer, {}
 
         season_p90 = None
         if is_player:
@@ -1398,7 +1399,8 @@ class LLMQueryEngineV2:
                 f" That is {subset_p90:.2f} per 90 in this subset, "
                 f"compared with {season_p90:.2f} per 90 across the full season."
             )
-        return answer
+            return answer, {"subset_p90": subset_p90, "season_p90": season_p90}
+        return answer, {}
 
     def _execute_dual_bucket_comparison(
         self, question: str, dual: tuple[dict, dict]
@@ -1848,12 +1850,13 @@ class LLMQueryEngineV2:
 
             # Temporal entity-value enrichment: only for named-entity value queries
             # with a real temporal subset (matchday_start or matchday_end set).
+            _p90_debug: dict = {}
             if ranking.get("mode") == "entity_value":
                 filters_ = planned_result.filters_applied or {}
                 if (filters_.get("matchday_start") is not None
                         or filters_.get("matchday_end") is not None):
                     try:
-                        answer = self._append_temporal_p90_enrichment(answer, planned_result)
+                        answer, _p90_debug = self._append_temporal_p90_enrichment(answer, planned_result)
                     except Exception:
                         pass
 
@@ -1870,6 +1873,7 @@ class LLMQueryEngineV2:
                     "is_tie": is_tie,
                     "ranking_mode": ranking.get("mode"),
                     "ranking_n": ranking.get("n"),
+                    **_p90_debug,
                 },
             }
 

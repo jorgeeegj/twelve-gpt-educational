@@ -21,6 +21,7 @@ def _normalize_text(text: str) -> str:
     text = text.strip().lower()
     text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[\u2018\u2019\u02bc]", "'", text)  # smart quotes → ASCII apostrophe
     return re.sub(r"\s+", " ", text)
 
 
@@ -547,6 +548,7 @@ class QueryPlanner:
         self.player_names = self._load_player_names()
         self.team_names = self._load_team_names()
         self.max_matchday = self._load_max_matchday()
+        self._player_alias_map = self._build_player_alias_map()
 
     def _load_prompt(self, name: str) -> dict:
         return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text(encoding="utf8"))
@@ -584,6 +586,76 @@ class QueryPlanner:
             return int(df["gameweek"].max())
         except Exception:
             return 38  # safe default for a standard 38-matchday season
+
+    def _build_player_alias_map(self) -> dict[str, str]:
+        """
+        Build a normalized alias → canonical short_name map from first_name / last_name columns.
+
+        Aliases added per player:
+          1. first_name + " " + last_name        (e.g. "erling braut haaland" → "E. Haaland")
+          2. first_name + " " + last_word_of_ln   (e.g. "erling haaland"       → "E. Haaland")
+             — only added when last_word differs from last_name (multi-word last name)
+          3. last_word_of_last_name               (e.g. "haaland"              → "E. Haaland")
+             — only added when the alias maps to exactly one player (unique surname)
+
+        All keys are _normalize_text normalized. Returns {} if columns are absent.
+        """
+        required = {"short_name", "first_name", "last_name"}
+        if not required.issubset(self.players_df.columns):
+            return {}
+
+        alias_map: dict[str, str] = {}
+        last_word_seen: dict[str, list[str]] = {}  # lw_norm → [canonical short_names]
+
+        for row in (
+            self.players_df
+            .select(["short_name", "first_name", "last_name"])
+            .drop_nulls()
+            .iter_rows(named=True)
+        ):
+            sn = row["short_name"]
+            fn = (row["first_name"] or "").strip()
+            ln = (row["last_name"] or "").strip()
+            if not sn or not fn or not ln:
+                continue
+
+            ln_words = ln.split()
+            last_word = ln_words[-1] if ln_words else ""
+
+            # Alias 1: full first + last name
+            alias_map[_normalize_text(fn + " " + ln)] = sn
+
+            # Alias 2: first_name + last_word (only meaningful when ln is multi-word)
+            if last_word and last_word.lower() != ln.lower():
+                alias_map[_normalize_text(fn + " " + last_word)] = sn
+
+            # Collect last_word candidates for uniqueness check
+            if last_word and len(last_word) >= 4:
+                lw_norm = _normalize_text(last_word)
+                if lw_norm not in last_word_seen:
+                    last_word_seen[lw_norm] = []
+                if sn not in last_word_seen[lw_norm]:
+                    last_word_seen[lw_norm].append(sn)
+
+        # Alias 3: unique last_word surnames
+        for lw_norm, sns in last_word_seen.items():
+            if len(sns) == 1 and lw_norm not in alias_map:
+                alias_map[lw_norm] = sns[0]
+
+        return alias_map
+
+    def _match_player_alias(self, question: str) -> str | None:
+        """
+        Match a player name from the question using the alias map built from
+        first_name / last_name columns.  Checks aliases longest-first so that
+        "erling haaland" is preferred over the standalone "haaland" alias.
+        Returns the canonical short_name or None.
+        """
+        q = _normalize_text(question)
+        for alias_norm in sorted(self._player_alias_map, key=len, reverse=True):
+            if alias_norm and alias_norm in q:
+                return self._player_alias_map[alias_norm]
+        return None
 
     def _extract_opponent_team_hint(self, question: str) -> str | None:
         q = _normalize_text(question)
@@ -1390,16 +1462,19 @@ class QueryPlanner:
 
         # Name enrichment from known entities in the dataset
         matched_player = self._match_known_name(question, self.player_names)
+        if not matched_player:
+            matched_player = self._match_player_alias(question)
         matched_team = self._match_known_name(question, self.team_names)
 
         own_team_hint = self._extract_own_team_hint(question)
         opponent_team_hint = self._extract_opponent_team_hint(question)
 
-        if matched_player and not plan.filters.player_name:
+        # Deterministic question-scan result always overrides LLM-extracted name
+        # because the alias map gives the canonical DB form (e.g. "Erling Haaland" → "E. Haaland").
+        if matched_player:
             plan.filters.player_name = matched_player
-
-        # Resolve partial player names (e.g. LLM returns "Haaland", DB has "E. Haaland")
-        if plan.filters.player_name and not matched_player:
+        elif plan.filters.player_name:
+            # Resolve partial player names (e.g. LLM returns "Haaland", DB has "E. Haaland")
             resolved = self._resolve_player_suffix(plan.filters.player_name)
             if resolved:
                 plan.filters.player_name = resolved

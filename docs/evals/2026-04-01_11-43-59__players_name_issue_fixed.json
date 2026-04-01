@@ -1,0 +1,4191 @@
+{
+  "summary": {
+    "benchmark_path": "questions_benchmark_v6.json",
+    "total_passed": 61,
+    "total_questions": 61,
+    "score": "61/61",
+    "by_category": {
+      "baseline_player_basic": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "baseline_team_basic": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "baseline_player_advanced": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "baseline_player_filtered": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3"
+      },
+      "baseline_team_advanced": {
+        "passed": 2,
+        "total": 2,
+        "score": "2/2"
+      },
+      "rephrase_en": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3"
+      },
+      "rephrase_es": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3"
+      },
+      "ordinal_ranking": {
+        "passed": 6,
+        "total": 6,
+        "score": "6/6"
+      },
+      "match_level_minutes": {
+        "passed": 4,
+        "total": 4,
+        "score": "4/4"
+      },
+      "opponent_context": {
+        "passed": 2,
+        "total": 2,
+        "score": "2/2"
+      },
+      "home_away_context": {
+        "passed": 2,
+        "total": 2,
+        "score": "2/2"
+      },
+      "player_match_event_context": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "team_match_context": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5"
+      },
+      "planner_robustness": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "planner_robustness_es": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "mid_table_bucket": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "dual_bucket_comparison": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "home_away_comparison": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "metric_derived_bucket": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3"
+      },
+      "temporal_entity_value": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3"
+      }
+    },
+    "by_expected_stage": {
+      "baseline": {
+        "passed": 20,
+        "total": 20,
+        "score": "20/20",
+        "stage_name": "Baseline regression"
+      },
+      "sprint_1": {
+        "passed": 12,
+        "total": 12,
+        "score": "12/12",
+        "stage_name": "Sprint 1 - Robust NL + Ordinal Ranking"
+      },
+      "sprint_2": {
+        "passed": 4,
+        "total": 4,
+        "score": "4/4",
+        "stage_name": "Sprint 2 - Match-level tables (minutes + matches)"
+      },
+      "sprint_3": {
+        "passed": 4,
+        "total": 4,
+        "score": "4/4",
+        "stage_name": "Sprint 3 - Opponent and home/away context"
+      },
+      "sprint_4": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5",
+        "stage_name": "Sprint 4 - Event-level match context"
+      },
+      "sprint_5": {
+        "passed": 5,
+        "total": 5,
+        "score": "5/5",
+        "stage_name": "Sprint 5 - Team match context"
+      },
+      "sprint_6": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3",
+        "stage_name": "Sprint 6 - Planner robustness + mid-table bucket"
+      },
+      "sprint_7": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1",
+        "stage_name": "Sprint 7 - Dual-bucket comparison"
+      },
+      "sprint_8": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1",
+        "stage_name": "Sprint 8 - Home-away comparison"
+      },
+      "sprint_9": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3",
+        "stage_name": "Sprint 9 - Metric-derived bucket"
+      },
+      "sprint_10": {
+        "passed": 3,
+        "total": 3,
+        "score": "3/3",
+        "stage_name": "Sprint 10 - Temporal entity-value"
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "QV4_01",
+      "category": "baseline_player_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Who has scored the most goals this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "total_goals": 29
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads this season with 29 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "main_position": "Winger",
+            "age": 32,
+            "total_minutes": 3376,
+            "matches_played": 38,
+            "total_goals": 29.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "main_position": "Winger",
+          "age": 32,
+          "total_minutes": 3376,
+          "matches_played": 38,
+          "total_goals": 29.0
+        }
+      }
+    },
+    {
+      "id": "QV4_02",
+      "category": "baseline_player_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Who has the most assists this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "total_assists": 16
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads the assists this season with 16.0 assists.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_assists",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "main_position": "Winger",
+            "age": 32,
+            "total_minutes": 3376,
+            "matches_played": 38,
+            "total_assists": 16.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "main_position": "Winger",
+          "age": 32,
+          "total_minutes": 3376,
+          "matches_played": 38,
+          "total_assists": 16.0
+        }
+      }
+    },
+    {
+      "id": "QV4_03",
+      "category": "baseline_player_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which player has played the most minutes?",
+      "expected": {
+        "short_name": "B. Leno",
+        "team_name": "Fulham",
+        "total_minutes": 3420
+      },
+      "debug_expected": null,
+      "agent_text": "B. Leno has played the most minutes this season, with 3420 minutes.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_minutes",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "B. Leno",
+            "team_name": "Fulham",
+            "main_position": "Goalkeeper",
+            "age": 32,
+            "total_minutes": 3420.0,
+            "matches_played": 38
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "B. Leno",
+          "team_name": "Fulham",
+          "main_position": "Goalkeeper",
+          "age": 32,
+          "total_minutes": 3420.0,
+          "matches_played": 38
+        }
+      }
+    },
+    {
+      "id": "QV4_04",
+      "category": "baseline_player_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Who has received the most yellow cards?",
+      "expected": {
+        "short_name": "S. Lukić",
+        "team_name": "Fulham",
+        "total_yellow_cards": 12
+      },
+      "debug_expected": null,
+      "agent_text": "S. Lukić of Fulham has the most yellow cards this season, with 12.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_yellow_cards",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "S. Lukić",
+            "team_name": "Fulham",
+            "main_position": "Midfielder",
+            "age": 28,
+            "total_minutes": 2364,
+            "matches_played": 30,
+            "total_yellow_cards": 12.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "S. Lukić",
+          "team_name": "Fulham",
+          "main_position": "Midfielder",
+          "age": 28,
+          "total_minutes": 2364,
+          "matches_played": 30,
+          "total_yellow_cards": 12.0
+        }
+      }
+    },
+    {
+      "id": "QV4_05",
+      "category": "baseline_player_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which player has the best goals per 90 minutes (minimum 10 appearances)?",
+      "expected": {
+        "short_name": "J. Durán",
+        "team_name": "Aston Villa",
+        "total_goals_p90": 0.85
+      },
+      "debug_expected": null,
+      "agent_text": "J. Durán of Aston Villa leads with 0.8536585365853657 goals per 90 minutes.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals_p90",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": 10,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "J. Durán",
+            "team_name": "Aston Villa",
+            "main_position": "Striker",
+            "age": 21,
+            "total_minutes": 738,
+            "matches_played": 20,
+            "total_goals_p90": 0.8536585365853657
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "J. Durán",
+          "team_name": "Aston Villa",
+          "main_position": "Striker",
+          "age": 21,
+          "total_minutes": 738,
+          "matches_played": 20,
+          "total_goals_p90": 0.8536585365853657
+        }
+      }
+    },
+    {
+      "id": "QV4_06",
+      "category": "baseline_team_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team has scored the most goals?",
+      "expected": {
+        "team_name": "Liverpool",
+        "total_goals": 86
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool leads with 86 goals this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "total_goals": 86.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "total_goals": 86.0
+        }
+      }
+    },
+    {
+      "id": "QV4_07",
+      "category": "baseline_team_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team has conceded the fewest goals?",
+      "expected": {
+        "team_name": "Arsenal",
+        "total_goals_against": 34
+      },
+      "debug_expected": null,
+      "agent_text": "Arsenal have conceded the fewest goals this season, with 34.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals_against",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Arsenal",
+            "total_goals_against": 34.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Arsenal",
+          "total_goals_against": 34.0
+        }
+      }
+    },
+    {
+      "id": "QV4_08",
+      "category": "baseline_team_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team wins the most aerial duels?",
+      "expected": {
+        "team_name": "Everton",
+        "aerial_duels_won": 691.0
+      },
+      "debug_expected": null,
+      "agent_text": "Everton lead with 691 aerial duels won this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "aerial_duels_won",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Everton",
+            "aerial_duels_won": 691.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Everton",
+          "aerial_duels_won": 691.0
+        }
+      }
+    },
+    {
+      "id": "QV4_09",
+      "category": "baseline_team_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team has the most accurate passing?",
+      "expected": {
+        "team_name": "Manchester City",
+        "pass_accuracy_pct": 89.84
+      },
+      "debug_expected": null,
+      "agent_text": "Manchester City has the most accurate passing with a pass accuracy of 89.84278471305015%.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "pass_accuracy_pct",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Manchester City",
+            "pass_accuracy_pct": 89.84278471305015
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Manchester City",
+          "pass_accuracy_pct": 89.84278471305015
+        }
+      }
+    },
+    {
+      "id": "QV4_10",
+      "category": "baseline_team_basic",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team provokes the most offsides?",
+      "expected": {
+        "team_name": "Nottingham Forest",
+        "offsides": 87.0
+      },
+      "debug_expected": null,
+      "agent_text": "Nottingham Forest leads this season with 87 offsides.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "offsides",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Nottingham Forest",
+            "offsides": 87.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Nottingham Forest",
+          "offsides": 87.0
+        }
+      }
+    },
+    {
+      "id": "QV4_11",
+      "category": "baseline_player_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which midfielder has the most progressive passes per 90?",
+      "expected": {
+        "short_name": "Bruno Fernandes",
+        "team_name": "Manchester United",
+        "progressive_passes_p90": 11.03
+      },
+      "debug_expected": null,
+      "agent_text": "Bruno Fernandes has the most progressive passes per 90 this season, at 11.034368803701257.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "progressive_passes_p90",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": "midfielder",
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Bruno Fernandes",
+            "team_name": "Manchester United",
+            "main_position": "Midfielder",
+            "age": 30,
+            "total_minutes": 3026,
+            "matches_played": 36,
+            "progressive_passes_p90": 11.034368803701257
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Bruno Fernandes",
+          "team_name": "Manchester United",
+          "main_position": "Midfielder",
+          "age": 30,
+          "total_minutes": 3026,
+          "matches_played": 36,
+          "progressive_passes_p90": 11.034368803701257
+        }
+      }
+    },
+    {
+      "id": "QV4_12",
+      "category": "baseline_player_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which player has the highest dribble success rate (minimum 10 appearances)?",
+      "expected": {
+        "short_name": "K. Walker",
+        "team_name": "Manchester City",
+        "dribble_success_pct": 100.0
+      },
+      "debug_expected": null,
+      "agent_text": "K. Tierney of Arsenal leads with a dribble success rate of 100.0%.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "dribble_success_pct",
+        "descending": true,
+        "filters": {
+          "min_matches": 10,
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "K. Tierney",
+            "team_name": "Arsenal",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 13,
+            "total_minutes": 305
+          },
+          {
+            "short_name": "W. Endo",
+            "team_name": "Liverpool",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 20,
+            "total_minutes": 369
+          },
+          {
+            "short_name": "D. Ings",
+            "team_name": "West Ham United",
+            "main_position": "Striker",
+            "dribble_success_pct": 100.0,
+            "matches_played": 15,
+            "total_minutes": 372
+          },
+          {
+            "short_name": "E. Krafth",
+            "team_name": "Newcastle United",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 12,
+            "total_minutes": 394
+          },
+          {
+            "short_name": "J. Araujo",
+            "team_name": "Bournemouth",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 12,
+            "total_minutes": 525
+          },
+          {
+            "short_name": "N. Clyne",
+            "team_name": "Crystal Palace",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 13,
+            "total_minutes": 533
+          },
+          {
+            "short_name": "O. Zinchenko",
+            "team_name": "Arsenal",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 15,
+            "total_minutes": 576
+          },
+          {
+            "short_name": "I. Sangaré",
+            "team_name": "Nottingham Forest",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 13,
+            "total_minutes": 627
+          },
+          {
+            "short_name": "R. Barkley",
+            "team_name": "Aston Villa",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 20,
+            "total_minutes": 676
+          },
+          {
+            "short_name": "Jorginho",
+            "team_name": "Arsenal",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 15,
+            "total_minutes": 731
+          },
+          {
+            "short_name": "V. Lindelöf",
+            "team_name": "Manchester United",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 16,
+            "total_minutes": 766
+          },
+          {
+            "short_name": "W. Smallbone",
+            "team_name": "Southampton",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 18,
+            "total_minutes": 767
+          },
+          {
+            "short_name": "N. Wood",
+            "team_name": "Southampton",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 11,
+            "total_minutes": 784
+          },
+          {
+            "short_name": "R. Lavia",
+            "team_name": "Chelsea",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 16,
+            "total_minutes": 838
+          },
+          {
+            "short_name": "Diego Carlos",
+            "team_name": "Aston Villa",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 10,
+            "total_minutes": 846
+          },
+          {
+            "short_name": "N. Füllkrug",
+            "team_name": "West Ham United",
+            "main_position": "Striker",
+            "dribble_success_pct": 100.0,
+            "matches_played": 18,
+            "total_minutes": 861
+          },
+          {
+            "short_name": "C. Kelleher",
+            "team_name": "Liverpool",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 10,
+            "total_minutes": 900
+          },
+          {
+            "short_name": "Igor Julio",
+            "team_name": "Brighton",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 13,
+            "total_minutes": 977
+          },
+          {
+            "short_name": "K. Walker",
+            "team_name": "Manchester City",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 15,
+            "total_minutes": 995
+          },
+          {
+            "short_name": "L. Thomas",
+            "team_name": "Leicester City",
+            "main_position": "Full Back",
+            "dribble_success_pct": 100.0,
+            "matches_played": 14,
+            "total_minutes": 1113
+          },
+          {
+            "short_name": "M. Senesi",
+            "team_name": "Bournemouth",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 17,
+            "total_minutes": 1133
+          },
+          {
+            "short_name": "C. Okoli",
+            "team_name": "Leicester City",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 19,
+            "total_minutes": 1154
+          },
+          {
+            "short_name": "Ł. Fabiański",
+            "team_name": "West Ham United",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 14,
+            "total_minutes": 1164
+          },
+          {
+            "short_name": "O. Skipp",
+            "team_name": "Leicester City",
+            "main_position": "Midfielder",
+            "dribble_success_pct": 100.0,
+            "matches_played": 24,
+            "total_minutes": 1201
+          },
+          {
+            "short_name": "R. Drăgușin",
+            "team_name": "Tottenham Hotspur",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 16,
+            "total_minutes": 1267
+          },
+          {
+            "short_name": "B. Davies",
+            "team_name": "Tottenham Hotspur",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 17,
+            "total_minutes": 1350
+          },
+          {
+            "short_name": "J. Vestergaard",
+            "team_name": "Leicester City",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 18,
+            "total_minutes": 1396
+          },
+          {
+            "short_name": "E. Agbadou",
+            "team_name": "Wolverhampton Wanderers",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 16,
+            "total_minutes": 1411
+          },
+          {
+            "short_name": "T. Adarabioyo",
+            "team_name": "Chelsea",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 22,
+            "total_minutes": 1460
+          },
+          {
+            "short_name": "C. Coady",
+            "team_name": "Leicester City",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 22,
+            "total_minutes": 1730
+          },
+          {
+            "short_name": "M. Akanji",
+            "team_name": "Manchester City",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 26,
+            "total_minutes": 2031
+          },
+          {
+            "short_name": "L. Dunk",
+            "team_name": "Brighton",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 25,
+            "total_minutes": 2102
+          },
+          {
+            "short_name": "G. Vicario",
+            "team_name": "Tottenham Hotspur",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 24,
+            "total_minutes": 2160
+          },
+          {
+            "short_name": "A. Aréola",
+            "team_name": "West Ham United",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 26,
+            "total_minutes": 2267
+          },
+          {
+            "short_name": "Rúben Dias",
+            "team_name": "Manchester City",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 27,
+            "total_minutes": 2276
+          },
+          {
+            "short_name": "Gabriel Magalhaes",
+            "team_name": "Arsenal",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 28,
+            "total_minutes": 2365
+          },
+          {
+            "short_name": "Dean Huijsen",
+            "team_name": "Bournemouth",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 32,
+            "total_minutes": 2464
+          },
+          {
+            "short_name": "Alisson",
+            "team_name": "Liverpool",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 28,
+            "total_minutes": 2510
+          },
+          {
+            "short_name": "J. Bednarek",
+            "team_name": "Southampton",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 30,
+            "total_minutes": 2532
+          },
+          {
+            "short_name": "José Sá",
+            "team_name": "Wolverhampton Wanderers",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 29,
+            "total_minutes": 2610
+          },
+          {
+            "short_name": "J. Andersen",
+            "team_name": "Fulham",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 30,
+            "total_minutes": 2673
+          },
+          {
+            "short_name": "J. van Hecke",
+            "team_name": "Brighton",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 34,
+            "total_minutes": 2968
+          },
+          {
+            "short_name": "A. Onana",
+            "team_name": "Manchester United",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 34,
+            "total_minutes": 3060
+          },
+          {
+            "short_name": "D. O'Shea",
+            "team_name": "Ipswich Town",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 35,
+            "total_minutes": 3123
+          },
+          {
+            "short_name": "E. Martínez",
+            "team_name": "Aston Villa",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 37,
+            "total_minutes": 3202
+          },
+          {
+            "short_name": "B. Verbruggen",
+            "team_name": "Brighton",
+            "main_position": "Goalkeeper",
+            "dribble_success_pct": 100.0,
+            "matches_played": 36,
+            "total_minutes": 3240
+          },
+          {
+            "short_name": "D. Burn",
+            "team_name": "Newcastle United",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 37,
+            "total_minutes": 3330
+          },
+          {
+            "short_name": "V. van Dijk",
+            "team_name": "Liverpool",
+            "main_position": "Central Defender",
+            "dribble_success_pct": 100.0,
+            "matches_played": 37,
+            "total_minutes": 3330
+          }
+        ],
+        "is_tie": true,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "K. Walker",
+          "team_name": "Manchester City",
+          "main_position": "Full Back",
+          "dribble_success_pct": 100.0,
+          "matches_played": 15,
+          "total_minutes": 995
+        }
+      }
+    },
+    {
+      "id": "QV4_13",
+      "category": "baseline_player_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which forward has the most shots on target per 90?",
+      "expected": {
+        "short_name": "D. Malen",
+        "team_name": "Aston Villa",
+        "shots_on_target_p90": 1.89
+      },
+      "debug_expected": null,
+      "agent_text": "D. Malen leads with 1.89 shots on target per 90.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "shots_on_target_p90",
+        "descending": true,
+        "filters": {
+          "position": "forward",
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "D. Malen",
+            "team_name": "Aston Villa",
+            "main_position": "Winger",
+            "shots_on_target_p90": 1.89,
+            "matches_played": 14,
+            "total_minutes": 381
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "D. Malen",
+          "team_name": "Aston Villa",
+          "main_position": "Winger",
+          "shots_on_target_p90": 1.89,
+          "matches_played": 14,
+          "total_minutes": 381
+        }
+      }
+    },
+    {
+      "id": "QV4_14",
+      "category": "baseline_player_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which player makes the most recoveries per 90?",
+      "expected": {
+        "short_name": "M. Senesi",
+        "team_name": "Bournemouth",
+        "recoveries_p90": 13.9
+      },
+      "debug_expected": null,
+      "agent_text": "M. Senesi leads with 13.9 recoveries per 90.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "recoveries_p90",
+        "descending": true,
+        "filters": {
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "M. Senesi",
+            "team_name": "Bournemouth",
+            "main_position": "Central Defender",
+            "recoveries_p90": 13.9,
+            "matches_played": 17,
+            "total_minutes": 1133
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "M. Senesi",
+          "team_name": "Bournemouth",
+          "main_position": "Central Defender",
+          "recoveries_p90": 13.9,
+          "matches_played": 17,
+          "total_minutes": 1133
+        }
+      }
+    },
+    {
+      "id": "QV4_15",
+      "category": "baseline_player_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which defender wins the most aerial duels per 90?",
+      "expected": {
+        "short_name": "D. Burn",
+        "team_name": "Newcastle United",
+        "aerial_duels_won_p90": 3.95
+      },
+      "debug_expected": null,
+      "agent_text": "D. Burn of Newcastle United leads, averaging 3.95 aerial duels won per 90.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "aerial_duels_won_p90",
+        "descending": true,
+        "filters": {
+          "position": "defender",
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "D. Burn",
+            "team_name": "Newcastle United",
+            "main_position": "Central Defender",
+            "aerial_duels_won_p90": 3.95,
+            "matches_played": 37,
+            "total_minutes": 3330
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "D. Burn",
+          "team_name": "Newcastle United",
+          "main_position": "Central Defender",
+          "aerial_duels_won_p90": 3.95,
+          "matches_played": 37,
+          "total_minutes": 3330
+        }
+      }
+    },
+    {
+      "id": "QV4_16",
+      "category": "baseline_player_filtered",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which player under 23 has scored the most goals?",
+      "expected": {
+        "short_name": "C. Palmer",
+        "team_name": "Chelsea",
+        "age": 22,
+        "total_goals": 15
+      },
+      "debug_expected": null,
+      "agent_text": "C. Palmer (Chelsea) leads under-23 scorers with 15 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": 23,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "C. Palmer",
+            "team_name": "Chelsea",
+            "main_position": "Midfielder",
+            "age": 22,
+            "total_minutes": 3200,
+            "matches_played": 37,
+            "total_goals": 15.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "C. Palmer",
+          "team_name": "Chelsea",
+          "main_position": "Midfielder",
+          "age": 22,
+          "total_minutes": 3200,
+          "matches_played": 37,
+          "total_goals": 15.0
+        }
+      }
+    },
+    {
+      "id": "QV4_17",
+      "category": "baseline_player_filtered",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which midfielder has the best pass accuracy?",
+      "expected": {
+        "short_name": "C. Jones",
+        "team_name": "Liverpool",
+        "pass_accuracy_pct": 94.02
+      },
+      "debug_expected": null,
+      "agent_text": "C. Jones (Liverpool) has the best pass accuracy this season, at 94.02%.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "pass_accuracy_pct",
+        "descending": true,
+        "filters": {
+          "position": "midfielder",
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "C. Jones",
+            "team_name": "Liverpool",
+            "main_position": "Midfielder",
+            "pass_accuracy_pct": 94.02,
+            "matches_played": 33,
+            "total_minutes": 1788
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "C. Jones",
+          "team_name": "Liverpool",
+          "main_position": "Midfielder",
+          "pass_accuracy_pct": 94.02,
+          "matches_played": 33,
+          "total_minutes": 1788
+        }
+      }
+    },
+    {
+      "id": "QV4_18",
+      "category": "baseline_player_filtered",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which forward has the most touches in the box per 90?",
+      "expected": {
+        "short_name": "J. Doku",
+        "team_name": "Manchester City",
+        "touches_in_box_p90": 8.91
+      },
+      "debug_expected": null,
+      "agent_text": "J. Doku has the most touches in the box per 90 this season, at 8.91.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "players",
+        "metric": "touches_in_box_p90",
+        "descending": true,
+        "filters": {
+          "position": "forward",
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "short_name": "J. Doku",
+            "team_name": "Manchester City",
+            "main_position": "Winger",
+            "touches_in_box_p90": 8.91,
+            "matches_played": 29,
+            "total_minutes": 1586
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "J. Doku",
+          "team_name": "Manchester City",
+          "main_position": "Winger",
+          "touches_in_box_p90": 8.91,
+          "matches_played": 29,
+          "total_minutes": 1586
+        }
+      }
+    },
+    {
+      "id": "QV4_19",
+      "category": "baseline_team_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team has the most progressive passes per 90?",
+      "expected": {
+        "team_name": "Liverpool",
+        "progressive_passes_p90": 70.38
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool leads with 70.37622115984203 progressive passes per 90 this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "progressive_passes_p90",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "progressive_passes_p90": 70.37622115984203
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "progressive_passes_p90": 70.37622115984203
+        }
+      }
+    },
+    {
+      "id": "QV4_20",
+      "category": "baseline_team_advanced",
+      "expected_stage": "baseline",
+      "expected_stage_name": "Baseline regression",
+      "question": "Which team has the most key passes per 90?",
+      "expected": {
+        "team_name": "Liverpool",
+        "key_passes_p90": 5.12
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool leads this season with 5.12 key passes per 90.",
+      "debug": {
+        "engine": "llm_query_engine_v2",
+        "table": "teams",
+        "metric": "key_passes_p90",
+        "descending": true,
+        "filters": {
+          "top_n": 1
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "key_passes_p90": 5.12,
+            "total_goals": 86,
+            "total_goals_against": 41
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "key_passes_p90": 5.12,
+          "total_goals": 86,
+          "total_goals_against": 41
+        }
+      }
+    },
+    {
+      "id": "QV4_21",
+      "category": "rephrase_en",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Who is the top scorer this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "total_goals": 29
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah is the top scorer this season with 29 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "main_position": "Winger",
+            "age": 32,
+            "total_minutes": 3376,
+            "matches_played": 38,
+            "total_goals": 29.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "main_position": "Winger",
+          "age": 32,
+          "total_minutes": 3376,
+          "matches_played": 38,
+          "total_goals": 29.0
+        }
+      }
+    },
+    {
+      "id": "QV4_22",
+      "category": "rephrase_en",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Which club has the best attack by total goals this season?",
+      "expected": {
+        "team_name": "Liverpool",
+        "total_goals": 86
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool has the best attack this season, with 86 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "total_goals": 86.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "total_goals": 86.0
+        }
+      }
+    },
+    {
+      "id": "QV4_23",
+      "category": "rephrase_en",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Which side allowed the fewest goals this season?",
+      "expected": {
+        "team_name": "Arsenal",
+        "total_goals_against": 34
+      },
+      "debug_expected": null,
+      "agent_text": "Arsenal conceded 34 goals this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals_against",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Arsenal",
+            "total_goals_against": 34.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Arsenal",
+          "total_goals_against": 34.0
+        }
+      }
+    },
+    {
+      "id": "QV4_24",
+      "category": "rephrase_es",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "¿Quién lidera la liga en asistencias esta temporada?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "total_assists": 16
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah lidera la liga en asistencias esta temporada, con 16 asistencias.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_assists",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "main_position": "Winger",
+            "age": 32,
+            "total_minutes": 3376,
+            "matches_played": 38,
+            "total_assists": 16.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "main_position": "Winger",
+          "age": 32,
+          "total_minutes": 3376,
+          "matches_played": 38,
+          "total_assists": 16.0
+        }
+      }
+    },
+    {
+      "id": "QV4_25",
+      "category": "rephrase_es",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "¿Qué equipo ha marcado más goles esta temporada?",
+      "expected": {
+        "team_name": "Liverpool",
+        "total_goals": 86
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool ha marcado 86 goles esta temporada.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "total_goals": 86.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "total_goals": 86.0
+        }
+      }
+    },
+    {
+      "id": "QV4_26",
+      "category": "rephrase_es",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "¿Qué jugador ha jugado más minutos esta temporada?",
+      "expected": {
+        "short_name": "B. Leno",
+        "team_name": "Fulham",
+        "total_minutes": 3420
+      },
+      "debug_expected": null,
+      "agent_text": "B. Leno es el jugador que más minutos ha disputado esta temporada, con 3420 minutos.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_minutes",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "B. Leno",
+            "team_name": "Fulham",
+            "main_position": "Goalkeeper",
+            "age": 32,
+            "total_minutes": 3420.0,
+            "matches_played": 38
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "B. Leno",
+          "team_name": "Fulham",
+          "main_position": "Goalkeeper",
+          "age": 32,
+          "total_minutes": 3420.0,
+          "matches_played": 38
+        }
+      }
+    },
+    {
+      "id": "QV4_27",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Who is 2nd in assists this season?",
+      "expected": {
+        "short_name": "J. Murphy",
+        "team_name": "Newcastle United",
+        "total_assists": 11
+      },
+      "debug_expected": null,
+      "agent_text": "Second in assists this season is J. Murphy of Newcastle United with 11 assists.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_assists",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 2
+          }
+        },
+        "rows": [
+          {
+            "short_name": "J. Murphy",
+            "team_name": "Newcastle United",
+            "main_position": "Winger",
+            "age": 29,
+            "total_minutes": 2401,
+            "matches_played": 35,
+            "total_assists": 11.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "J. Murphy",
+          "team_name": "Newcastle United",
+          "main_position": "Winger",
+          "age": 29,
+          "total_minutes": 2401,
+          "matches_played": 35,
+          "total_assists": 11.0
+        }
+      }
+    },
+    {
+      "id": "QV4_28",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Who is 7th for total minutes played this season?",
+      "expected": {
+        "short_name": "B. Mbeumo",
+        "team_name": "Brentford",
+        "total_minutes": 3413
+      },
+      "debug_expected": null,
+      "agent_text": "B. Mbeumo is 7th for total minutes played this season, with 3413.0 minutes.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_minutes",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 7
+          }
+        },
+        "rows": [
+          {
+            "short_name": "B. Mbeumo",
+            "team_name": "Brentford",
+            "main_position": "Winger",
+            "age": 25,
+            "total_minutes": 3413.0,
+            "matches_played": 38
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "B. Mbeumo",
+          "team_name": "Brentford",
+          "main_position": "Winger",
+          "age": 25,
+          "total_minutes": 3413.0,
+          "matches_played": 38
+        }
+      }
+    },
+    {
+      "id": "QV4_29",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Who is 6th in the top scoring list this season?",
+      "expected": {
+        "short_name": "Y. Wissa",
+        "team_name": "Brentford",
+        "total_goals": 18
+      },
+      "debug_expected": null,
+      "agent_text": "Y. Wissa is 6th this season with 18 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 6
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Y. Wissa",
+            "team_name": "Brentford",
+            "main_position": "Striker",
+            "age": 28,
+            "total_minutes": 2929,
+            "matches_played": 35,
+            "total_goals": 18.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Y. Wissa",
+          "team_name": "Brentford",
+          "main_position": "Striker",
+          "age": 28,
+          "total_minutes": 2929,
+          "matches_played": 35,
+          "total_goals": 18.0
+        }
+      }
+    },
+    {
+      "id": "QV4_30",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Which team is 3rd in goals scored this season?",
+      "expected": {
+        "team_name": "Arsenal",
+        "total_goals": 69
+      },
+      "debug_expected": null,
+      "agent_text": "Arsenal is third in goals scored this season, with 69 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 3
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Arsenal",
+            "total_goals": 69.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Arsenal",
+          "total_goals": 69.0
+        }
+      }
+    },
+    {
+      "id": "QV4_31",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Which team has the 3rd fewest goals conceded this season?",
+      "expected": {
+        "team_name": "Chelsea",
+        "total_goals_against": 43
+      },
+      "debug_expected": null,
+      "agent_text": "Chelsea has the third-fewest goals conceded this season, with 43 goals conceded.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "teams_summary",
+        "metric": "total_goals_against",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 3
+          }
+        },
+        "rows": [
+          {
+            "team_name": "Chelsea",
+            "total_goals_against": 43.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Chelsea",
+          "total_goals_against": 43.0
+        }
+      }
+    },
+    {
+      "id": "QV4_32",
+      "category": "ordinal_ranking",
+      "expected_stage": "sprint_1",
+      "expected_stage_name": "Sprint 1 - Robust NL + Ordinal Ranking",
+      "question": "Who is 20th in goals scored this season?",
+      "expected": {
+        "short_name": "João Pedro",
+        "team_name": "Brighton",
+        "total_goals": 10
+      },
+      "debug_expected": null,
+      "agent_text": "João Pedro of Brighton is 20th in goals this season, with 10 goals.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "ordinal",
+            "n": null,
+            "ordinal": 20
+          }
+        },
+        "rows": [
+          {
+            "short_name": "João Pedro",
+            "team_name": "Brighton",
+            "main_position": "Striker",
+            "age": 23,
+            "total_minutes": 1987,
+            "matches_played": 27,
+            "total_goals": 10.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "ordinal",
+        "ranking_n": null
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "João Pedro",
+          "team_name": "Brighton",
+          "main_position": "Striker",
+          "age": 23,
+          "total_minutes": 1987,
+          "matches_played": 27,
+          "total_goals": 10.0
+        }
+      }
+    },
+    {
+      "id": "QV4_33",
+      "category": "match_level_minutes",
+      "expected_stage": "sprint_2",
+      "expected_stage_name": "Sprint 2 - Match-level tables (minutes + matches)",
+      "question": "Which player has the most matches with both a goal and an assist?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "matches_scored_and_assisted": 10
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads this season with 10 matches in which he both scored and assisted.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "matches_scored_and_assisted",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "matches_scored_and_assisted": 10.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "matches_scored_and_assisted": 10.0
+        }
+      }
+    },
+    {
+      "id": "QV4_34",
+      "category": "match_level_minutes",
+      "expected_stage": "sprint_2",
+      "expected_stage_name": "Sprint 2 - Match-level tables (minutes + matches)",
+      "question": "Which player has the most matches with 2 or more goals?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "two_goal_matches": 5
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah (Liverpool) has the most matches with two goals this season, with 5 such matches.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "two_goal_matches",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "two_goal_matches": 5.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "two_goal_matches": 5.0
+        }
+      }
+    },
+    {
+      "id": "QV4_35",
+      "category": "match_level_minutes",
+      "expected_stage": "sprint_2",
+      "expected_stage_name": "Sprint 2 - Match-level tables (minutes + matches)",
+      "question": "Which Liverpool player scored the most goals between matchdays 25 and 30?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "goals_gw_25_30": 5
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads with 5 goals between matchdays 25 and 30.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals_gw_25_30",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": "Liverpool",
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "goals_gw_25_30": 5.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "goals_gw_25_30": 5.0
+        }
+      }
+    },
+    {
+      "id": "QV4_36",
+      "category": "match_level_minutes",
+      "expected_stage": "sprint_2",
+      "expected_stage_name": "Sprint 2 - Match-level tables (minutes + matches)",
+      "question": "Which Manchester City player scored the most goals between matchdays 25 and 30?",
+      "expected": {
+        "short_name": "Omar Marmoush",
+        "team_name": "Manchester City",
+        "goals_gw_25_30": 5
+      },
+      "debug_expected": null,
+      "agent_text": "Omar Marmoush scored 5 goals between matchdays 25 and 30.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals_gw_25_30",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": "Manchester City",
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Omar Marmoush",
+            "team_name": "Manchester City",
+            "goals_gw_25_30": 5.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Omar Marmoush",
+          "team_name": "Manchester City",
+          "goals_gw_25_30": 5.0
+        }
+      }
+    },
+    {
+      "id": "QV4_37",
+      "category": "opponent_context",
+      "expected_stage": "sprint_3",
+      "expected_stage_name": "Sprint 3 - Opponent and home/away context",
+      "question": "Which player has scored the most goals against top-6 teams this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "goals_vs_top6": 8
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads with 8 goals against top-6 teams this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals_vs_top6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "goals_vs_top6": 8.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "goals_vs_top6": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV4_38",
+      "category": "opponent_context",
+      "expected_stage": "sprint_3",
+      "expected_stage_name": "Sprint 3 - Opponent and home/away context",
+      "question": "How many goals has E. Haaland scored against top-6 teams this season?",
+      "expected": {
+        "short_name": "E. Haaland",
+        "team_name": "Manchester City",
+        "goals_vs_top6": 4
+      },
+      "debug_expected": null,
+      "agent_text": "E. Haaland has scored 4 goals against top-6 teams this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals_vs_top6",
+        "descending": null,
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "E. Haaland",
+            "team_name": "Manchester City",
+            "goals_vs_top6": 4.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "E. Haaland",
+          "team_name": "Manchester City",
+          "goals_vs_top6": 4.0
+        }
+      }
+    },
+    {
+      "id": "QV4_39",
+      "category": "home_away_context",
+      "expected_stage": "sprint_3",
+      "expected_stage_name": "Sprint 3 - Opponent and home/away context",
+      "question": "Which player has scored the most away goals this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "away_goals": 16
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads with 16 away goals this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "away_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "away_goals": 16.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "away_goals": 16.0
+        }
+      }
+    },
+    {
+      "id": "QV4_40",
+      "category": "home_away_context",
+      "expected_stage": "sprint_3",
+      "expected_stage_name": "Sprint 3 - Opponent and home/away context",
+      "question": "Which team has scored the most away goals this season?",
+      "expected": {
+        "team_name": "Liverpool",
+        "away_goals": 44
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool leads the way with 44 away goals this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "away_goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "away_goals": 44.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "away_goals": 44.0
+        }
+      }
+    },
+    {
+      "id": "QV5_41",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+      "expected": {
+        "short_name": "Bruno Fernandes",
+        "team_name": "Manchester United",
+        "progressive_passes_vs_top6": 111
+      },
+      "debug_expected": null,
+      "agent_text": "Bruno Fernandes leads with 111 progressive passes against top-6 teams this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "progressive_passes_vs_top6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": "midfielder",
+          "is_home": null,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Bruno Fernandes",
+            "team_name": "Manchester United",
+            "progressive_passes_vs_top6": 111.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Bruno Fernandes",
+          "team_name": "Manchester United",
+          "progressive_passes_vs_top6": 111.0
+        }
+      }
+    },
+    {
+      "id": "QV5_42",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has recorded the most touches in the box away from home this season?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "touches_in_box_away": 165
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads with 165 touches in the box away from home this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "touches_in_box_away",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "touches_in_box_away": 165.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "touches_in_box_away": 165.0
+        }
+      }
+    },
+    {
+      "id": "QV5_43",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player made the most key passes between matchdays 25 and 30?",
+      "expected": {
+        "short_name": "L. Díaz",
+        "team_name": "Liverpool",
+        "key_passes_gw_25_30": 8
+      },
+      "debug_expected": null,
+      "agent_text": "L. Díaz of Liverpool led with 8 key passes between matchdays 25 and 30.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "key_passes_gw_25_30",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "L. Díaz",
+            "team_name": "Liverpool",
+            "key_passes_gw_25_30": 8.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "L. Díaz",
+          "team_name": "Liverpool",
+          "key_passes_gw_25_30": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV5_44",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "Which player has the most shot assists against Big Six teams?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah leads with 19 shot assists against Big Six teams.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_45",
+      "category": "player_match_event_context",
+      "expected_stage": "sprint_4",
+      "expected_stage_name": "Sprint 4 - Event-level match context",
+      "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+      "expected": {
+        "short_name": "Mohamed Salah",
+        "team_name": "Liverpool",
+        "shot_assists_vs_big6": 19
+      },
+      "debug_expected": null,
+      "agent_text": "Mohamed Salah lidera con 19 asistencias de remate contra equipos del Big Six esta temporada.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists_vs_big6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists_vs_big6": 19.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "Mohamed Salah",
+          "team_name": "Liverpool",
+          "shot_assists_vs_big6": 19.0
+        }
+      }
+    },
+    {
+      "id": "QV5_46",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "Sprint 5 - Team match context",
+      "question": "Which team won the most points against Big Six teams this season?",
+      "expected": {
+        "team_name": "Brighton",
+        "points_vs_big6": 24
+      },
+      "debug_expected": null,
+      "agent_text": "Brighton leads with 24 points against Big Six teams this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "points_vs_big6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": true,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "points"
+        },
+        "rows": [
+          {
+            "team_name": "Brighton",
+            "points_vs_big6": 24.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Brighton",
+          "points_vs_big6": 24.0
+        }
+      }
+    },
+    {
+      "id": "QV5_47",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "Sprint 5 - Team match context",
+      "question": "Which team scored the most away goals against top-6 teams this season?",
+      "expected": {
+        "team_name": "Bournemouth",
+        "away_goals_vs_top6": 10
+      },
+      "debug_expected": null,
+      "agent_text": "Bournemouth leads with 10 away goals against top-6 teams.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "away_goals_vs_top6",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": 6,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "team_name": "Bournemouth",
+            "away_goals_vs_top6": 10.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Bournemouth",
+          "away_goals_vs_top6": 10.0
+        }
+      }
+    },
+    {
+      "id": "QV5_48",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "Sprint 5 - Team match context",
+      "question": "Which team had the best goal difference between matchdays 25 and 30?",
+      "expected": {
+        "team_name": "Liverpool",
+        "goal_difference_gw_25_30": 8
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool leads with a goal difference of 8 between matchdays 25 and 30.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "goal_difference_gw_25_30",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "goal_difference"
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "goal_difference_gw_25_30": 8.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "goal_difference_gw_25_30": 8.0
+        }
+      }
+    },
+    {
+      "id": "QV5_49",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "Sprint 5 - Team match context",
+      "question": "¿Qué equipo consiguió más victorias fuera de casa esta temporada?",
+      "expected": {
+        "team_name": "Liverpool",
+        "away_wins": 11
+      },
+      "debug_expected": null,
+      "agent_text": "Liverpool es el líder, con 11 victorias fuera de casa esta temporada.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "away_wins",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": false,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "wins"
+        },
+        "rows": [
+          {
+            "team_name": "Liverpool",
+            "away_wins": 11.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Liverpool",
+          "away_wins": 11.0
+        }
+      }
+    },
+    {
+      "id": "QV5_50",
+      "category": "team_match_context",
+      "expected_stage": "sprint_5",
+      "expected_stage_name": "Sprint 5 - Team match context",
+      "question": "Which team had the most actions in z3 against Manchester City this season?",
+      "expected": {
+        "team_name": "Leicester City",
+        "actions_z3_vs_manchester_city": 378
+      },
+      "debug_expected": null,
+      "agent_text": "Leicester City had the most actions in z3 against Manchester City this season, with 378.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "team_match_stats",
+        "metric": "actions_z3_vs_manchester_city",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": "Manchester City",
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "team_name": "Leicester City",
+            "actions_z3_vs_manchester_city": 378.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "team_name": "Leicester City",
+          "actions_z3_vs_manchester_city": 378.0
+        }
+      }
+    },
+    {
+      "id": "QV6_51",
+      "category": "planner_robustness",
+      "expected_stage": "sprint_6",
+      "expected_stage_name": "Sprint 6 - Planner robustness + mid-table bucket",
+      "question": "How many goals has Haaland scored this season?",
+      "expected": {
+        "short_name": "E. Haaland",
+        "team_name": "Manchester City",
+        "total_goals": 22
+      },
+      "debug_expected": null,
+      "agent_text": "E. Haaland has 22 goals this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "players_summary",
+        "metric": "total_goals",
+        "descending": null,
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "E. Haaland",
+            "team_name": "Manchester City",
+            "main_position": "Striker",
+            "age": 24,
+            "total_minutes": 2741,
+            "matches_played": 31,
+            "total_goals": 22.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "E. Haaland",
+          "team_name": "Manchester City",
+          "main_position": "Striker",
+          "age": 24,
+          "total_minutes": 2741,
+          "matches_played": 31,
+          "total_goals": 22.0
+        }
+      }
+    },
+    {
+      "id": "QV6_52",
+      "category": "planner_robustness_es",
+      "expected_stage": "sprint_6",
+      "expected_stage_name": "Sprint 6 - Planner robustness + mid-table bucket",
+      "question": "¿Cuántos goles ha marcado Erling Haaland contra los últimos 5 equipos?",
+      "expected": {
+        "short_name": "E. Haaland",
+        "goals_vs_bottom5": 7
+      },
+      "debug_expected": null,
+      "agent_text": "E. Haaland ha marcado 7 goles contra los últimos 5 equipos, esta temporada.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals_vs_bottom5",
+        "descending": null,
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": 16,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "E. Haaland",
+            "team_name": "Manchester City",
+            "goals_vs_bottom5": 7.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "E. Haaland",
+          "team_name": "Manchester City",
+          "goals_vs_bottom5": 7.0
+        }
+      }
+    },
+    {
+      "id": "QV6_53",
+      "category": "mid_table_bucket",
+      "expected_stage": "sprint_6",
+      "expected_stage_name": "Sprint 6 - Planner robustness + mid-table bucket",
+      "question": "Who has scored the most goals against mid-table teams this season?",
+      "expected": {
+        "short_name": "E. Haaland",
+        "team_name": "Manchester City",
+        "goals": 11
+      },
+      "debug_expected": null,
+      "agent_text": "E. Haaland of Manchester City has scored 11 goals against mid-table teams this season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals",
+        "descending": null,
+        "filters": {
+          "player_name": null,
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": [
+            7,
+            14
+          ],
+          "opponent_is_big6": null,
+          "matchday_start": null,
+          "matchday_end": null,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "top_n",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "E. Haaland",
+            "team_name": "Manchester City",
+            "goals": 11.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "top_n",
+        "ranking_n": 1
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "matched",
+        "matched_row": {
+          "short_name": "E. Haaland",
+          "team_name": "Manchester City",
+          "goals": 11.0
+        }
+      }
+    },
+    {
+      "id": "QV6_54",
+      "category": "dual_bucket_comparison",
+      "expected_stage": "sprint_7",
+      "expected_stage_name": "Sprint 7 - Dual-bucket comparison",
+      "question": "Has E. Haaland scored more goals against top 5 teams or bottom 5 teams?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "dual_bucket_comparison",
+        "bucket_a.value": 4,
+        "bucket_b.value": 7,
+        "bucket_a.p90": 0.57,
+        "bucket_b.p90": 0.91
+      },
+      "agent_text": "E. Haaland has scored 4 goals against the top 5 teams and 7 goals against the bottom 5 teams, so E. Haaland has scored more goals against the bottom 5 teams. That is 0.57 per 90 against the top 5 teams and 0.91 per 90 against the bottom 5 teams.",
+      "debug": {
+        "engine": "dual_bucket_comparison",
+        "table": "player_match",
+        "metric": "goals",
+        "subject": "E. Haaland",
+        "bucket_a": {
+          "filters": {
+            "opponent_rank_lte": 5
+          },
+          "value": 4.0,
+          "p90": 0.57
+        },
+        "bucket_b": {
+          "filters": {
+            "opponent_rank_gte": 16
+          },
+          "value": 7.0,
+          "p90": 0.91
+        }
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "dual_bucket_comparison",
+          "bucket_a.value": 4,
+          "bucket_b.value": 7,
+          "bucket_a.p90": 0.57,
+          "bucket_b.p90": 0.91
+        },
+        "debug_engine": "dual_bucket_comparison"
+      }
+    },
+    {
+      "id": "QV6_55",
+      "category": "home_away_comparison",
+      "expected_stage": "sprint_8",
+      "expected_stage_name": "Sprint 8 - Home-away comparison",
+      "question": "Has Mohamed Salah scored more away goals or home goals?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "home_away_comparison",
+        "away": 16,
+        "home": 13,
+        "p90_away": 0.85,
+        "p90_home": 0.69
+      },
+      "agent_text": "Mohamed Salah has scored 16 away goals and 13 home goals, so Mohamed Salah has scored more away goals. That is 0.85 per 90 away and 0.69 per 90 at home.",
+      "debug": {
+        "engine": "home_away_comparison",
+        "table": "player_match",
+        "metric": "goals",
+        "subject": "Mohamed Salah",
+        "away": 16.0,
+        "home": 13.0,
+        "p90_away": 0.85,
+        "p90_home": 0.69
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "home_away_comparison",
+          "away": 16,
+          "home": 13,
+          "p90_away": 0.85,
+          "p90_home": 0.69
+        },
+        "debug_engine": "home_away_comparison"
+      }
+    },
+    {
+      "id": "QV6_56",
+      "category": "metric_derived_bucket",
+      "expected_stage": "sprint_9",
+      "expected_stage_name": "Sprint 9 - Metric-derived bucket",
+      "question": "How many goals has Salah scored against the 3 teams that have conceded the fewest goals?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "metric_derived_bucket",
+        "value": 4,
+        "subset_p90": 0.67,
+        "season_p90": 0.77,
+        "team_names": [
+          "Arsenal",
+          "Chelsea",
+          "Manchester City"
+        ]
+      },
+      "agent_text": "Mohamed Salah has scored 4 goals against the 3 teams that have conceded the fewest goals: Arsenal, Chelsea and Manchester City. That is 0.67 per 90 in this subset, compared with 0.77 per 90 across the full season.",
+      "debug": {
+        "engine": "metric_derived_bucket",
+        "table": "player_match_stats",
+        "metric": "goals",
+        "descending": false,
+        "bucket_spec": {
+          "n": 3,
+          "bucket_metric": "total_goals_against",
+          "descending": false,
+          "label": "have conceded the fewest goals"
+        },
+        "team_names": [
+          "Arsenal",
+          "Chelsea",
+          "Manchester City"
+        ],
+        "subject": "Mohamed Salah",
+        "value": 4,
+        "subset_p90": 0.67,
+        "season_p90": 0.77
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "metric_derived_bucket",
+          "value": 4,
+          "subset_p90": 0.67,
+          "season_p90": 0.77,
+          "team_names": [
+            "Arsenal",
+            "Chelsea",
+            "Manchester City"
+          ]
+        },
+        "debug_engine": "metric_derived_bucket"
+      }
+    },
+    {
+      "id": "QV6_57",
+      "category": "metric_derived_bucket",
+      "expected_stage": "sprint_9",
+      "expected_stage_name": "Sprint 9 - Metric-derived bucket",
+      "question": "How many goals has Brentford conceded against the 4 teams that take the most shots?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "metric_derived_bucket",
+        "value": 13,
+        "subset_p90": 1.62,
+        "season_p90": 1.47,
+        "team_names": [
+          "Liverpool",
+          "Manchester City",
+          "Bournemouth",
+          "Chelsea"
+        ]
+      },
+      "agent_text": "Brentford have conceded 13 goals against the 4 teams that take the most shots: Liverpool, Manchester City, Bournemouth and Chelsea. That is 1.62 per 90 in this subset, compared with 1.47 per 90 across the full season.",
+      "debug": {
+        "engine": "metric_derived_bucket",
+        "table": "team_match_stats",
+        "metric": "opponent_score",
+        "descending": true,
+        "bucket_spec": {
+          "n": 4,
+          "bucket_metric": "shots",
+          "descending": true,
+          "label": "take the most shots"
+        },
+        "team_names": [
+          "Liverpool",
+          "Manchester City",
+          "Bournemouth",
+          "Chelsea"
+        ],
+        "subject": "Brentford",
+        "value": 13,
+        "subset_p90": 1.62,
+        "season_p90": 1.47
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "metric_derived_bucket",
+          "value": 13,
+          "subset_p90": 1.62,
+          "season_p90": 1.47,
+          "team_names": [
+            "Liverpool",
+            "Manchester City",
+            "Bournemouth",
+            "Chelsea"
+          ]
+        },
+        "debug_engine": "metric_derived_bucket"
+      }
+    },
+    {
+      "id": "QV6_61",
+      "category": "metric_derived_bucket",
+      "expected_stage": "sprint_9",
+      "expected_stage_name": "Sprint 9 - Metric-derived bucket",
+      "question": "How many assists has Salah made against the 3 teams that have conceded the fewest goals?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "metric_derived_bucket",
+        "value": 3,
+        "subset_p90": 0.5,
+        "season_p90": 0.43,
+        "team_names": [
+          "Arsenal",
+          "Chelsea",
+          "Manchester City"
+        ]
+      },
+      "agent_text": "Mohamed Salah has made 3 assists against the 3 teams that have conceded the fewest goals: Arsenal, Chelsea and Manchester City. That is 0.50 per 90 in this subset, compared with 0.43 per 90 across the full season.",
+      "debug": {
+        "engine": "metric_derived_bucket",
+        "table": "player_match_stats",
+        "metric": "assists",
+        "descending": false,
+        "bucket_spec": {
+          "n": 3,
+          "bucket_metric": "total_goals_against",
+          "descending": false,
+          "label": "have conceded the fewest goals"
+        },
+        "team_names": [
+          "Arsenal",
+          "Chelsea",
+          "Manchester City"
+        ],
+        "subject": "Mohamed Salah",
+        "value": 3,
+        "subset_p90": 0.5,
+        "season_p90": 0.43
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "metric_derived_bucket",
+          "value": 3,
+          "subset_p90": 0.5,
+          "season_p90": 0.43,
+          "team_names": [
+            "Arsenal",
+            "Chelsea",
+            "Manchester City"
+          ]
+        },
+        "debug_engine": "metric_derived_bucket"
+      }
+    },
+    {
+      "id": "QV6_58",
+      "category": "temporal_entity_value",
+      "expected_stage": "sprint_10",
+      "expected_stage_name": "Sprint 10 - Temporal entity-value",
+      "question": "How many assists has Bruno Fernandes made between matchdays 25 and 30?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "assists",
+        "subset_p90": 0.33,
+        "season_p90": 0.27
+      },
+      "agent_text": "Bruno Fernandes has made 2 assists between matchdays 25 and 30. That is 0.33 per 90 in this subset, compared with 0.27 per 90 across the full season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "assists",
+        "descending": null,
+        "filters": {
+          "player_name": "Bruno Fernandes",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "Bruno Fernandes",
+            "team_name": "Manchester United",
+            "assists": 2.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1,
+        "subset_p90": 0.33,
+        "season_p90": 0.27
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "planner_duckdb",
+          "table": "player_match_stats",
+          "metric": "assists",
+          "subset_p90": 0.33,
+          "season_p90": 0.27
+        },
+        "debug_engine": "planner_duckdb"
+      }
+    },
+    {
+      "id": "QV6_59",
+      "category": "temporal_entity_value",
+      "expected_stage": "sprint_10",
+      "expected_stage_name": "Sprint 10 - Temporal entity-value",
+      "question": "How many shot assists has Salah produced between matchdays 25 and 30?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists",
+        "subset_p90": 1.82,
+        "season_p90": 2.0
+      },
+      "agent_text": "Mohamed Salah produced 11 shot assists between matchdays 25 and 30. That is 1.82 per 90 in this subset, compared with 2.00 per 90 across the full season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_event_stats",
+        "metric": "shot_assists",
+        "descending": null,
+        "filters": {
+          "player_name": "Mohamed Salah",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          },
+          "aggregation": "sum"
+        },
+        "rows": [
+          {
+            "short_name": "Mohamed Salah",
+            "team_name": "Liverpool",
+            "shot_assists": 11.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1,
+        "subset_p90": 1.82,
+        "season_p90": 2.0
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "planner_duckdb",
+          "table": "player_match_event_stats",
+          "metric": "shot_assists",
+          "subset_p90": 1.82,
+          "season_p90": 2.0
+        },
+        "debug_engine": "planner_duckdb"
+      }
+    },
+    {
+      "id": "QV6_60",
+      "category": "temporal_entity_value",
+      "expected_stage": "sprint_10",
+      "expected_stage_name": "Sprint 10 - Temporal entity-value",
+      "question": "How many goals has Haaland scored between matchdays 25 and 30?",
+      "expected": null,
+      "debug_expected": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals",
+        "subset_p90": 0.5,
+        "season_p90": 0.72
+      },
+      "agent_text": "E. Haaland scored 2 goals between matchdays 25 and 30. That is 0.50 per 90 in this subset, compared with 0.72 per 90 across the full season.",
+      "debug": {
+        "engine": "planner_duckdb",
+        "table": "player_match_stats",
+        "metric": "goals",
+        "descending": null,
+        "filters": {
+          "player_name": "E. Haaland",
+          "team_name": null,
+          "opponent_team_name": null,
+          "position": null,
+          "is_home": null,
+          "opponent_rank_lte": null,
+          "opponent_rank_gte": null,
+          "opponent_rank_between": null,
+          "opponent_is_big6": null,
+          "matchday_start": 25,
+          "matchday_end": 30,
+          "min_minutes": null,
+          "min_matches": null,
+          "age_lt": null,
+          "ranking": {
+            "mode": "entity_value",
+            "n": 1,
+            "ordinal": null
+          }
+        },
+        "rows": [
+          {
+            "short_name": "E. Haaland",
+            "team_name": "Manchester City",
+            "goals": 2.0
+          }
+        ],
+        "is_tie": false,
+        "ranking_mode": "entity_value",
+        "ranking_n": 1,
+        "subset_p90": 0.5,
+        "season_p90": 0.72
+      },
+      "passed": true,
+      "eval_meta": {
+        "reason": "debug_matched",
+        "debug_expected": {
+          "engine": "planner_duckdb",
+          "table": "player_match_stats",
+          "metric": "goals",
+          "subset_p90": 0.5,
+          "season_p90": 0.72
+        },
+        "debug_engine": "planner_duckdb"
+      }
+    }
+  ]
+}

@@ -12,9 +12,13 @@ Pass criteria:
                            (falls through to normal path)
 """
 
+# NOTE: These tests require live LLM credentials (GPT_KEY) and DuckDB data.
+# Run manually: python tests/test_dual_bucket_hardening.py
+# Do NOT add to pre-commit hooks.
+
 import sys
 
-from utils.basic_stats.core.llm_query_engine_v2 import LLMQueryEngineV2
+from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
 
 
 def _engine_label(result: dict) -> str:

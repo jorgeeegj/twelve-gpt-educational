@@ -1,11 +1,15 @@
+# NOTE: These tests require live LLM credentials (GPT_KEY) and DuckDB data.
+# Run manually: python -m pytest tests/test_query_planner.py -v
+# Do NOT add to pre-commit hooks.
+
 import json
 
-from utils.basic_stats.core.llm_query_engine_v2 import (
+from src.basic_stats.llm_query_engine_v2 import (
     _bucket_label,
     _detect_home_away_comparison,
     _detect_metric_derived_bucket,
 )
-from utils.basic_stats.core.query_planner import QueryPlanner, _detect_dual_bucket_comparison
+from src.basic_stats.query_planner import QueryPlanner, _detect_dual_bucket_comparison
 
 TEST_CASES = [
     {

@@ -52,13 +52,13 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 - [ ] **FUNC-01**: `_canonicalize_raw_plan` (~680 lines) and all detector functions replaced by 4 typed Python tools with Pydantic v2 schemas
 - [ ] **FUNC-02**: All 61 benchmark questions produce identical results via function calling path (dual-run validation: old plan vs new plan field-by-field)
 - [ ] **FUNC-03**: Graceful fallback to legacy planner via `use_function_calling` flag during transition; removed after 100% coverage confirmed
-- [ ] **FUNC-04**: Canonicalization rules explicitly documented in `docs/canonicalization_rules.md` before Phase 2 implementation begins
+- [ ] **FUNC-04**: Canonicalization rules explicitly documented in `docs/canonicalization_rules.md` before Phase 5 implementation begins
 
 ### MEM — Conversation Memory
 
 - [ ] **MEM-01**: `ConversationState` dataclass in Streamlit `session_state` tracks entity, metric, active filters, and last result across turns
 - [ ] **MEM-02**: Follow-up question chain works end-to-end: "How many goals has Haaland scored?" → "But against top 6?" → "Is that more than the rest?" → "What about per 90?"
-- [ ] **MEM-03**: Multi-turn test suite (10+ conversation flows) passes before Phase 3 ships
+- [ ] **MEM-03**: Multi-turn test suite (10+ conversation flows) passes before Phase 6 ships
 
 ### CTX — League Context
 

@@ -33,7 +33,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - `pass_accuracy` (without `_pct`): minor LLM variant, handled by legacy
   - `total` aggregation: unsupported, handled by legacy
 
-**Phase 3 — Dynamic Buckets + Comparison Questions** ○ In Progress (started 2026-03-27)
+**Phase 3 — Dynamic Buckets + Comparison Questions** ✓ Complete (2026-03-29)
 - ✓ Mid-table bucket detection added to `query_planner.py` (`_extract_mid_table_bucket`, `MID_TABLE_RANGE`, wired into `_canonicalize_raw_plan` in 2 locations + scope inference)
 - ✓ Canonicalize tests extended: C12, C13 (mid-table → `opponent_rank_between=[7,14]`) — 13/13 passing
 - ✓ Dual-bucket comparison detection added to `query_planner.py` (`_classify_all_buckets`, `_detect_dual_bucket_comparison`) — detection only, no execution yet
@@ -91,7 +91,21 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
     - "How many goals has Salah scored against the 3 teams that have conceded the fewest goals?" → `metric_derived_bucket` ✓ ("Mohamed Salah has scored 2 goals against the 3 teams that have conceded the fewest goals: Arsenal, Liverpool and Chelsea.")
     - "How many goals has Liverpool conceded against the 3 teams that score the most?" → `metric_derived_bucket` ✓ ("Liverpool have conceded 4 goals against the 3 teams that score the most goals: Liverpool, Manchester City and Arsenal.")
   - Regression verified: dual-bucket → `dual_bucket_comparison` ✓; home-away → `home_away_comparison` ✓
-- **Next:** Run eval_runner_v4 to confirm 50/50 benchmark preserved after all Phase 3 changes.
+- ✓ eval_runner_v4 rerun confirmed 50/50 benchmark preserved after all Phase 3 changes (2026-04-12)
+
+**Phase 4 — Extract & Clean** ○ Not Started
+- Next: Plan Phase 4 implementation via `/gsd:plan-phase 4`
+- Critical blockers for Phase 5: `canonicalization_rules.md` + `league_standings` DuckDB view must be created in Phase 4 tail
+
+**Phase 5 — Function Calling Core** ○ Pending (blocked by Phase 4)
+
+**Phase 6 — Conversation Memory** ○ Pending (blocked by Phase 5)
+
+**Phase 7 — League Context** ○ Pending (blocked by Phase 4 tail + Phase 5)
+
+**Phase 8 — Random Question Robustness** ○ Pending (blocked by Phase 7)
+
+**Phase 9 — Natural Language Polish** ○ Pending (blocked by Phase 8)
 
 ---
 
@@ -115,6 +129,21 @@ Saved outputs:
 
 ---
 
+## v2.0 Roadmap Summary
+
+**6 phases, 19 requirements, 61/61 benchmark gate after each phase**
+
+| Phase | Name | Key Deliverables | Status |
+|-------|------|------------------|--------|
+| 4 | Extract & Clean | Repo reorganization + pyproject.toml + pre-commit + dead code removal + `canonicalization_rules.md` + `league_standings` view | Not Started |
+| 5 | Function Calling Core | 4 typed tools + dual-run validation + graceful fallback + 61/61 preserved | Pending (blocked by 4) |
+| 6 | Conversation Memory | ConversationState + multi-turn flows + token budget cap + 61/61 preserved | Pending (blocked by 5) |
+| 7 | League Context | System prompt injection + standings view usage + 5+ league-context questions working | Pending (blocked by 4+5) |
+| 8 | Random Question Robustness | 20+ unprepared questions tested + alias hardening | Pending (blocked by 7) |
+| 9 | Natural Language Polish | Verbalization templates + insight rules + no metric key exposure | Pending (blocked by 8) |
+
+---
+
 ## Operating Rules
 
 - `query_planner.py`, `duckdb_manager.py`, `llm_query_engine_v2.py` are very sensitive — no change without test + eval validation
@@ -128,7 +157,13 @@ Saved outputs:
 |-------|--------|-------------------|------------------|
 | 1 | ✓ Complete | — | 50/50 |
 | 2 | ✓ Complete | 50/50 | 50/50 |
-| 3 | ○ In Progress | 50/50 | — |
+| 3 | ✓ Complete | 50/50 | 50/50 |
+| 4 | ○ Not Started | 50/50 | 61/61 (target) |
+| 5 | ○ Pending | 61/61 | 61/61 (target) |
+| 6 | ○ Pending | 61/61 | 61/61 (target) |
+| 7 | ○ Pending | 61/61 | 61/61 (target) |
+| 8 | ○ Pending | 61/61 | 61/61 (target) |
+| 9 | ○ Pending | 61/61 | 61/61 (target) |
 
 ---
 
@@ -137,12 +172,13 @@ Saved outputs:
 | File | Purpose |
 |------|---------|
 | `.planning/PROJECT.md` | Stable project description, validated requirements, key decisions |
-| `.planning/REQUIREMENTS.md` | Scoped v1 requirements with traceability |
-| `.planning/ROADMAP.md` | Phase structure and success criteria |
+| `.planning/REQUIREMENTS.md` | Scoped v1 + v2 requirements with traceability (Phases 1–9) |
+| `.planning/ROADMAP.md` | Full phase structure and success criteria (v1 + v2.0) |
 | `.planning/STATE.md` | Live status, benchmark baseline, next step (this file) |
 | `.planning/config.json` | GSD workflow settings |
 | `docs/progress/` | Historical session logs — read for context, not as live planning surface |
 | `docs/evals/` | Eval run outputs — read for historical data |
 
 ---
-*Last updated: 2026-04-12 — Milestone v2.0 started. Branch: feature/refactor-v2 from ricardoherediaj/main. Research complete (4 agents). Requirements written (19 v2 reqs). Roadmap pending.*
+
+*Last updated: 2026-04-12 — v2.0 roadmap created (Phases 4–9, 19 requirements, 61/61 benchmark gate)*

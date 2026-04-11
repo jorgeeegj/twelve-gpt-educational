@@ -1,17 +1,15 @@
 # Library imports
-import streamlit as st
-import pandas as pd
 import argparse
-import tiktoken
 import os
-from utils.utils import normalize_text
 
-from classes.data_source import PlayerStats
+import pandas as pd
+import streamlit as st
+import tiktoken
+
 from classes.data_point import Player
-
-
+from classes.data_source import PlayerStats
 from utils.page_components import add_common_page_elements
-
+from utils.utils import normalize_text
 
 # def show():
 sidebar_container = add_common_page_elements()

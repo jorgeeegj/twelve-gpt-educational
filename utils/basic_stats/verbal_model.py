@@ -1,5 +1,6 @@
-import polars as pl
 from pathlib import Path
+
+import polars as pl
 
 BASE = Path(__file__).resolve().parents[2]
 
@@ -7,7 +8,6 @@ QA_PATH = BASE / "data" / "verbal_model_qa.csv"
 
 
 class VerbalModel:
-
     def __init__(self):
 
         self.qa = pl.read_csv(QA_PATH)
@@ -17,12 +17,10 @@ class VerbalModel:
         question_lower = question.lower()
 
         for row in self.qa.iter_rows(named=True):
-
             if row["question"].lower() in question_lower:
                 return row["answer"]
 
         return None
-
 
 
 """

@@ -42,11 +42,13 @@
 # %%
 # Generate country specific data for evaluation
 
-from classes.data_source import CountryStats
-from classes.description import CountryDescription
 import copy
 import json
+
 import pandas as pd
+
+from classes.data_source import CountryStats
+from classes.description import CountryDescription
 
 countries = CountryStats()
 
@@ -119,12 +121,13 @@ df.to_csv("data/country_texts.csv", index=False)
 
 # Generate country specific ground truth
 
+import json
+
+import pandas as pd
+
+import utils.sentences as sentences
 from classes.data_source import CountryStats
 from classes.description import CountryDescription
-import copy
-import json
-import pandas as pd
-import utils.sentences as sentences
 
 countries = CountryStats()
 
@@ -205,13 +208,13 @@ df.to_csv("data/country_ground_truth.csv", index=False)
 # %%
 # Generate player specific data for evaluation
 
+import json
+
+import pandas as pd
+
+import utils.sentences as sentences
 from classes.data_source import PlayerStats
 from classes.description import PlayerDescription
-import copy
-import json
-import pandas as pd
-import utils.sentences as sentences
-
 
 players = PlayerStats()
 
@@ -304,13 +307,13 @@ df.to_csv("data/player_ground_truth.csv", index=False)
 
 # Generate player specific data for evaluation
 
+import json
+
+import pandas as pd
+
+import utils.sentences as sentences
 from classes.data_source import PersonStat
 from classes.description import PersonDescription
-import copy
-import json
-import pandas as pd
-import utils.sentences as sentences
-
 
 people = PersonStat()
 
@@ -345,7 +348,7 @@ for player_name in people_names:
     )
 
     text = c_description.synthesize_text()
-    text_empty = f"The candidate is..."
+    text_empty = "The candidate is..."
 
     texts.append(text)
     texts_empty.append(text_empty)

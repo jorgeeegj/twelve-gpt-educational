@@ -1,14 +1,14 @@
-import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
+from typing import Union
+
 import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
 
-
+from classes.data_point import Country, Person, Player
+from classes.data_source import CountryStats, PersonStat, PlayerStats
 from utils.sentences import format_metric
-from classes.data_point import Player, Country, Person
-from classes.data_source import PlayerStats, CountryStats, PersonStat
-from typing import Union
 
 
 def hex_to_rgb(hex_color: str) -> tuple:
@@ -47,9 +47,7 @@ class Visual:
         "#002c1c"
     )  # hex_to_rgb(st.get_option("theme.secondaryBackgroundColor"))
     medium_green = hex_to_rgb("#003821")
-    bright_green = hex_to_rgb(
-        "#00A938"
-    )  # hex_to_rgb(st.get_option("theme.primaryColor"))
+    bright_green = hex_to_rgb("#00A938")  # hex_to_rgb(st.get_option("theme.primaryColor"))
     bright_orange = hex_to_rgb("#ff4b00")
     bright_yellow = hex_to_rgb("#ffcc00")
     bright_blue = hex_to_rgb("#0095FF")
@@ -71,9 +69,7 @@ class Visual:
         self.plot_type = plot_type
 
         if plot_type == "scout":
-            self.annotation_text = (
-                "<span style=''>{metric_name}: {data:.2f} per 90</span>"
-            )
+            self.annotation_text = "<span style=''>{metric_name}: {data:.2f} per 90</span>"
         else:
             # self.annotation_text = "<span style=''>{metric_name}: {data:.0f}/66</span>"  # TODO: this text will not automatically update!
             self.annotation_text = "<span style=''>{metric_name}: {data:.2f}</span>"
@@ -125,7 +121,7 @@ class Visual:
         self.subtitle = subtitle
         self.fig.update_layout(
             title={
-                "text": f"<span style='font-size: {15*self.font_size_multiplier}px'>{title}</span><br>{subtitle}",
+                "text": f"<span style='font-size: {15 * self.font_size_multiplier}px'>{title}</span><br>{subtitle}",
                 "font": {
                     "family": "Gilroy-Medium",
                     "color": rgb_to_color(self.white),
@@ -169,9 +165,7 @@ class DistributionPlot(Visual):
     def __init__(self, columns, labels=None, *args, **kwargs):
         self.empty = True
         self.columns = columns
-        self.marker_color = (
-            c for c in [Visual.white, Visual.bright_yellow, Visual.bright_blue]
-        )
+        self.marker_color = (c for c in [Visual.white, Visual.bright_yellow, Visual.bright_blue])
         self.marker_shape = (s for s in ["square", "hexagon", "diamond"])
         super().__init__(*args, **kwargs)
         if labels is not None:
@@ -197,7 +191,10 @@ class DistributionPlot(Visual):
         # Add a vertical line at x=0
         self.fig.add_shape(
             type="line",
-            x0=0, y0=0, x1=0, y1=len(self.columns),
+            x0=0,
+            y0=0,
+            x1=0,
+            y1=len(self.columns),
             line=dict(color="gray", width=1, dash="dot"),
         )
 
@@ -217,7 +214,7 @@ class DistributionPlot(Visual):
 
             self.fig.add_trace(
                 go.Scatter(
-                    x=x, 
+                    x=x,
                     y=y,
                     mode="markers",
                     marker={
@@ -232,11 +229,8 @@ class DistributionPlot(Visual):
                     showlegend=False,
                 )
             )
-            
 
-    def add_data_point(
-        self, ser_plot, plots, name, hover="", hover_string="", text=None
-    ):
+    def add_data_point(self, ser_plot, plots, name, hover="", hover_string="", text=None):
         if text is None:
             text = [name]
         elif isinstance(text, str):
@@ -290,7 +284,6 @@ class DistributionPlot(Visual):
                 },
             )
 
-
     def add_player(self, player: Union[Player, Country], n_group, metrics):
 
         # # Make list of all metrics with _Z and _Rank added at end
@@ -302,9 +295,7 @@ class DistributionPlot(Visual):
             ser_plot = player.ser_metrics
             name = player.name
         elif isinstance(player, Country):  # Adjust this based on your class structure
-            ser_plot = (
-                player.ser_metrics
-            )  # Assuming countries have a similar metric structure
+            ser_plot = player.ser_metrics  # Assuming countries have a similar metric structure
             name = player.name
         else:
             raise TypeError("Invalid player type: expected Player or Country")
@@ -345,7 +336,7 @@ class DistributionPlot(Visual):
                 names=players.df["player_name"],
                 hover="_Ranks",
                 hover_string="Rank: %{customdata}/" + str(len(players.df)),
-                legend=f"Other players  ",  # space at end is important
+                legend="Other players  ",  # space at end is important
             )
         elif isinstance(players, CountryStats):
             self.add_group_data(
@@ -354,7 +345,7 @@ class DistributionPlot(Visual):
                 names=players.df["country"],
                 hover="_Ranks",
                 hover_string="Rank: %{customdata}/" + str(len(players.df)),
-                legend=f"Other countries  ",  # space at end is important
+                legend="Other countries  ",  # space at end is important
             )
         else:
             raise TypeError("Invalid player type: expected Player or Country")
@@ -374,7 +365,7 @@ class DistributionPlot(Visual):
         if isinstance(player, Player):
             subtitle = f"Based on {player.minutes_played} minutes played"
         elif isinstance(player, Country):
-            subtitle = f"Based on questions answered in the World Values Survey"
+            subtitle = "Based on questions answered in the World Values Survey"
         else:
             raise TypeError("Invalid player type: expected Player or Country")
 
@@ -389,9 +380,7 @@ class DistributionPlotPersonality(Visual):
     def __init__(self, columns, *args, **kwargs):
         self.empty = True
         self.columns = columns
-        self.marker_color = (
-            c for c in [Visual.white, Visual.bright_yellow, Visual.bright_blue]
-        )
+        self.marker_color = (c for c in [Visual.white, Visual.bright_yellow, Visual.bright_blue])
         self.marker_shape = (s for s in ["square", "hexagon", "diamond"])
         super().__init__(*args, **kwargs)
         self._setup_axes()
@@ -440,9 +429,7 @@ class DistributionPlotPersonality(Visual):
             )
             showlegend = False
 
-    def add_data_point(
-        self, ser_plot, plots, name, hover="", hover_string="", text=None
-    ):
+    def add_data_point(self, ser_plot, plots, name, hover="", hover_string="", text=None):
         if text is None:
             text = [name]
         elif isinstance(text, str):
@@ -514,13 +501,13 @@ class DistributionPlotPersonality(Visual):
             names=persons.df["name"],
             hover="_Ranks",
             hover_string="Rank: %{customdata}/" + str(len(persons.df)),
-            legend=f"Other persons  ",
+            legend="Other persons  ",
         )
 
     def add_title_from_person(self, person: Person):
         self.person = person
         title = f"Evaluation of {person.name}"
-        subtitle = f"Based on Big Five scores"
+        subtitle = "Based on Big Five scores"
         self.add_title(title, subtitle)
 
 

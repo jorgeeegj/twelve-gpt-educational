@@ -1,20 +1,19 @@
-from pandas.core.api import DataFrame as DataFrame
-import streamlit as st
-import requests
-import pandas as pd
-import numpy as np
 import copy
-import json
 import datetime
-from scipy.stats import zscore
+import json
 import os
-
-from itertools import accumulate
-from pathlib import Path
 import sys
-import pyarrow.parquet as pq
+from itertools import accumulate
+from math import ceil, floor
+from pathlib import Path
 
-from math import floor, ceil
+import numpy as np
+import pandas as pd
+import pyarrow.parquet as pq
+import requests
+import streamlit as st
+from pandas.core.api import DataFrame as DataFrame
+from scipy.stats import zscore
 
 import classes.data_point as data_point
 
@@ -36,9 +35,7 @@ class Data:
         raise NotImplementedError("Child class must implement get_raw_data(self)")
 
     def process_data(self, df_raw: pd.DataFrame) -> pd.DataFrame:
-        raise NotImplementedError(
-            "Child class must implement process_data(self, df_raw)"
-        )
+        raise NotImplementedError("Child class must implement process_data(self, df_raw)")
 
     def get_processed_data(self):
 
@@ -185,22 +182,16 @@ class CountryStats(Stats):
         # create a value column that has the values from the columns is given by the dict self.drill_down_metric_country_question
         # where the dict has format {country: question}
         df["value_low"] = df.apply(
-            lambda x: x[
-                self.drill_down_metric_country_question[metric_name][x["country"]][0]
-            ],
+            lambda x: x[self.drill_down_metric_country_question[metric_name][x["country"]][0]],
             axis=1,
         )
 
         df["value_high"] = df.apply(
-            lambda x: x[
-                self.drill_down_metric_country_question[metric_name][x["country"]][1]
-            ],
+            lambda x: x[self.drill_down_metric_country_question[metric_name][x["country"]][1]],
             axis=1,
         )
 
-        values = [
-            (floor(l), ceil(h)) for l, h in zip(df["value_low"], df["value_high"])
-        ]
+        values = [(floor(l), ceil(h)) for l, h in zip(df["value_low"], df["value_high"])]
 
         return dict(zip(df.country.values, values))
 
@@ -224,18 +215,14 @@ class CountryStats(Stats):
         drill_down_data_raw = dict(
             (
                 "_".join(file.split("_")[:-1]),
-                self.get_drill_down_data_values(
-                    path + file, "_".join(file.split("_")[:-1])
-                ),
+                self.get_drill_down_data_values(path + file, "_".join(file.split("_")[:-1])),
             )
             for file in all_files
             if file.endswith("_raw.csv")
         )
 
         metrics = [m for m in self.drill_down_metric_country_question.keys()]
-        countries = [
-            k for k in self.drill_down_metric_country_question[metrics[0]].keys()
-        ]
+        countries = [k for k in self.drill_down_metric_country_question[metrics[0]].keys()]
 
         drill_down = [
             (
@@ -245,9 +232,7 @@ class CountryStats(Stats):
                         (
                             metric,
                             (
-                                self.drill_down_metric_country_question[metric][
-                                    country
-                                ],
+                                self.drill_down_metric_country_question[metric][country],
                                 drill_down_data_raw[metric][country],
                             ),
                         )
@@ -356,12 +341,9 @@ class CountryStats(Stats):
 
         # get the names of columns in ser_metrics than end in "_Z" with abs value greater than 1.5
         drill_down_metrics = ser_metrics[
-            ser_metrics.index.str.endswith("_Z")
-            & (ser_metrics.abs() >= self.drill_down_threshold)
+            ser_metrics.index.str.endswith("_Z") & (ser_metrics.abs() >= self.drill_down_threshold)
         ].index.tolist()
-        drill_down_metrics = [
-            "_".join(x.split("_")[:-1]).lower() for x in drill_down_metrics
-        ]
+        drill_down_metrics = ["_".join(x.split("_")[:-1]).lower() for x in drill_down_metrics]
 
         drill_down_values = dict(
             [
@@ -462,13 +444,7 @@ class PersonStat(Stats):
             "OPN10": ["they are full of ideas", 1],
         }
 
-        questions = (
-            ext_questions
-            | est_questions
-            | agr_questions
-            | csn_questions
-            | opn_questions
-        )
+        questions = ext_questions | est_questions | agr_questions | csn_questions | opn_questions
         return questions
 
     def process_data(self, df_raw):
@@ -534,9 +510,7 @@ class PersonStat(Stats):
 
         else:
             df_raw.drop(df_raw.columns[50:107], axis=1, inplace=True)
-            df_raw.drop(
-                df_raw.columns[50:], axis=1, inplace=True
-            )  # here 50 to remove the country
+            df_raw.drop(df_raw.columns[50:], axis=1, inplace=True)  # here 50 to remove the country
             df_raw.dropna(inplace=True)
 
             # Group Names and Columns

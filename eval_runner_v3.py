@@ -64,16 +64,18 @@ def run_benchmark() -> dict:
 
         debug = result.get("debug", {})
 
-        results.append({
-            "id": q["id"],
-            "category": q["category"],
-            "question": q["question"],
-            "expected": q["answer"],
-            "agent_text": result["content"],
-            "debug": debug,
-            "passed": passed,
-            "eval_meta": meta,
-        })
+        results.append(
+            {
+                "id": q["id"],
+                "category": q["category"],
+                "question": q["question"],
+                "expected": q["answer"],
+                "agent_text": result["content"],
+                "debug": debug,
+                "passed": passed,
+                "eval_meta": meta,
+            }
+        )
 
         print(f"\n{'=' * 80}")
         print(f"{q['id']} | {q['category']}")

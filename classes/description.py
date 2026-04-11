@@ -1,29 +1,27 @@
+import json
 import math
 from abc import ABC, abstractmethod
-from typing import List, Union, Dict, Optional
+from typing import Dict, List, Optional, Union
 
+import numpy as np
 import pandas as pd
 import tiktoken
 from openai import OpenAI
-import numpy as np
 
 import utils.sentences as sentences
+from classes.data_point import Country, Person, Player
+from classes.data_source import PersonStat
+from settings import USE_GEMINI
 from utils.gemini import convert_messages_format
 
-from classes.data_point import Player, Country, Person
-from classes.data_source import PersonStat
-
-import json
-
-from settings import USE_GEMINI
-
 if USE_GEMINI:
-    from settings import USE_GEMINI, GEMINI_API_KEY, GEMINI_CHAT_MODEL
+    from settings import GEMINI_API_KEY, GEMINI_CHAT_MODEL, USE_GEMINI
 else:
-    from settings import GPT_BASE, GPT_VERSION, GPT_KEY, GPT_ENGINE
+    from settings import GPT_BASE, GPT_ENGINE, GPT_KEY, GPT_VERSION
+
+import random
 
 import streamlit as st
-import random
 
 
 class Description(ABC):
@@ -145,9 +143,7 @@ class Description(ABC):
             print(e)
         messages += self.get_prompt_messages()
 
-        messages = [
-            message for message in messages if isinstance(message["content"], str)
-        ]
+        messages = [message for message in messages if isinstance(message["content"], str)]
 
         try:
             messages += self.get_messages_from_excel(
@@ -280,7 +276,6 @@ class PlayerDescription(Description):
         subject_p, object_p, possessive_p = sentences.pronouns(player.gender)
 
         for metric in metrics:
-
             description += f"{subject_p.capitalize()} was "
             description += sentences.describe_level(player.ser_metrics[metric + "_Z"])
             description += " in " + sentences.write_out_metric(metric)
@@ -292,8 +287,8 @@ class PlayerDescription(Description):
 
     def get_prompt_messages(self):
         prompt = (
-            f"Please use the statistical description enclosed with ``` to give a concise, 4 sentence summary of the player's playing style, strengths and weaknesses. "
-            f"The first sentence should use varied language to give an overview of the player. "
+            "Please use the statistical description enclosed with ``` to give a concise, 4 sentence summary of the player's playing style, strengths and weaknesses. "
+            "The first sentence should use varied language to give an overview of the player. "
             "The second sentence should describe the player's specific strengths based on the metrics. "
             "The third sentence should describe aspects in which the player is average and/or weak based on the statistics. "
             "Finally, summarise exactly how the player compares to others in the same position. "
@@ -358,8 +353,9 @@ class CountryDescription(Description):
         # subject_p, object_p, possessive_p = sentences.pronouns(country.gender)
 
         for metric in self.country.relevant_metrics:
-
-            description += f"\n\nAccording to the WVS, {self.country.name.capitalize()} was found to "
+            description += (
+                f"\n\nAccording to the WVS, {self.country.name.capitalize()} was found to "
+            )
             description += sentences.describe_level(
                 self.country.ser_metrics[metric + "_Z"],
                 thresholds=self.thresholds_dict[metric],
@@ -368,7 +364,6 @@ class CountryDescription(Description):
             description += " compared to other countries in the same wave. "
 
             if metric in self.country.drill_down_metrics:
-
                 if self.country.ser_metrics[metric + "_Z"] > 0:
                     index = 1
                 else:
@@ -392,9 +387,9 @@ class CountryDescription(Description):
 
     def get_prompt_messages(self):
         prompt = (
-            f"Please use the statistical description enclosed with ``` to give a concise, 2 short paragraph summary of the social values held by population of the country. "
-            f"The first paragraph should focus on any factors or values for which the country is above or bellow average. If the country is neither above nor below average in any values, mention that. "
-            f"The remaining paragraph should mention any specific values or factors that are neither high nor low compared to the average. "
+            "Please use the statistical description enclosed with ``` to give a concise, 2 short paragraph summary of the social values held by population of the country. "
+            "The first paragraph should focus on any factors or values for which the country is above or bellow average. If the country is neither above nor below average in any values, mention that. "
+            "The remaining paragraph should mention any specific values or factors that are neither high nor low compared to the average. "
         )
         return [{"role": "user", "content": prompt}]
 
@@ -500,26 +495,24 @@ class PersonDescription(Description):
         cat_1 = "outgoing and energetic. "
 
         if extraversion > 0:
-            text_t = (self.categorie_description(extraversion) 
-            + cat_1
-            + "The candidate tends to be more social. "
-                     )
+            text_t = (
+                self.categorie_description(extraversion)
+                + cat_1
+                + "The candidate tends to be more social. "
+            )
             if extraversion > 1:
                 index_max = person_metrics[0:10].idxmax()
-                text_2 = (
-                    "In particular they said that " + questions[index_max][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_max][0] + ". "
                 text_t += text_2
         else:
-            text_t = (self.categorie_description(extraversion) 
-            + cat_0
-            + "The candidate tends to be less social. "
-                     )
+            text_t = (
+                self.categorie_description(extraversion)
+                + cat_0
+                + "The candidate tends to be less social. "
+            )
             if extraversion < -1:
                 index_min = person_metrics[0:10].idxmin()
-                text_2 = (
-                    "In particular they said that " + questions[index_min][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_min][0] + ". "
                 text_t += text_2
         text.append(text_t)
 
@@ -535,9 +528,7 @@ class PersonDescription(Description):
             )
             if neuroticism > 1:
                 index_max = person_metrics[10:20].idxmax()
-                text_2 = (
-                    "In particular they said that " + questions[index_max][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_max][0] + ". "
                 text_t += text_2
 
         else:
@@ -548,9 +539,7 @@ class PersonDescription(Description):
             )
             if neuroticism < -1:
                 index_min = person_metrics[10:20].idxmin()
-                text_2 = (
-                    "In particular they said that " + questions[index_min][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_min][0] + ". "
                 text_t += text_2
         text.append(text_t)
 
@@ -566,9 +555,7 @@ class PersonDescription(Description):
             )
             if agreeableness > 1:
                 index_max = person_metrics[20:30].idxmax()
-                text_2 = (
-                    "In particular they said that " + questions[index_max][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_max][0] + ". "
                 text_t += text_2
 
         else:
@@ -579,9 +566,7 @@ class PersonDescription(Description):
             )
             if agreeableness < -1:
                 index_min = person_metrics[20:30].idxmin()
-                text_2 = (
-                    "In particular they said that " + questions[index_min][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_min][0] + ". "
                 text_t += text_2
         text.append(text_t)
 
@@ -597,9 +582,7 @@ class PersonDescription(Description):
             )
             if conscientiousness > 1:
                 index_max = person_metrics[30:40].idxmax()
-                text_2 = (
-                    "In particular they said that " + questions[index_max][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_max][0] + ". "
                 text_t += text_2
         else:
             text_t = (
@@ -609,9 +592,7 @@ class PersonDescription(Description):
             )
             if conscientiousness < -1:
                 index_min = person_metrics[30:40].idxmin()
-                text_2 = (
-                    "In particular they said that " + questions[index_min][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_min][0] + ". "
                 text_t += text_2
         text.append(text_t)
 
@@ -627,9 +608,7 @@ class PersonDescription(Description):
             )
             if openness > 1:
                 index_max = person_metrics[40:50].idxmax()
-                text_2 = (
-                    "In particular they said that " + questions[index_max][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_max][0] + ". "
                 text_t += text_2
         else:
             text_t = (
@@ -639,9 +618,7 @@ class PersonDescription(Description):
             )
             if openness < -1:
                 index_min = person_metrics[40:50].idxmin()
-                text_2 = (
-                    "In particular they said that " + questions[index_min][0] + ". "
-                )
+                text_2 = "In particular they said that " + questions[index_min][0] + ". "
                 text_t += text_2
         text.append(text_t)
 
@@ -658,8 +635,8 @@ class PersonDescription(Description):
 
     def get_prompt_messages(self):
         prompt = (
-            f"Please use the statistical description enclosed with ``` to give a concise, 4 sentence summary of the person's personality, strengths and weaknesses. "
-            f"The first sentence should use varied language to give an overview of the person. "
+            "Please use the statistical description enclosed with ``` to give a concise, 4 sentence summary of the person's personality, strengths and weaknesses. "
+            "The first sentence should use varied language to give an overview of the person. "
             "The second sentence should describe the person's specific strengths based on the metrics. "
             "The third sentence should describe aspects in which the person is average and/or weak based on the statistics. "
             "Finally, summarise exactly how the person compares to others in the same position. "

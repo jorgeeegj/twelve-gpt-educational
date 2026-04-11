@@ -19,15 +19,18 @@ import yaml
 
 from utils.basic_stats.core.config import (
     PLAYER_DATA_PATH,
-    TEAM_DATA_PATH,
     PROMPTS_DIR,
+    TEAM_DATA_PATH,
     get_llm_client,
     get_model,
 )
 from utils.basic_stats.core.duckdb_manager import DuckDBManager
 from utils.basic_stats.core.models import MetricResolution, QueryResult
-from utils.basic_stats.core.query_planner import QueryPlanner, _detect_dual_bucket_comparison, _classify_all_buckets
-
+from utils.basic_stats.core.query_planner import (
+    QueryPlanner,
+    _classify_all_buckets,
+    _detect_dual_bucket_comparison,
+)
 
 NEGATIVE_METRICS = {
     "ball_losses",
@@ -40,70 +43,164 @@ NEGATIVE_METRICS = {
 }
 
 PLAYER_COLS = [
-    "total_goals", "total_assists", "goal_contributions", "xg_total",
-    "total_yellow_cards", "total_red_cards", "total_minutes", "matches_played",
-    "pass_accuracy_pct", "passes_attempted", "passes_accurate",
-    "progressive_passes", "forward_passes", "back_passes", "long_passes",
-    "key_passes", "crosses", "passes_to_final_third", "passes_to_box",
-    "through_passes", "smart_passes", "shots", "shots_on_target",
-    "aerial_duels", "aerial_duels_won", "aerial_duel_won_pct",
-    "defensive_duels", "defensive_duels_won", "defensive_duel_won_pct",
-    "offensive_duels", "offensive_duels_won", "offensive_duel_won_pct",
-    "dribbles_attempted", "dribbles_won", "dribble_success_pct",
-    "recoveries", "interceptions", "clearances", "sliding_tackles",
-    "fouls_committed", "fouls_suffered", "progressive_carries",
-    "carry_meters_gained", "progressive_runs", "touches_in_box",
-    "shot_assists", "ball_losses", "saves", "shots_against",
-    "goalkeeper_exits", "reflex_saves",
-    "total_goals_p90", "total_assists_p90", "xg_total_p90",
-    "aerial_duels_won_p90", "progressive_passes_p90", "key_passes_p90",
-    "shots_on_target_p90", "recoveries_p90", "interceptions_p90",
-    "dribbles_won_p90", "touches_in_box_p90", "fouls_committed_p90",
-    "shot_assists_p90", "clearances_p90",
+    "total_goals",
+    "total_assists",
+    "goal_contributions",
+    "xg_total",
+    "total_yellow_cards",
+    "total_red_cards",
+    "total_minutes",
+    "matches_played",
+    "pass_accuracy_pct",
+    "passes_attempted",
+    "passes_accurate",
+    "progressive_passes",
+    "forward_passes",
+    "back_passes",
+    "long_passes",
+    "key_passes",
+    "crosses",
+    "passes_to_final_third",
+    "passes_to_box",
+    "through_passes",
+    "smart_passes",
+    "shots",
+    "shots_on_target",
+    "aerial_duels",
+    "aerial_duels_won",
+    "aerial_duel_won_pct",
+    "defensive_duels",
+    "defensive_duels_won",
+    "defensive_duel_won_pct",
+    "offensive_duels",
+    "offensive_duels_won",
+    "offensive_duel_won_pct",
+    "dribbles_attempted",
+    "dribbles_won",
+    "dribble_success_pct",
+    "recoveries",
+    "interceptions",
+    "clearances",
+    "sliding_tackles",
+    "fouls_committed",
+    "fouls_suffered",
+    "progressive_carries",
+    "carry_meters_gained",
+    "progressive_runs",
+    "touches_in_box",
+    "shot_assists",
+    "ball_losses",
+    "saves",
+    "shots_against",
+    "goalkeeper_exits",
+    "reflex_saves",
+    "total_goals_p90",
+    "total_assists_p90",
+    "xg_total_p90",
+    "aerial_duels_won_p90",
+    "progressive_passes_p90",
+    "key_passes_p90",
+    "shots_on_target_p90",
+    "recoveries_p90",
+    "interceptions_p90",
+    "dribbles_won_p90",
+    "touches_in_box_p90",
+    "fouls_committed_p90",
+    "shot_assists_p90",
+    "clearances_p90",
 ]
 
 TEAM_COLS = [
-    "total_goals", "total_goals_against", "total_assists", "xg_total",
-    "pass_accuracy_pct", "shots_on_target_pct", "progressive_passes",
-    "passes_attempted", "aerial_duels_won", "aerial_duel_won_pct",
-    "defensive_duels_won", "shots", "shots_on_target",
-    "recoveries", "interceptions", "clearances", "fouls_committed", "fouls_suffered",
-    "total_goals_p90", "total_goals_against_p90",
-    "key_passes_p90", "progressive_passes_p90", "offsides",
+    "total_goals",
+    "total_goals_against",
+    "total_assists",
+    "xg_total",
+    "pass_accuracy_pct",
+    "shots_on_target_pct",
+    "progressive_passes",
+    "passes_attempted",
+    "aerial_duels_won",
+    "aerial_duel_won_pct",
+    "defensive_duels_won",
+    "shots",
+    "shots_on_target",
+    "recoveries",
+    "interceptions",
+    "clearances",
+    "fouls_committed",
+    "fouls_suffered",
+    "total_goals_p90",
+    "total_goals_against_p90",
+    "key_passes_p90",
+    "progressive_passes_p90",
+    "offsides",
 ]
 
 POSITION_MAP = {
     "attacking midfielder": "attacking midfielder|am|cam",
-    "central defender":     "central defender|cb",
-    "goalkeepers":          "goalkeeper|gk",
-    "goalkeeper":           "goalkeeper|gk",
-    "midfielders":          "midfielder|cm|dm|am",
-    "midfielder":           "midfielder|cm|dm|am",
-    "defenders":            "central defender|full back|cb|lb|rb|wb|back|def",
-    "defender":             "central defender|full back|cb|lb|rb|wb|back|def",
-    "full back":            "full back|lb|rb|wb",
-    "forwards":             "striker|winger|cf|st|lw|rw|forward",
-    "forward":              "striker|winger|cf|st|lw|rw|forward",
-    "strikers":             "striker|cf|st|forward",
-    "striker":              "striker|cf|st|forward",
-    "wingers":              "winger|lw|rw",
-    "winger":               "winger|lw|rw",
+    "central defender": "central defender|cb",
+    "goalkeepers": "goalkeeper|gk",
+    "goalkeeper": "goalkeeper|gk",
+    "midfielders": "midfielder|cm|dm|am",
+    "midfielder": "midfielder|cm|dm|am",
+    "defenders": "central defender|full back|cb|lb|rb|wb|back|def",
+    "defender": "central defender|full back|cb|lb|rb|wb|back|def",
+    "full back": "full back|lb|rb|wb",
+    "forwards": "striker|winger|cf|st|lw|rw|forward",
+    "forward": "striker|winger|cf|st|lw|rw|forward",
+    "strikers": "striker|cf|st|forward",
+    "striker": "striker|cf|st|forward",
+    "wingers": "winger|lw|rw",
+    "winger": "winger|lw|rw",
 }
 
 ORDINAL_WORDS_EN = {
-    "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,
-    "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,
-    "eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14,
-    "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18,
-    "nineteenth": 19, "twentieth": 20,
+    "first": 1,
+    "second": 2,
+    "third": 3,
+    "fourth": 4,
+    "fifth": 5,
+    "sixth": 6,
+    "seventh": 7,
+    "eighth": 8,
+    "ninth": 9,
+    "tenth": 10,
+    "eleventh": 11,
+    "twelfth": 12,
+    "thirteenth": 13,
+    "fourteenth": 14,
+    "fifteenth": 15,
+    "sixteenth": 16,
+    "seventeenth": 17,
+    "eighteenth": 18,
+    "nineteenth": 19,
+    "twentieth": 20,
 }
 
 ORDINAL_WORDS_ES = {
-    "primero": 1, "segunda": 2, "segundo": 2, "tercero": 3, "tercera": 3,
-    "cuarto": 4, "cuarta": 4, "quinto": 5, "quinta": 5, "sexto": 6, "sexta": 6,
-    "septimo": 7, "septima": 7, "séptimo": 7, "séptima": 7,
-    "octavo": 8, "octava": 8, "noveno": 9, "novena": 9,
-    "decimo": 10, "decima": 10, "décimo": 10, "décima": 10,
+    "primero": 1,
+    "segunda": 2,
+    "segundo": 2,
+    "tercero": 3,
+    "tercera": 3,
+    "cuarto": 4,
+    "cuarta": 4,
+    "quinto": 5,
+    "quinta": 5,
+    "sexto": 6,
+    "sexta": 6,
+    "septimo": 7,
+    "septima": 7,
+    "séptimo": 7,
+    "séptima": 7,
+    "octavo": 8,
+    "octava": 8,
+    "noveno": 9,
+    "novena": 9,
+    "decimo": 10,
+    "decima": 10,
+    "décimo": 10,
+    "décima": 10,
 }
 
 TOP_PATTERNS = [
@@ -126,6 +223,7 @@ def _normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     return re.sub(r"\s+", " ", text)
+
 
 def _detect_subject_entity(question: str) -> str | None:
     q = _normalize_text(question)
@@ -154,6 +252,7 @@ def _detect_subject_entity(question: str) -> str | None:
 
     return None
 
+
 def _extract(pattern: str, text: str) -> int | None:
     m = re.search(pattern, text)
     return int(m.group(1)) if m else None
@@ -165,6 +264,7 @@ def _extract_top_n(q: str) -> int:
         if m:
             return int(m.group(1))
     return 1
+
 
 def _detect_true_tie(rows: list[dict], metric: str, ranking: dict | None) -> bool:
     if not rows or len(rows) <= 1:
@@ -196,7 +296,6 @@ def _detect_true_tie(rows: list[dict], metric: str, ranking: dict | None) -> boo
     return tied_count > 1
 
 
-
 def _extract_rank_position(q: str) -> int | None:
     patterns = [
         r"\b(\d+)(?:st|nd|rd|th)\b",
@@ -225,10 +324,22 @@ def _is_ordinal_query(q: str) -> bool:
     ordinal_markers = [
         r"\b\d+(?:st|nd|rd|th)\b",
         r"\b\d+[ºª]\b",
-        r"\bfirst\b", r"\bsecond\b", r"\bthird\b", r"\bfourth\b", r"\bfifth\b",
-        r"\bseventh\b", r"\btenth\b",
-        r"\bprimero\b", r"\bsegundo\b", r"\btercero\b", r"\bquinto\b", r"\bdecimo\b", r"\bdécimo\b",
-        r"\bposition\b", r"\bpuesto\b", r"\bposicion\b",
+        r"\bfirst\b",
+        r"\bsecond\b",
+        r"\bthird\b",
+        r"\bfourth\b",
+        r"\bfifth\b",
+        r"\bseventh\b",
+        r"\btenth\b",
+        r"\bprimero\b",
+        r"\bsegundo\b",
+        r"\btercero\b",
+        r"\bquinto\b",
+        r"\bdecimo\b",
+        r"\bdécimo\b",
+        r"\bposition\b",
+        r"\bpuesto\b",
+        r"\bposicion\b",
     ]
     return any(re.search(pattern, q) for pattern in ordinal_markers)
 
@@ -238,10 +349,12 @@ def _player_tiebreak_desc_for_minutes(metric: str, descending: bool) -> bool:
         return not descending
     return False
 
+
 def _slug_metric_suffix(text: str) -> str:
     text = _normalize_text(text)
     text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
     return text
+
 
 def _has_match_context_filters(filters: dict) -> bool:
     context_keys = [
@@ -255,6 +368,7 @@ def _has_match_context_filters(filters: dict) -> bool:
         "matchday_end",
     ]
     return any(filters.get(k) is not None for k in context_keys)
+
 
 def _has_match_level_logic(plan) -> bool:
     if getattr(plan, "match_conditions", None):
@@ -296,20 +410,20 @@ def _compute_p90(val: float, denominator: int | None, is_player: bool) -> float 
 
 
 _PLAYER_P90_MAP: dict[str, str] = {
-    "goals":               "total_goals_p90",
-    "assists":             "total_assists_p90",
-    "shot_assists":        "shot_assists_p90",
-    "key_passes":          "key_passes_p90",
-    "progressive_passes":  "progressive_passes_p90",
-    "passes_to_box":       "passes_to_box_p90",
-    "crosses":             "crosses_p90",
-    "forward_passes":      "forward_passes_p90",
-    "smart_passes":        "smart_passes_p90",
-    "through_passes":      "through_passes_p90",
+    "goals": "total_goals_p90",
+    "assists": "total_assists_p90",
+    "shot_assists": "shot_assists_p90",
+    "key_passes": "key_passes_p90",
+    "progressive_passes": "progressive_passes_p90",
+    "passes_to_box": "passes_to_box_p90",
+    "crosses": "crosses_p90",
+    "forward_passes": "forward_passes_p90",
+    "smart_passes": "smart_passes_p90",
+    "through_passes": "through_passes_p90",
 }
 
 _TEAM_P90_MAP: dict[str, str] = {
-    "team_score":     "total_goals_p90",
+    "team_score": "total_goals_p90",
     "opponent_score": "total_goals_against_p90",
 }
 
@@ -357,55 +471,66 @@ _METRIC_BUCKET_RE = re.compile(
 )
 
 # verbs that pair naturally only with shots; default trailing noun is "shots" for these
-_SHOTS_ONLY_VERBS = frozenset({
-    "take", "takes", "taken", "took",
-    "attempt", "attempts", "attempted",
-    "allow", "allows", "allowed",
-    "face", "faces", "faced",
-})
+_SHOTS_ONLY_VERBS = frozenset(
+    {
+        "take",
+        "takes",
+        "taken",
+        "took",
+        "attempt",
+        "attempts",
+        "attempted",
+        "allow",
+        "allows",
+        "allowed",
+        "face",
+        "faces",
+        "faced",
+    }
+)
 
 # keyed by (verb, trailing_noun) — trailing noun defaults to "goals" or "shots" by verb family
 _BUCKET_VERB_METRIC: dict[tuple[str, str], str] = {
-    ("score",     "goals"): "total_goals",
-    ("scores",    "goals"): "total_goals",
-    ("scored",    "goals"): "total_goals",
-    ("concede",   "goals"): "total_goals_against",
-    ("concedes",  "goals"): "total_goals_against",
-    ("conceded",  "goals"): "total_goals_against",
+    ("score", "goals"): "total_goals",
+    ("scores", "goals"): "total_goals",
+    ("scored", "goals"): "total_goals",
+    ("concede", "goals"): "total_goals_against",
+    ("concedes", "goals"): "total_goals_against",
+    ("conceded", "goals"): "total_goals_against",
     # score/concede + shots
-    ("concede",   "shots"): "shots_against",
-    ("concedes",  "shots"): "shots_against",
-    ("conceded",  "shots"): "shots_against",
-    ("score",     "shots"): "shots",
-    ("scores",    "shots"): "shots",
-    ("scored",    "shots"): "shots",
+    ("concede", "shots"): "shots_against",
+    ("concedes", "shots"): "shots_against",
+    ("conceded", "shots"): "shots_against",
+    ("score", "shots"): "shots",
+    ("scores", "shots"): "shots",
+    ("scored", "shots"): "shots",
     # take/attempt → shots (offensive)
-    ("take",      "shots"): "shots",
-    ("takes",     "shots"): "shots",
-    ("taken",     "shots"): "shots",
-    ("took",      "shots"): "shots",
-    ("attempt",   "shots"): "shots",
-    ("attempts",  "shots"): "shots",
+    ("take", "shots"): "shots",
+    ("takes", "shots"): "shots",
+    ("taken", "shots"): "shots",
+    ("took", "shots"): "shots",
+    ("attempt", "shots"): "shots",
+    ("attempts", "shots"): "shots",
     ("attempted", "shots"): "shots",
     # allow/face → shots_against (defensive)
-    ("allow",     "shots"): "shots_against",
-    ("allows",    "shots"): "shots_against",
-    ("allowed",   "shots"): "shots_against",
-    ("face",      "shots"): "shots_against",
-    ("faces",     "shots"): "shots_against",
-    ("faced",     "shots"): "shots_against",
+    ("allow", "shots"): "shots_against",
+    ("allows", "shots"): "shots_against",
+    ("allowed", "shots"): "shots_against",
+    ("face", "shots"): "shots_against",
+    ("faces", "shots"): "shots_against",
+    ("faced", "shots"): "shots_against",
 }
 
 # canonical human-readable label for each (bucket_metric, descending) combo
 _BUCKET_METRIC_LABEL: dict[tuple[str, bool], str] = {
-    ("total_goals",         True):  "have scored the most goals",
-    ("total_goals",         False): "have scored the fewest goals",
-    ("total_goals_against", True):  "have conceded the most goals",
+    ("total_goals", True): "have scored the most goals",
+    ("total_goals", False): "have scored the fewest goals",
+    ("total_goals_against", True): "have conceded the most goals",
     ("total_goals_against", False): "have conceded the fewest goals",
-    ("shots_against",       True):  "concede the most shots",
-    ("shots_against",       False): "concede the fewest shots",
-    ("shots",               True):  "take the most shots",
-    ("shots",               False): "take the fewest shots",
+    ("shots_against", True): "concede the most shots",
+    ("shots_against", False): "concede the fewest shots",
+    ("shots", True): "take the most shots",
+    ("shots", False): "take the fewest shots",
 }
 
 
@@ -429,7 +554,11 @@ def _detect_metric_derived_bucket(q: str) -> dict | None:
     n = int(m.group(1))
     verb = m.group(2).lower()
     direction = m.group(3).lower()
-    trailing = m.group(4).lower().rstrip("s") + "s" if m.group(4) else ("shots" if verb in _SHOTS_ONLY_VERBS else "goals")
+    trailing = (
+        m.group(4).lower().rstrip("s") + "s"
+        if m.group(4)
+        else ("shots" if verb in _SHOTS_ONLY_VERBS else "goals")
+    )
 
     bucket_metric = _BUCKET_VERB_METRIC.get((verb, trailing))
     if not bucket_metric:
@@ -453,8 +582,7 @@ def _derive_teams_for_bucket(
     if bucket_metric not in teams_df.columns:
         return []
     return (
-        teams_df
-        .select(["team_name", bucket_metric])
+        teams_df.select(["team_name", bucket_metric])
         .sort(bucket_metric, descending=descending)
         .head(n)["team_name"]
         .to_list()
@@ -497,55 +625,95 @@ class LLMQueryEngineV2:
     def _resolve_fast_path(self, q: str) -> MetricResolution | None:
         is_team_query = any(tok in q for tok in [" team ", " teams ", "equipo", "equipos"])
 
-        if any(p in q for p in [
-            "most goals", "top scorer", "scored the most goals",
-            "ha marcado mas goles", "ha metido mas goles", "lidera la liga en goles",
-            "maximo goleador", "maximos goleadores"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "most goals",
+                "top scorer",
+                "scored the most goals",
+                "ha marcado mas goles",
+                "ha metido mas goles",
+                "lidera la liga en goles",
+                "maximo goleador",
+                "maximos goleadores",
+            ]
+        ):
             return MetricResolution(
-                metric="total_goals",
-                descending=True,
-                table="teams" if is_team_query else "players"
+                metric="total_goals", descending=True, table="teams" if is_team_query else "players"
             )
 
-        if any(p in q for p in [
-            "most assists", "highest assists",
-            "mas asistencias", "tiene mas asistencias", "lidera la liga en asistencias"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "most assists",
+                "highest assists",
+                "mas asistencias",
+                "tiene mas asistencias",
+                "lidera la liga en asistencias",
+            ]
+        ):
             return MetricResolution(metric="total_assists", descending=True, table="players")
 
-        if any(p in q for p in [
-            "most minutes", "played the most minutes", "most total minutes",
-            "mas minutos", "ha jugado mas minutos"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "most minutes",
+                "played the most minutes",
+                "most total minutes",
+                "mas minutos",
+                "ha jugado mas minutos",
+            ]
+        ):
             return MetricResolution(metric="total_minutes", descending=True, table="players")
 
-        if any(p in q for p in [
-            "most yellow cards", "received the most yellow cards",
-            "mas tarjetas amarillas", "ha visto mas amarillas"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "most yellow cards",
+                "received the most yellow cards",
+                "mas tarjetas amarillas",
+                "ha visto mas amarillas",
+            ]
+        ):
             return MetricResolution(metric="total_yellow_cards", descending=True, table="players")
 
-        if any(p in q for p in [
-            "fewest goals conceded", "conceded the fewest", "fewest conceded goals",
-            "menos goles encajados", "ha encajado menos goles"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "fewest goals conceded",
+                "conceded the fewest",
+                "fewest conceded goals",
+                "menos goles encajados",
+                "ha encajado menos goles",
+            ]
+        ):
             return MetricResolution(metric="total_goals_against", descending=False, table="teams")
 
-        if any(p in q for p in [
-            "most accurate passing", "best pass accuracy",
-            "mayor precision de pase", "mejor precision de pase", "mejor porcentaje de pase"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "most accurate passing",
+                "best pass accuracy",
+                "mayor precision de pase",
+                "mejor precision de pase",
+                "mejor porcentaje de pase",
+            ]
+        ):
             return MetricResolution(
                 metric="pass_accuracy_pct",
                 descending=True,
-                table="teams" if is_team_query else "players"
+                table="teams" if is_team_query else "players",
             )
 
-        if any(p in q for p in [
-            "provokes the most offsides", "most offsides",
-            "provoca mas fueras de juego", "mas fueras de juego"
-        ]):
+        if any(
+            p in q
+            for p in [
+                "provokes the most offsides",
+                "most offsides",
+                "provoca mas fueras de juego",
+                "mas fueras de juego",
+            ]
+        ):
             return MetricResolution(metric="offsides", descending=True, table="teams")
 
         return None
@@ -555,7 +723,6 @@ class LLMQueryEngineV2:
             return plan.metric
 
         if plan.table_scope == "player_match":
-
             if plan.match_conditions:
                 if len(plan.match_conditions) == 2:
                     cond_metrics = sorted([mc.metric for mc in plan.match_conditions])
@@ -566,8 +733,13 @@ class LLMQueryEngineV2:
                     mc = plan.match_conditions[0]
                     if mc.metric == "goals" and mc.operator == ">=" and float(mc.value) == 2:
                         return "two_goal_matches"
-            
-            if plan.metric == "goals" and filters.get("team_name") and filters.get("matchday_start") and filters.get("matchday_end"):
+
+            if (
+                plan.metric == "goals"
+                and filters.get("team_name")
+                and filters.get("matchday_start")
+                and filters.get("matchday_end")
+            ):
                 return f"goals_gw_{filters['matchday_start']}_{filters['matchday_end']}"
 
             if plan.metric == "goals" and filters.get("opponent_rank_lte") is not None:
@@ -577,7 +749,11 @@ class LLMQueryEngineV2:
                 return "away_goals"
 
             if plan.metric == "goals":
-                if filters.get("team_name") and filters.get("matchday_start") and filters.get("matchday_end"):
+                if (
+                    filters.get("team_name")
+                    and filters.get("matchday_start")
+                    and filters.get("matchday_end")
+                ):
                     return f"goals_gw_{filters['matchday_start']}_{filters['matchday_end']}"
                 if filters.get("opponent_is_big6") is True:
                     return "goals_vs_big6"
@@ -596,7 +772,11 @@ class LLMQueryEngineV2:
                 return f"progressive_passes_vs_top{filters['opponent_rank_lte']}"
             if plan.metric == "touches_in_box" and filters.get("is_home") is False:
                 return "touches_in_box_away"
-            if plan.metric == "key_passes" and filters.get("matchday_start") and filters.get("matchday_end"):
+            if (
+                plan.metric == "key_passes"
+                and filters.get("matchday_start")
+                and filters.get("matchday_end")
+            ):
                 return f"key_passes_gw_{filters['matchday_start']}_{filters['matchday_end']}"
             if plan.metric == "shot_assists" and filters.get("opponent_is_big6") is True:
                 return "shot_assists_vs_big6"
@@ -609,7 +789,11 @@ class LLMQueryEngineV2:
             if plan.aggregation == "wins" and filters.get("is_home") is False:
                 return "away_wins"
 
-            if plan.aggregation == "goal_difference" and filters.get("matchday_start") and filters.get("matchday_end"):
+            if (
+                plan.aggregation == "goal_difference"
+                and filters.get("matchday_start")
+                and filters.get("matchday_end")
+            ):
                 return f"goal_difference_gw_{filters['matchday_start']}_{filters['matchday_end']}"
 
             if (
@@ -620,7 +804,11 @@ class LLMQueryEngineV2:
             ):
                 return "away_goals"
 
-            if plan.metric == "team_score" and filters.get("is_home") is False and filters.get("opponent_rank_lte") is not None:
+            if (
+                plan.metric == "team_score"
+                and filters.get("is_home") is False
+                and filters.get("opponent_rank_lte") is not None
+            ):
                 return f"away_goals_vs_top{filters['opponent_rank_lte']}"
             if plan.metric.startswith("actions_z") and filters.get("opponent_team_name"):
                 suffix = _slug_metric_suffix(filters["opponent_team_name"])
@@ -681,9 +869,7 @@ class LLMQueryEngineV2:
                             "metric": {
                                 "type": "string",
                                 "enum": enum,
-                                "description": "\n".join(
-                                    self._metric_description(c) for c in enum
-                                ),
+                                "description": "\n".join(self._metric_description(c) for c in enum),
                             },
                             "descending": {"type": "boolean"},
                         },
@@ -731,7 +917,6 @@ class LLMQueryEngineV2:
             return "top_n"
         return "top_1"
 
-
     def _metric_label(self, metric: str) -> str:
         labels = {
             "total_goals": "goals",
@@ -757,13 +942,14 @@ class LLMQueryEngineV2:
         }
         return labels.get(metric, metric.replace("_", " "))
 
-
     def _context_label_from_result(self, result: QueryResult) -> str:
         filters = result.filters_applied or {}
         parts = []
 
         if filters.get("matchday_start") and filters.get("matchday_end"):
-            parts.append(f"between matchdays {filters['matchday_start']} and {filters['matchday_end']}")
+            parts.append(
+                f"between matchdays {filters['matchday_start']} and {filters['matchday_end']}"
+            )
 
         if filters.get("opponent_team_name"):
             parts.append(f"against {filters['opponent_team_name']}")
@@ -804,7 +990,13 @@ class LLMQueryEngineV2:
             )
             if age_lt and "birth_date" in df.columns:
                 df = df.with_columns(
-                    ((pl.lit(20240801) - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)) / 10000)
+                    (
+                        (
+                            pl.lit(20240801)
+                            - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)
+                        )
+                        / 10000
+                    )
                     .cast(pl.Int64)
                     .alias("age")
                 ).filter(pl.col("age") < age_lt)
@@ -876,18 +1068,28 @@ class LLMQueryEngineV2:
                 result_df = sorted_df.filter(pl.col(resolution.metric) == boundary)
 
         display = (
-            ["short_name", "team_name", "main_position", "age", resolution.metric, "matches_played", "total_minutes"]
+            [
+                "short_name",
+                "team_name",
+                "main_position",
+                "age",
+                resolution.metric,
+                "matches_played",
+                "total_minutes",
+            ]
             if resolution.table == "players"
             else ["team_name", resolution.metric, "total_goals", "total_goals_against"]
         )
         display = list(dict.fromkeys(c for c in display if c in result_df.columns))
 
         result_df = result_df.select(display)
-        result_df = result_df.with_columns([
-            pl.col(c).round(2)
-            for c, t in zip(result_df.columns, result_df.dtypes)
-            if t in (pl.Float64, pl.Float32)
-        ])
+        result_df = result_df.with_columns(
+            [
+                pl.col(c).round(2)
+                for c, t in zip(result_df.columns, result_df.dtypes)
+                if t in (pl.Float64, pl.Float32)
+            ]
+        )
 
         return QueryResult(
             table=resolution.table,
@@ -897,7 +1099,7 @@ class LLMQueryEngineV2:
         )
 
     def _execute_planned_query(self, question: str) -> QueryResult | None:
-        
+
         try:
             plan = self.planner.resolve(question)
         except Exception as e:
@@ -965,13 +1167,16 @@ class LLMQueryEngineV2:
                 opponent_team_name=filters.get("opponent_team_name"),
                 opponent_rank_lte=filters.get("opponent_rank_lte"),
                 opponent_rank_gte=filters.get("opponent_rank_gte"),
-                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_rank_between=tuple(filters["opponent_rank_between"])
+                if filters.get("opponent_rank_between")
+                else None,
                 opponent_is_big6=filters.get("opponent_is_big6"),
                 matchday_start=filters.get("matchday_start"),
                 matchday_end=filters.get("matchday_end"),
                 match_conditions=(
                     [mc.model_dump() for mc in plan.match_conditions]
-                    if plan.match_conditions else None
+                    if plan.match_conditions
+                    else None
                 ),
                 limit=ranking.get("n") or 1,
             )
@@ -994,7 +1199,9 @@ class LLMQueryEngineV2:
                 opponent_team_name=filters.get("opponent_team_name"),
                 opponent_rank_lte=filters.get("opponent_rank_lte"),
                 opponent_rank_gte=filters.get("opponent_rank_gte"),
-                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_rank_between=tuple(filters["opponent_rank_between"])
+                if filters.get("opponent_rank_between")
+                else None,
                 opponent_is_big6=filters.get("opponent_is_big6"),
                 matchday_start=filters.get("matchday_start"),
                 matchday_end=filters.get("matchday_end"),
@@ -1017,7 +1224,9 @@ class LLMQueryEngineV2:
                 opponent_team_name=filters.get("opponent_team_name"),
                 opponent_rank_lte=filters.get("opponent_rank_lte"),
                 opponent_rank_gte=filters.get("opponent_rank_gte"),
-                opponent_rank_between=tuple(filters["opponent_rank_between"]) if filters.get("opponent_rank_between") else None,
+                opponent_rank_between=tuple(filters["opponent_rank_between"])
+                if filters.get("opponent_rank_between")
+                else None,
                 opponent_is_big6=filters.get("opponent_is_big6"),
                 matchday_start=filters.get("matchday_start"),
                 matchday_end=filters.get("matchday_end"),
@@ -1033,7 +1242,9 @@ class LLMQueryEngineV2:
 
         return None
 
-    def _shape_rows_for_result(self, plan, rows: list[dict], filters: dict) -> tuple[str, list[dict]]:
+    def _shape_rows_for_result(
+        self, plan, rows: list[dict], filters: dict
+    ) -> tuple[str, list[dict]]:
         result_metric = self._result_metric_name_from_plan(plan, filters)
 
         shaped = []
@@ -1070,9 +1281,11 @@ class LLMQueryEngineV2:
                 return False
 
         # Si NO es contextual, no debería ir a match scopes salvo que haya lógica real de partido
-        if not has_context and not has_match_logic and plan.table_scope in {
-            "player_match", "player_match_event", "team_match"
-        }:
+        if (
+            not has_context
+            and not has_match_logic
+            and plan.table_scope in {"player_match", "player_match_event", "team_match"}
+        ):
             return False
 
         return True
@@ -1117,16 +1330,19 @@ class LLMQueryEngineV2:
         )
         return response.choices[0].message.content.strip()
 
-    def _run_bucket_sub_query(
-        self, plan, bucket: dict
-    ) -> tuple[float | int | None, list[dict]]:
+    def _run_bucket_sub_query(self, plan, bucket: dict) -> tuple[float | int | None, list[dict]]:
         """
         Run one duck sub-query for a single opponent bucket.
         Clears all opponent-rank fields from plan.filters, then applies `bucket`.
         Returns (numeric_value_or_None, rows).
         """
         filters = plan.filters.model_dump()
-        for key in ("opponent_rank_lte", "opponent_rank_gte", "opponent_rank_between", "opponent_is_big6"):
+        for key in (
+            "opponent_rank_lte",
+            "opponent_rank_gte",
+            "opponent_rank_between",
+            "opponent_is_big6",
+        ):
             filters[key] = None
         filters.update(bucket)
 
@@ -1143,7 +1359,8 @@ class LLMQueryEngineV2:
                     opponent_rank_gte=filters.get("opponent_rank_gte"),
                     opponent_rank_between=(
                         tuple(filters["opponent_rank_between"])
-                        if filters.get("opponent_rank_between") else None
+                        if filters.get("opponent_rank_between")
+                        else None
                     ),
                     opponent_is_big6=filters.get("opponent_is_big6"),
                     matchday_start=filters.get("matchday_start"),
@@ -1162,7 +1379,8 @@ class LLMQueryEngineV2:
                     opponent_rank_gte=filters.get("opponent_rank_gte"),
                     opponent_rank_between=(
                         tuple(filters["opponent_rank_between"])
-                        if filters.get("opponent_rank_between") else None
+                        if filters.get("opponent_rank_between")
+                        else None
                     ),
                     opponent_is_big6=filters.get("opponent_is_big6"),
                     matchday_start=filters.get("matchday_start"),
@@ -1198,8 +1416,12 @@ class LLMQueryEngineV2:
         Returns None on any failure (enrichment is always best-effort).
         """
         filters = plan.filters.model_dump()
-        for key in ("opponent_rank_lte", "opponent_rank_gte",
-                    "opponent_rank_between", "opponent_is_big6"):
+        for key in (
+            "opponent_rank_lte",
+            "opponent_rank_gte",
+            "opponent_rank_between",
+            "opponent_is_big6",
+        ):
             filters[key] = None
         filters.update(bucket)
 
@@ -1253,7 +1475,8 @@ class LLMQueryEngineV2:
                     params.append(me)
                 join_sql = (
                     "LEFT JOIN league_table opp ON pms.opponent_team_id = opp.team_id"
-                    if need_rank_join else ""
+                    if need_rank_join
+                    else ""
                 )
                 where_sql = ("WHERE " + " AND ".join(where)) if where else ""
                 sql = (
@@ -1281,13 +1504,11 @@ class LLMQueryEngineV2:
                     params.append(me)
                 join_sql = (
                     "LEFT JOIN league_table opp ON tms.opponent_team_id = opp.team_id"
-                    if need_rank_join else ""
+                    if need_rank_join
+                    else ""
                 )
                 where_sql = ("WHERE " + " AND ".join(where)) if where else ""
-                sql = (
-                    f"SELECT COUNT(*) AS denom "
-                    f"FROM team_match_stats tms {join_sql} {where_sql}"
-                )
+                sql = f"SELECT COUNT(*) AS denom FROM team_match_stats tms {join_sql} {where_sql}"
 
             else:
                 return None
@@ -1479,9 +1700,13 @@ class LLMQueryEngineV2:
         verb = "has" if plan.filters.player_name is not None else "have"
 
         if val_a > val_b:
-            conclusion = f"so {subject} {verb} {action_verb} more {metric_label} against the {label_a}"
+            conclusion = (
+                f"so {subject} {verb} {action_verb} more {metric_label} against the {label_a}"
+            )
         elif val_b > val_a:
-            conclusion = f"so {subject} {verb} {action_verb} more {metric_label} against the {label_b}"
+            conclusion = (
+                f"so {subject} {verb} {action_verb} more {metric_label} against the {label_b}"
+            )
         else:
             conclusion = "so it is equal against both"
 
@@ -1519,9 +1744,7 @@ class LLMQueryEngineV2:
             },
         }
 
-    def _execute_home_away_comparison(
-        self, question: str, sides: tuple[dict, dict]
-    ) -> dict | None:
+    def _execute_home_away_comparison(self, question: str, sides: tuple[dict, dict]) -> dict | None:
         """
         Execute a home-vs-away comparison for a named subject + single metric.
         sides = ({"is_home": False}, {"is_home": True})
@@ -1608,10 +1831,7 @@ class LLMQueryEngineV2:
             p90_away = _compute_p90(val_away, denom_away, is_player)
             p90_home = _compute_p90(val_home, denom_home, is_player)
             if p90_away is not None and p90_home is not None:
-                answer += (
-                    f" That is {p90_away:.2f} per 90 away "
-                    f"and {p90_home:.2f} per 90 at home."
-                )
+                answer += f" That is {p90_away:.2f} per 90 away and {p90_home:.2f} per 90 at home."
         except Exception:
             pass
 
@@ -1630,9 +1850,7 @@ class LLMQueryEngineV2:
             },
         }
 
-    def _execute_metric_derived_bucket(
-        self, question: str, bucket_spec: dict
-    ) -> dict | None:
+    def _execute_metric_derived_bucket(self, question: str, bucket_spec: dict) -> dict | None:
         """
         Execute a metric-derived opponent bucket query.
         Derives opponent team set from teams_df, then runs a grounded SQL query.
@@ -1783,7 +2001,11 @@ class LLMQueryEngineV2:
                     pl.col("team_name").str.to_lowercase() == team_name.lower()
                 )
                 if t_row.height > 0:
-                    p90_col = "total_goals_p90" if final_col == "team_score" else "total_goals_against_p90"
+                    p90_col = (
+                        "total_goals_p90"
+                        if final_col == "team_score"
+                        else "total_goals_against_p90"
+                    )
                     if p90_col in t_row.columns:
                         season_p90 = round(float(t_row[p90_col][0]), 2)
 
@@ -1853,10 +2075,14 @@ class LLMQueryEngineV2:
             _p90_debug: dict = {}
             if ranking.get("mode") == "entity_value":
                 filters_ = planned_result.filters_applied or {}
-                if (filters_.get("matchday_start") is not None
-                        or filters_.get("matchday_end") is not None):
+                if (
+                    filters_.get("matchday_start") is not None
+                    or filters_.get("matchday_end") is not None
+                ):
                     try:
-                        answer, _p90_debug = self._append_temporal_p90_enrichment(answer, planned_result)
+                        answer, _p90_debug = self._append_temporal_p90_enrichment(
+                            answer, planned_result
+                        )
                     except Exception:
                         pass
 
@@ -1898,7 +2124,7 @@ class LLMQueryEngineV2:
         resolution = self._resolve_metric(question)
         result = self._execute_summary(question, resolution)
 
-        ranking = (result.filters_applied or {})
+        ranking = result.filters_applied or {}
         is_tie = _detect_true_tie(
             result.rows,
             result.metric,

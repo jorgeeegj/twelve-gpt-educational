@@ -4,11 +4,10 @@ Runs top to bottom every time the user interacts with the app (other than import
 """
 
 # Library imports
-import traceback
 import copy
+import traceback
 
 import streamlit as st
-
 
 from utils.page_components import (
     add_common_page_elements,

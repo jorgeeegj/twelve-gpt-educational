@@ -1,6 +1,6 @@
-import polars as pl
 from pathlib import Path
 
+import polars as pl
 
 BASE = Path(__file__).resolve().parents[3]
 QA_PATH = BASE / "data" / "verbal_model_qa.csv"

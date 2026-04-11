@@ -1,6 +1,7 @@
+import polars as pl
 import streamlit as st
 from openai import AzureOpenAI
-import polars as pl
+
 
 class ResponseGenerator:
     def __init__(self):
@@ -13,11 +14,13 @@ class ResponseGenerator:
 
     def verbalize_query_result(self, question: str, query_result: dict) -> str:
         result_df = query_result["result_df"]
-        result_df = result_df.with_columns([
-        pl.col(c).round(2)
-        for c, t in zip(result_df.columns, result_df.dtypes)
-        if t in (pl.Float64, pl.Float32)
-            ])
+        result_df = result_df.with_columns(
+            [
+                pl.col(c).round(2)
+                for c, t in zip(result_df.columns, result_df.dtypes)
+                if t in (pl.Float64, pl.Float32)
+            ]
+        )
         rows = result_df.to_dicts()
 
         if not rows:
@@ -57,13 +60,10 @@ Structured result:
                     "content": (
                         "You must answer strictly from the provided structured result. "
                         "Never invent facts. Always include the relevant numeric value."
-                    )
+                    ),
                 },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+                {"role": "user", "content": prompt},
+            ],
         )
 
         return response.choices[0].message.content.strip()

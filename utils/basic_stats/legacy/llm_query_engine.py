@@ -13,49 +13,107 @@ import polars as pl
 import streamlit as st
 from openai import AzureOpenAI
 
-
 BASE = Path(__file__).resolve().parents[2]
 PLAYER_DATA_PATH = BASE / "output" / "player_full_stats.parquet"
 TEAM_DATA_PATH = BASE / "output" / "team_full_stats.parquet"
 
 # Only expose columns useful for natural language queries (skip z-scores, internal IDs)
 PLAYER_COLS_FOR_SCHEMA = [
-    "short_name", "team_name", "main_position", "birth_date",
-    "matches_played", "total_minutes",
-    "total_goals", "total_assists", "goal_contributions",
-    "total_yellow_cards", "total_red_cards",
-    "pass_accuracy_pct", "passes_attempted", "passes_accurate",
-    "progressive_passes", "forward_passes", "back_passes", "long_passes",
-    "key_passes", "crosses", "passes_to_final_third", "passes_to_box",
-    "through_passes", "smart_passes",
-    "shots", "shots_on_target", "xg_total",
-    "aerial_duels", "aerial_duels_won", "aerial_duel_won_pct",
-    "defensive_duels", "defensive_duels_won", "defensive_duel_won_pct",
-    "offensive_duels", "offensive_duels_won", "offensive_duel_won_pct",
-    "dribbles_attempted", "dribbles_won", "dribble_success_pct",
-    "recoveries", "interceptions", "clearances", "sliding_tackles",
-    "fouls_committed", "fouls_suffered",
-    "progressive_carries", "carry_meters_gained", "progressive_runs",
-    "touches_in_box", "shot_assists", "ball_losses",
-    "saves", "shots_against", "goalkeeper_exits", "reflex_saves",
+    "short_name",
+    "team_name",
+    "main_position",
+    "birth_date",
+    "matches_played",
+    "total_minutes",
+    "total_goals",
+    "total_assists",
+    "goal_contributions",
+    "total_yellow_cards",
+    "total_red_cards",
+    "pass_accuracy_pct",
+    "passes_attempted",
+    "passes_accurate",
+    "progressive_passes",
+    "forward_passes",
+    "back_passes",
+    "long_passes",
+    "key_passes",
+    "crosses",
+    "passes_to_final_third",
+    "passes_to_box",
+    "through_passes",
+    "smart_passes",
+    "shots",
+    "shots_on_target",
+    "xg_total",
+    "aerial_duels",
+    "aerial_duels_won",
+    "aerial_duel_won_pct",
+    "defensive_duels",
+    "defensive_duels_won",
+    "defensive_duel_won_pct",
+    "offensive_duels",
+    "offensive_duels_won",
+    "offensive_duel_won_pct",
+    "dribbles_attempted",
+    "dribbles_won",
+    "dribble_success_pct",
+    "recoveries",
+    "interceptions",
+    "clearances",
+    "sliding_tackles",
+    "fouls_committed",
+    "fouls_suffered",
+    "progressive_carries",
+    "carry_meters_gained",
+    "progressive_runs",
+    "touches_in_box",
+    "shot_assists",
+    "ball_losses",
+    "saves",
+    "shots_against",
+    "goalkeeper_exits",
+    "reflex_saves",
     # p90 variants for the most common metrics
-    "total_goals_p90", "total_assists_p90", "xg_total_p90",
-    "aerial_duels_won_p90", "progressive_passes_p90", "key_passes_p90",
-    "shots_on_target_p90", "passes_attempted_p90", "recoveries_p90",
-    "interceptions_p90", "dribbles_won_p90", "touches_in_box_p90",
+    "total_goals_p90",
+    "total_assists_p90",
+    "xg_total_p90",
+    "aerial_duels_won_p90",
+    "progressive_passes_p90",
+    "key_passes_p90",
+    "shots_on_target_p90",
+    "passes_attempted_p90",
+    "recoveries_p90",
+    "interceptions_p90",
+    "dribbles_won_p90",
+    "touches_in_box_p90",
 ]
 
 TEAM_COLS_FOR_SCHEMA = [
-    "team_name", "matches_played",
-    "total_goals", "total_goals_against", "total_assists",
-    "pass_accuracy_pct", "shots_on_target_pct",
-    "progressive_passes", "passes_attempted", "passes_accurate",
-    "aerial_duels_won", "aerial_duel_won_pct",
-    "defensive_duels_won", "defensive_duel_won_pct",
-    "xg_total", "shots", "shots_on_target",
-    "recoveries", "interceptions", "clearances",
-    "fouls_committed", "fouls_suffered",
-    "total_goals_p90", "total_goals_against_p90",
+    "team_name",
+    "matches_played",
+    "total_goals",
+    "total_goals_against",
+    "total_assists",
+    "pass_accuracy_pct",
+    "shots_on_target_pct",
+    "progressive_passes",
+    "passes_attempted",
+    "passes_accurate",
+    "aerial_duels_won",
+    "aerial_duel_won_pct",
+    "defensive_duels_won",
+    "defensive_duel_won_pct",
+    "xg_total",
+    "shots",
+    "shots_on_target",
+    "recoveries",
+    "interceptions",
+    "clearances",
+    "fouls_committed",
+    "fouls_suffered",
+    "total_goals_p90",
+    "total_goals_against_p90",
 ]
 
 SCHEMA_TEXT = """
@@ -189,7 +247,14 @@ Return ONLY a JSON object with keys: table, sort_by, descending, filters, top_n.
 
         # Select display columns
         if table == "players":
-            display_cols = ["short_name", "team_name", "main_position", sort_by, "matches_played", "total_minutes"]
+            display_cols = [
+                "short_name",
+                "team_name",
+                "main_position",
+                sort_by,
+                "matches_played",
+                "total_minutes",
+            ]
         else:
             display_cols = ["team_name", sort_by, "total_goals", "total_goals_against"]
 
@@ -201,11 +266,13 @@ Return ONLY a JSON object with keys: table, sort_by, descending, filters, top_n.
         result_df = top_df.select(display_cols)
 
         # Round floats
-        result_df = result_df.with_columns([
-            pl.col(c).round(2)
-            for c, t in zip(result_df.columns, result_df.dtypes)
-            if t in (pl.Float64, pl.Float32)
-        ])
+        result_df = result_df.with_columns(
+            [
+                pl.col(c).round(2)
+                for c, t in zip(result_df.columns, result_df.dtypes)
+                if t in (pl.Float64, pl.Float32)
+            ]
+        )
 
         return {
             "table": table,
@@ -232,7 +299,10 @@ Data: {rows}
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "Answer strictly from the provided data. Never invent facts."},
+                {
+                    "role": "system",
+                    "content": "Answer strictly from the provided data. Never invent facts.",
+                },
                 {"role": "user", "content": prompt},
             ],
         )

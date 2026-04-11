@@ -4,30 +4,27 @@ Runs top to bottom every time the user interacts with the app (other than import
 """
 
 # Library imports
-import traceback
 import copy
+import traceback
 
 import streamlit as st
 
-from classes.data_source import PlayerStats
+from classes.chat import PlayerChat
 from classes.data_point import Player
-from classes.visual import DistributionPlot
+from classes.data_source import PlayerStats
 from classes.description import (
     PlayerDescription,
 )
-from classes.chat import PlayerChat
-
+from classes.visual import DistributionPlot
 from utils.page_components import (
     add_common_page_elements,
     #     select_player,
     #     create_chat,
 )
-
 from utils.utils import (
-    select_player,
     create_chat,
+    select_player,
 )
-
 
 # def show():
 sidebar_container = add_common_page_elements()
@@ -79,7 +76,6 @@ chat = create_chat(to_hash, PlayerChat, player, players)
 
 # Now we want to add basic content to chat if it's empty
 if chat.state == "empty":
-
     # Make a plot of the distribution of the metrics for all players
     # We reverse the order of the elements in metrics for plotting (because they plot from bottom to top)
     visual = DistributionPlot(metrics[::-1])

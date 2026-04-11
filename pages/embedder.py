@@ -1,14 +1,13 @@
 # Library imports
-import streamlit as st
-import pandas as pd
-import tiktoken
 import os
-from utils.utils import normalize_text
 
-
-from utils.page_components import add_common_page_elements
+import pandas as pd
+import streamlit as st
+import tiktoken
 
 from classes.embeddings import Embeddings
+from utils.page_components import add_common_page_elements
+from utils.utils import normalize_text
 
 
 def get_format(path):
@@ -27,9 +26,7 @@ def embed(file_path, embeddings):
     file_format, read_func = get_format(file_path)
 
     df = read_func(file_path)
-    embedding_path = file_path.replace("describe", "embeddings").replace(
-        file_format, ".parquet"
-    )
+    embedding_path = file_path.replace("describe", "embeddings").replace(file_format, ".parquet")
 
     st.write(f"Embedding file: {file_path}")
     # Check if the content of user exceeds max token length
@@ -41,9 +38,7 @@ def embed(file_path, embeddings):
     # Check for common errors in the text
     df["user"] = df["user"].apply(lambda x: normalize_text(x))
 
-    df["user_embedded"] = df["user"].apply(
-        lambda x: str(embeddings.return_embedding(x))
-    )
+    df["user_embedded"] = df["user"].apply(lambda x: str(embeddings.return_embedding(x)))
 
     directory = os.path.dirname(embedding_path)
     if not os.path.exists(directory):
@@ -75,16 +70,12 @@ if not available_files:
     st.warning("No files found in data/describe folder")
 else:
     # File selection dropdown
-    selected_file = st.selectbox(
-        "Select a file to embed",
-        options=available_files,
-        index=0
-    )
-    
+    selected_file = st.selectbox("Select a file to embed", options=available_files, index=0)
+
     # Show selected file path
     full_path = os.path.join(describe_folder, selected_file)
     st.info(f"Selected file: {full_path}")
-    
+
     # Display the file contents
     try:
         file_format, read_func = get_format(full_path)
@@ -92,7 +83,7 @@ else:
         st.dataframe(df, use_container_width=True)
     except Exception as e:
         st.error(f"Error reading file: {str(e)}")
-    
+
     # Check if file is already embedded
     try:
         embedding_path = full_path.replace("describe", "embeddings").replace(
@@ -101,7 +92,7 @@ else:
         is_embedded = os.path.exists(embedding_path)
     except:
         is_embedded = False
-    
+
     # Embed / Re-embed button
     button_label = "Re-embed File" if is_embedded else "Embed File"
     if st.button(button_label, type="primary"):

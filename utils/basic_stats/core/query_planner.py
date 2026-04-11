@@ -10,8 +10,8 @@ from pydantic import BaseModel, Field, ValidationError
 
 from utils.basic_stats.core.config import (
     PLAYER_DATA_PATH,
-    TEAM_DATA_PATH,
     PROMPTS_DIR,
+    TEAM_DATA_PATH,
     get_llm_client,
     get_model,
 )
@@ -159,12 +159,14 @@ def _targets_player_subject(q: str) -> bool:
     ]
     return any(re.search(p, q) for p in patterns)
 
+
 def _normalize_metric_key(metric: str) -> str:
     metric = metric.strip().lower()
     metric = metric.replace("-", "_")
     metric = metric.replace(" ", "_")
     metric = re.sub(r"_+", "_", metric)
     return metric
+
 
 def _targets_team_subject(q: str) -> bool:
     patterns = [
@@ -177,26 +179,30 @@ def _targets_team_subject(q: str) -> bool:
     ]
     return any(re.search(p, q) for p in patterns)
 
+
 def _has_match_like_question(q: str) -> bool:
-    return any([
-        "against" in q,
-        "vs " in q,
-        "versus" in q,
-        "contra" in q,
-        "away" in q,
-        "fuera de casa" in q,
-        "at home" in q,
-        "en casa" in q,
-        "between matchdays" in q,
-        "between gameweeks" in q,
-        "entre jornadas" in q,
-        "big six" in q,
-        "big6" in q,
-        "big 6" in q,
-        _extract_top_rank_bucket(q) is not None,
-        _extract_bottom_rank_bucket(q) is not None,
-        _extract_mid_table_bucket(q),
-    ])
+    return any(
+        [
+            "against" in q,
+            "vs " in q,
+            "versus" in q,
+            "contra" in q,
+            "away" in q,
+            "fuera de casa" in q,
+            "at home" in q,
+            "en casa" in q,
+            "between matchdays" in q,
+            "between gameweeks" in q,
+            "entre jornadas" in q,
+            "big six" in q,
+            "big6" in q,
+            "big 6" in q,
+            _extract_top_rank_bucket(q) is not None,
+            _extract_bottom_rank_bucket(q) is not None,
+            _extract_mid_table_bucket(q),
+        ]
+    )
+
 
 PLAYER_MATCH_CONDITION_ALLOWED_METRICS = {
     "goals",
@@ -221,6 +227,7 @@ FILTER_LIKE_MATCH_CONDITION_MAP = {
     "age_lt": "age_lt",
 }
 
+
 class QueryFilters(BaseModel):
     player_name: str | None = None
     team_name: str | None = None
@@ -242,6 +249,7 @@ class RankingPlan(BaseModel):
     mode: str = Field(description="top_n | ordinal | entity_value")
     n: int | None = None
     ordinal: int | None = None
+
 
 class MatchCondition(BaseModel):
     metric: str
@@ -289,21 +297,17 @@ class QueryPlanner:
         "player_stats": "players_summary",
         "player_statistics": "players_summary",
         "players": "players_summary",
-
         "team_season_summary": "teams_summary",
         "team_season_stats": "teams_summary",
         "team_summary": "teams_summary",
         "team_performance": "team_match",
         "teams": "teams_summary",
-
         "player_match_stats": "player_match",
         "player_matches": "player_match",
         "player_goals": "player_match",
-
         "player_passes": "player_match_event",
         "player_events": "player_match_event",
         "player_event_stats": "player_match_event",
-
         "season_matches": "team_match",
         "team_matches": "team_match",
         "team_performance_by_opponent": "team_match",
@@ -361,8 +365,14 @@ class QueryPlanner:
         "yellow_cards": {"players_summary": "total_yellow_cards"},
         "yellow_card": {"players_summary": "total_yellow_cards"},
         "goals_per_90": {"players_summary": "total_goals_p90", "teams_summary": "total_goals_p90"},
-        "progressive_passes_per_90": {"players_summary": "progressive_passes_p90", "teams_summary": "progressive_passes_p90"},
-        "passing_accuracy": {"players_summary": "pass_accuracy_pct", "teams_summary": "pass_accuracy_pct"},
+        "progressive_passes_per_90": {
+            "players_summary": "progressive_passes_p90",
+            "teams_summary": "progressive_passes_p90",
+        },
+        "passing_accuracy": {
+            "players_summary": "pass_accuracy_pct",
+            "teams_summary": "pass_accuracy_pct",
+        },
         "offsides_drawn": {"teams_summary": "offsides"},
         "team_score": {"players_summary": "total_goals", "teams_summary": "total_goals"},
     }
@@ -400,7 +410,13 @@ class QueryPlanner:
                 elif metric == "is_home":
                     if cond.value in [True, False]:
                         setattr(plan.filters, filter_name, bool(cond.value))
-                elif metric in {"matchday_start", "matchday_end", "min_minutes", "min_matches", "age_lt"}:
+                elif metric in {
+                    "matchday_start",
+                    "matchday_end",
+                    "min_minutes",
+                    "min_matches",
+                    "age_lt",
+                }:
                     try:
                         setattr(plan.filters, filter_name, int(cond.value))
                     except Exception:
@@ -444,61 +460,136 @@ class QueryPlanner:
             "n": 1,
             "ordinal": None,
         }
-    
-    def _infer_scope_from_question(self, question: str, current_scope: str | None, metric: str | None) -> str | None:
+
+    def _infer_scope_from_question(
+        self, question: str, current_scope: str | None, metric: str | None
+    ) -> str | None:
         q = _normalize_text(question)
 
-        has_match_context = any([
-            "against" in q,
-            "vs " in q,
-            "versus" in q,
-            "contra" in q,
-            "away" in q,
-            "fuera de casa" in q,
-            "at home" in q,
-            "home " in q,
-            "en casa" in q,
-            "between matchdays" in q,
-            "between gameweeks" in q,
-            "entre jornadas" in q,
-            "big six" in q,
-            "big6" in q,
-            "big 6" in q,
-            _extract_top_rank_bucket(q) is not None,
-            _extract_bottom_rank_bucket(q) is not None,
-            _extract_mid_table_bucket(q),
-        ])
+        has_match_context = any(
+            [
+                "against" in q,
+                "vs " in q,
+                "versus" in q,
+                "contra" in q,
+                "away" in q,
+                "fuera de casa" in q,
+                "at home" in q,
+                "home " in q,
+                "en casa" in q,
+                "between matchdays" in q,
+                "between gameweeks" in q,
+                "entre jornadas" in q,
+                "big six" in q,
+                "big6" in q,
+                "big 6" in q,
+                _extract_top_rank_bucket(q) is not None,
+                _extract_bottom_rank_bucket(q) is not None,
+                _extract_mid_table_bucket(q),
+            ]
+        )
 
         player_match_metrics = {
-            "goals", "assists", "own_goals", "yellow_card", "red_card", "minutes_played",
-            "total_goals", "total_assists", "total_minutes",
+            "goals",
+            "assists",
+            "own_goals",
+            "yellow_card",
+            "red_card",
+            "minutes_played",
+            "total_goals",
+            "total_assists",
+            "total_minutes",
         }
 
         player_event_metrics = {
-            "passes_attempted", "passes_accurate", "progressive_passes", "forward_passes",
-            "back_passes", "long_passes", "key_passes", "crosses", "passes_to_final_third",
-            "passes_to_box", "through_passes", "smart_passes", "shots", "shots_on_target",
-            "xg_total", "aerial_duels", "aerial_duels_won", "defensive_duels",
-            "defensive_duels_won", "offensive_duels", "offensive_duels_won",
-            "dribbles_attempted", "dribbles_won", "recoveries", "interceptions",
-            "clearances", "sliding_tackles", "fouls_committed", "fouls_suffered",
-            "progressive_carries", "carry_meters_gained", "progressive_runs",
-            "touches_in_box", "shot_assists", "ball_losses", "goalkeeper_exits",
-            "shots_against", "saves", "reflex_saves",
-            "actions_z1", "actions_z2", "actions_z3", "actions_z4", "actions_z5",
-            "pass_z2_to_z4", "pass_z2_to_z5", "pass_z3_to_z4", "pass_z3_to_z5",
-            "carry_z2_to_z4", "carry_z2_to_z5", "carry_z3_to_z4", "carry_z3_to_z5",
-            "actions_in_z3", "z3_actions",
+            "passes_attempted",
+            "passes_accurate",
+            "progressive_passes",
+            "forward_passes",
+            "back_passes",
+            "long_passes",
+            "key_passes",
+            "crosses",
+            "passes_to_final_third",
+            "passes_to_box",
+            "through_passes",
+            "smart_passes",
+            "shots",
+            "shots_on_target",
+            "xg_total",
+            "aerial_duels",
+            "aerial_duels_won",
+            "defensive_duels",
+            "defensive_duels_won",
+            "offensive_duels",
+            "offensive_duels_won",
+            "dribbles_attempted",
+            "dribbles_won",
+            "recoveries",
+            "interceptions",
+            "clearances",
+            "sliding_tackles",
+            "fouls_committed",
+            "fouls_suffered",
+            "progressive_carries",
+            "carry_meters_gained",
+            "progressive_runs",
+            "touches_in_box",
+            "shot_assists",
+            "ball_losses",
+            "goalkeeper_exits",
+            "shots_against",
+            "saves",
+            "reflex_saves",
+            "actions_z1",
+            "actions_z2",
+            "actions_z3",
+            "actions_z4",
+            "actions_z5",
+            "pass_z2_to_z4",
+            "pass_z2_to_z5",
+            "pass_z3_to_z4",
+            "pass_z3_to_z5",
+            "carry_z2_to_z4",
+            "carry_z2_to_z5",
+            "carry_z3_to_z4",
+            "carry_z3_to_z5",
+            "actions_in_z3",
+            "z3_actions",
         }
 
         team_match_metrics = {
-            "team_score", "opponent_score", "assists", "xg_total", "progressive_passes",
-            "key_passes", "touches_in_box", "aerial_duels_won", "recoveries",
-            "interceptions", "clearances", "fouls_committed", "fouls_suffered",
-            "actions_z1", "actions_z2", "actions_z3", "actions_z4", "actions_z5",
-            "pass_z2_to_z4", "pass_z2_to_z5", "pass_z3_to_z4", "pass_z3_to_z5",
-            "carry_z2_to_z4", "carry_z2_to_z5", "carry_z3_to_z4", "carry_z3_to_z5",
-            "points", "wins", "goal_difference", "actions_in_z3", "z3_actions",
+            "team_score",
+            "opponent_score",
+            "assists",
+            "xg_total",
+            "progressive_passes",
+            "key_passes",
+            "touches_in_box",
+            "aerial_duels_won",
+            "recoveries",
+            "interceptions",
+            "clearances",
+            "fouls_committed",
+            "fouls_suffered",
+            "actions_z1",
+            "actions_z2",
+            "actions_z3",
+            "actions_z4",
+            "actions_z5",
+            "pass_z2_to_z4",
+            "pass_z2_to_z5",
+            "pass_z3_to_z4",
+            "pass_z3_to_z5",
+            "carry_z2_to_z4",
+            "carry_z2_to_z5",
+            "carry_z3_to_z4",
+            "carry_z3_to_z5",
+            "points",
+            "wins",
+            "goal_difference",
+            "actions_in_z3",
+            "z3_actions",
         }
 
         # Strong override when question implies match context
@@ -556,26 +647,12 @@ class QueryPlanner:
     def _load_player_names(self) -> list[str]:
         if "short_name" not in self.players_df.columns:
             return []
-        return (
-            self.players_df
-            .select("short_name")
-            .drop_nulls()
-            .unique()
-            .to_series()
-            .to_list()
-        )
+        return self.players_df.select("short_name").drop_nulls().unique().to_series().to_list()
 
     def _load_team_names(self) -> list[str]:
         if "team_name" not in self.teams_df.columns:
             return []
-        return (
-            self.teams_df
-            .select("team_name")
-            .drop_nulls()
-            .unique()
-            .to_series()
-            .to_list()
-        )
+        return self.teams_df.select("team_name").drop_nulls().unique().to_series().to_list()
 
     def _load_max_matchday(self) -> int:
         """Load the highest gameweek number present in the player match stats parquet.
@@ -608,8 +685,7 @@ class QueryPlanner:
         last_word_seen: dict[str, list[str]] = {}  # lw_norm → [canonical short_names]
 
         for row in (
-            self.players_df
-            .select(["short_name", "first_name", "last_name"])
+            self.players_df.select(["short_name", "first_name", "last_name"])
             .drop_nulls()
             .iter_rows(named=True)
         ):
@@ -930,11 +1006,13 @@ class QueryPlanner:
                 if not isinstance(value, (int, float)):
                     continue
 
-                fixed_conditions.append({
-                    "metric": metric,
-                    "operator": operator,
-                    "value": value,
-                })
+                fixed_conditions.append(
+                    {
+                        "metric": metric,
+                        "operator": operator,
+                        "value": value,
+                    }
+                )
 
             plan["match_conditions"] = fixed_conditions or None
 
@@ -942,23 +1020,41 @@ class QueryPlanner:
             plan["match_conditions"] = None
 
         has_rank_bucket = top_rank_bucket is not None or bottom_rank_bucket is not None
-        mentions_big_six = any(tok in q for tok in [
-            "big six", "big6", "big 6", "equipos del big six", "del big six"
-        ])
+        mentions_big_six = any(
+            tok in q for tok in ["big six", "big6", "big 6", "equipos del big six", "del big six"]
+        )
         mentions_progressive_passes = "progressive passes" in q or "pases progresivos" in q
         mentions_shot_assists = "shot assists" in q
-        mentions_actions_z3 = any(tok in q for tok in ["actions in z3", "actions_z3", "acciones en z3"])
+        mentions_actions_z3 = any(
+            tok in q for tok in ["actions in z3", "actions_z3", "acciones en z3"]
+        )
         mentions_goals = "goals" in q or "goles" in q
         mentions_away_goals = "away goals" in q or "goles fuera de casa" in q
 
         # generic contextual repairs: prefer broad, reusable rules over benchmark-only rules
-        if mentions_goals and (has_rank_bucket or mentions_big_six) and (matched_player is not None or _targets_player_subject(q) or plan["filters"].get("player_name") is not None):
+        if (
+            mentions_goals
+            and (has_rank_bucket or mentions_big_six)
+            and (
+                matched_player is not None
+                or _targets_player_subject(q)
+                or plan["filters"].get("player_name") is not None
+            )
+        ):
             plan["table_scope"] = "player_match"
             plan["entity_type"] = "player"
             plan["metric"] = "goals"
             plan["aggregation"] = "sum"
 
-        if mentions_progressive_passes and has_rank_bucket and (plan["filters"].get("position") is not None or matched_player is not None or _targets_player_subject(q)):
+        if (
+            mentions_progressive_passes
+            and has_rank_bucket
+            and (
+                plan["filters"].get("position") is not None
+                or matched_player is not None
+                or _targets_player_subject(q)
+            )
+        ):
             plan["table_scope"] = "player_match_event"
             plan["entity_type"] = "player"
             plan["metric"] = "progressive_passes"
@@ -984,7 +1080,11 @@ class QueryPlanner:
             plan["aggregation"] = "sum"
             plan["filters"]["is_home"] = False
 
-        if mentions_actions_z3 and (plan["filters"].get("opponent_team_name") is not None or matched_team is not None) and _targets_team_subject(q):
+        if (
+            mentions_actions_z3
+            and (plan["filters"].get("opponent_team_name") is not None or matched_team is not None)
+            and _targets_team_subject(q)
+        ):
             plan["table_scope"] = "team_match"
             plan["entity_type"] = "team"
             plan["metric"] = "actions_z3"
@@ -1040,10 +1140,7 @@ class QueryPlanner:
             plan["aggregation"] = "sum"
             plan["filters"]["opponent_rank_lte"] = 6
 
-        elif (
-            "away goals" in q
-            or "goles fuera de casa" in q
-        ):
+        elif "away goals" in q or "goles fuera de casa" in q:
             if _targets_team_subject(q):
                 plan["table_scope"] = "team_match"
                 plan["entity_type"] = "team"
@@ -1058,37 +1155,22 @@ class QueryPlanner:
                 plan["filters"]["is_home"] = False
 
         # Sprint 4 - player match event context
-        elif (
-            "progressive passes" in q
-            and ("against top-6" in q or "against top 6" in q)
-        ):
+        elif "progressive passes" in q and ("against top-6" in q or "against top 6" in q):
             plan["table_scope"] = "player_match_event"
             plan["entity_type"] = "player"
             plan["metric"] = "progressive_passes"
             plan["aggregation"] = "sum"
             plan["filters"]["opponent_rank_lte"] = 6
 
-        elif (
-            "key passes" in q
-            and (
-                "between matchdays" in q
-                or "between gameweeks" in q
-                or "entre jornadas" in q
-            )
+        elif "key passes" in q and (
+            "between matchdays" in q or "between gameweeks" in q or "entre jornadas" in q
         ):
             plan["table_scope"] = "player_match_event"
             plan["entity_type"] = "player"
             plan["metric"] = "key_passes"
             plan["aggregation"] = "sum"
 
-        elif (
-            "shot assists" in q
-            and (
-                "big six" in q
-                or "big6" in q
-                or "big 6" in q
-            )
-        ):
+        elif "shot assists" in q and ("big six" in q or "big6" in q or "big 6" in q):
             plan["table_scope"] = "player_match_event"
             plan["entity_type"] = "player"
             plan["metric"] = "shot_assists"
@@ -1096,34 +1178,27 @@ class QueryPlanner:
             plan["filters"]["opponent_is_big6"] = True
 
         # Sprint 5 - team match context
-        elif (
-            ("points" in q or "puntos" in q)
-            and ("big six" in q or "big6" in q or "big 6" in q)
-        ):
+        elif ("points" in q or "puntos" in q) and ("big six" in q or "big6" in q or "big 6" in q):
             plan["table_scope"] = "team_match"
             plan["entity_type"] = "team"
             plan["metric"] = "team_score"
             plan["aggregation"] = "points"
             plan["filters"]["opponent_is_big6"] = True
 
-        elif (
-            ("away wins" in q or "victorias fuera de casa" in q)
-        ):
+        elif "away wins" in q or "victorias fuera de casa" in q:
             plan["table_scope"] = "team_match"
             plan["entity_type"] = "team"
             plan["metric"] = "team_score"
             plan["aggregation"] = "wins"
             plan["filters"]["is_home"] = False
 
-        elif (
-            ("actions in z3" in q or "acciones en z3" in q or "actions_z3" in q)
-        ):
+        elif "actions in z3" in q or "acciones en z3" in q or "actions_z3" in q:
             if any(tok in q for tok in ["team", "teams", "club", "side", "equipo", "equipos"]):
                 plan["table_scope"] = "team_match"
                 plan["entity_type"] = "team"
                 plan["metric"] = "actions_z3"
                 plan["aggregation"] = "sum"
-        
+
         if plan["filters"].get("player_name") is not None:
             plan["entity_type"] = "player"
             if plan["table_scope"] == "team_match":
@@ -1135,7 +1210,7 @@ class QueryPlanner:
         if plan["filters"].get("team_name") is not None and plan["entity_type"] == "team":
             if _has_match_like_question(q):
                 plan["table_scope"] = "team_match"
-        
+
         # --- normalize aggregation ---
         metric = plan.get("metric")
         aggregation = plan.get("aggregation")
@@ -1149,10 +1224,7 @@ class QueryPlanner:
         # _validate_scope_and_metric and fall back to the legacy _resolve_metric path,
         # which handles per-90 queries correctly for all position filters.
 
-        if (
-            aggregation is None
-            or aggregation == "sum"
-        ):
+        if aggregation is None or aggregation == "sum":
             if (
                 "won the most points" in q
                 or "most points against" in q
@@ -1242,16 +1314,18 @@ class QueryPlanner:
             plan["entity_type"] = "team"
 
         # --- detect whether question has real match/event context ---
-        has_context = any([
-            plan["filters"]["is_home"] is not None,
-            plan["filters"]["opponent_rank_lte"] is not None,
-            plan["filters"]["opponent_rank_gte"] is not None,
-            plan["filters"]["opponent_rank_between"] is not None,
-            plan["filters"]["opponent_is_big6"] is not None,
-            plan["filters"]["matchday_start"] is not None,
-            plan["filters"]["matchday_end"] is not None,
-            plan["filters"]["opponent_team_name"] is not None,
-        ])
+        has_context = any(
+            [
+                plan["filters"]["is_home"] is not None,
+                plan["filters"]["opponent_rank_lte"] is not None,
+                plan["filters"]["opponent_rank_gte"] is not None,
+                plan["filters"]["opponent_rank_between"] is not None,
+                plan["filters"]["opponent_is_big6"] is not None,
+                plan["filters"]["matchday_start"] is not None,
+                plan["filters"]["matchday_end"] is not None,
+                plan["filters"]["opponent_team_name"] is not None,
+            ]
+        )
 
         if scope == "player_match" and metric == "total_goals":
             plan["metric"] = "goals"
@@ -1261,7 +1335,7 @@ class QueryPlanner:
 
         if scope == "player_match" and metric == "total_minutes":
             plan["metric"] = "minutes_played"
-        
+
         if scope == "team_match" and metric == "goals":
             plan["metric"] = "team_score"
 
@@ -1282,7 +1356,7 @@ class QueryPlanner:
 
         if scope == "team_match" and metric in {"actions_in_z3", "z3_actions"}:
             plan["metric"] = "actions_z3"
-        
+
         if scope == "player_match" and metric == "away_goals":
             plan["metric"] = "goals"
 
@@ -1354,7 +1428,13 @@ class QueryPlanner:
             plan["filters"]["opponent_rank_gte"] = max(1, 21 - bottom_rank_bucket)
             plan["filters"]["opponent_is_big6"] = None
 
-        elif "big six" in q or "big6" in q or "big 6" in q or "equipos del big six" in q or "del big six" in q:
+        elif (
+            "big six" in q
+            or "big6" in q
+            or "big 6" in q
+            or "equipos del big six" in q
+            or "del big six" in q
+        ):
             plan["filters"]["opponent_is_big6"] = True
 
         m = re.search(r"\bbetween matchdays?\s+(\d+)\s+and\s+(\d+)\b", q)
@@ -1379,16 +1459,18 @@ class QueryPlanner:
                 plan["filters"]["matchday_start"] = max(1, end_gw - recent_n + 1)
 
         # Strong scope corrections from obvious context
-        has_context = any([
-            plan["filters"]["is_home"] is not None,
-            plan["filters"]["opponent_rank_lte"] is not None,
-            plan["filters"]["opponent_rank_gte"] is not None,
-            plan["filters"]["opponent_rank_between"] is not None,
-            plan["filters"]["opponent_is_big6"] is not None,
-            plan["filters"]["matchday_start"] is not None,
-            plan["filters"]["matchday_end"] is not None,
-            plan["filters"]["opponent_team_name"] is not None,
-        ])
+        has_context = any(
+            [
+                plan["filters"]["is_home"] is not None,
+                plan["filters"]["opponent_rank_lte"] is not None,
+                plan["filters"]["opponent_rank_gte"] is not None,
+                plan["filters"]["opponent_rank_between"] is not None,
+                plan["filters"]["opponent_is_big6"] is not None,
+                plan["filters"]["matchday_start"] is not None,
+                plan["filters"]["matchday_end"] is not None,
+                plan["filters"]["opponent_team_name"] is not None,
+            ]
+        )
 
         if has_context:
             if plan["entity_type"] == "player":
@@ -1398,7 +1480,12 @@ class QueryPlanner:
                 elif plan["metric"] == "total_assists":
                     plan["metric"] = "assists"
                 if plan["metric"] in {
-                    "goals", "assists", "own_goals", "yellow_card", "red_card", "minutes_played"
+                    "goals",
+                    "assists",
+                    "own_goals",
+                    "yellow_card",
+                    "red_card",
+                    "minutes_played",
                 }:
                     plan["table_scope"] = "player_match"
                 elif plan["metric"] in self.metric_catalog["player_match_event"]:
@@ -1406,8 +1493,6 @@ class QueryPlanner:
 
             if plan["entity_type"] == "team":
                 plan["table_scope"] = "team_match"
-        
-        
 
         if plan["entity_type"] == "team" and plan["table_scope"] == "players_summary":
             if has_context:
@@ -1482,8 +1567,11 @@ class QueryPlanner:
         # Temporal-window fallback: when the question has a 'last N gameweeks' window but
         # neither the LLM nor _match_known_name found a player, scan the question word-by-word.
         # Gated on matchday_start being set so this only fires for temporal-window queries.
-        if (not plan.filters.player_name and not matched_player
-                and plan.filters.matchday_start is not None):
+        if (
+            not plan.filters.player_name
+            and not matched_player
+            and plan.filters.matchday_start is not None
+        ):
             for word in question.split():
                 candidate = word.strip("?.,!'\"")
                 if len(candidate) >= 4:
@@ -1504,7 +1592,13 @@ class QueryPlanner:
         # Fallback: only assign matched team if still unassigned and context is safe
         if matched_team:
             if not plan.filters.team_name and not plan.filters.opponent_team_name:
-                if plan.entity_type == "team" and "against" not in q and "vs" not in q and "versus" not in q and "contra" not in q:
+                if (
+                    plan.entity_type == "team"
+                    and "against" not in q
+                    and "vs" not in q
+                    and "versus" not in q
+                    and "contra" not in q
+                ):
                     plan.filters.team_name = matched_team
 
         # Position hint repair
@@ -1550,18 +1644,24 @@ class QueryPlanner:
         if plan.filters.team_name and _targets_team_subject(q):
             plan.entity_type = "team"
 
-        has_context = any([
-            plan.filters.is_home is not None,
-            plan.filters.opponent_rank_lte is not None,
-            plan.filters.opponent_rank_gte is not None,
-            plan.filters.opponent_rank_between is not None,
-            plan.filters.opponent_is_big6 is not None,
-            plan.filters.matchday_start is not None,
-            plan.filters.matchday_end is not None,
-            plan.filters.opponent_team_name is not None,
-        ])
+        has_context = any(
+            [
+                plan.filters.is_home is not None,
+                plan.filters.opponent_rank_lte is not None,
+                plan.filters.opponent_rank_gte is not None,
+                plan.filters.opponent_rank_between is not None,
+                plan.filters.opponent_is_big6 is not None,
+                plan.filters.matchday_start is not None,
+                plan.filters.matchday_end is not None,
+                plan.filters.opponent_team_name is not None,
+            ]
+        )
 
-        if plan.metric in {"actions_z3", "actions_in_z3", "z3_actions"} and plan.filters.opponent_team_name and plan.entity_type == "team":
+        if (
+            plan.metric in {"actions_z3", "actions_in_z3", "z3_actions"}
+            and plan.filters.opponent_team_name
+            and plan.entity_type == "team"
+        ):
             plan.metric = "actions_z3"
             plan.table_scope = "team_match"
             plan.aggregation = "sum"
@@ -1569,10 +1669,18 @@ class QueryPlanner:
         if plan.metric == "goals" and has_context and plan.entity_type == "player":
             plan.table_scope = "player_match"
 
-        if plan.metric in {"progressive_passes", "shot_assists", "key_passes", "touches_in_box"} and has_context and plan.entity_type == "player":
+        if (
+            plan.metric in {"progressive_passes", "shot_assists", "key_passes", "touches_in_box"}
+            and has_context
+            and plan.entity_type == "player"
+        ):
             plan.table_scope = "player_match_event"
 
-        if plan.entity_type == "team" and plan.metric in {"goals", "total_goals", "away_goals"} and plan.table_scope == "team_match":
+        if (
+            plan.entity_type == "team"
+            and plan.metric in {"goals", "total_goals", "away_goals"}
+            and plan.table_scope == "team_match"
+        ):
             plan.metric = "team_score"
 
         if plan.metric == "team_score" and has_context and plan.entity_type == "team":
@@ -1593,7 +1701,7 @@ class QueryPlanner:
         if plan.filters.team_name and plan.filters.opponent_team_name:
             if plan.filters.team_name == plan.filters.opponent_team_name:
                 plan.filters.team_name = None
-        
+
         plan = self._sanitize_match_conditions(plan)
 
         self._validate_scope_and_metric(plan)
@@ -1621,7 +1729,9 @@ class QueryPlanner:
             "aggregation": plan.aggregation,
             "filters": plan.filters.model_dump(),
             "ranking": plan.ranking.model_dump(),
-            "match_conditions": [mc.model_dump() for mc in plan.match_conditions] if plan.match_conditions else None,
+            "match_conditions": [mc.model_dump() for mc in plan.match_conditions]
+            if plan.match_conditions
+            else None,
         }
 
         # convenience translation for bottom-N questions

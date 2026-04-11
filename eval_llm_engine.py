@@ -2,8 +2,10 @@
 Mini eval runner for LLMQueryEngine.
 Tests 5 questions that failed with the keyword-based engine.
 """
+
 import json
 import sys
+
 sys.path.insert(0, ".")
 
 from utils.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2 as LLMQueryEngine
@@ -50,6 +52,8 @@ for item in MINI_BENCHMARK:
     print(f"  AGENT    : {result['content']}")
 
     debug = result.get("debug", {})
-    print(f"  DEBUG    : table={debug.get('table')} | metric={debug.get('metric')} | filters={debug.get('filters')}")
+    print(
+        f"  DEBUG    : table={debug.get('table')} | metric={debug.get('metric')} | filters={debug.get('filters')}"
+    )
 
 print("\n" + "=" * 65)

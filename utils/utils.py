@@ -112,7 +112,6 @@ def select_player(container, players, gender, position):
 
     # Filter players by position and select a player with sidebar selectors
     with container:
-
         # Filter for player name
         player.select_and_filter(
             column_name="player_name",
@@ -134,7 +133,6 @@ def select_country(container, countries):
     # rnd = int(country.select_random()) # does not work because of page refresh!
     # Filter country by position and select a player with sidebar selectors
     with container:
-
         # Filter for player name
         country.select_and_filter(
             column_name="country",

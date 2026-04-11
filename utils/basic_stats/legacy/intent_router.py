@@ -38,18 +38,39 @@ class IntentRouter:
     def _is_team_query(self, q: str) -> bool:
         team_words = ("team", "teams", "club", "clubs")
         ranking_words = (
-            "most", "highest", "best", "top", "lead", "leads",
-            "lowest", "fewest", "worst", "least", "concedes",
-            "conceded", "concede"
+            "most",
+            "highest",
+            "best",
+            "top",
+            "lead",
+            "leads",
+            "lowest",
+            "fewest",
+            "worst",
+            "least",
+            "concedes",
+            "conceded",
+            "concede",
         )
         return any(w in q for w in team_words) and any(w in q for w in ranking_words)
 
     def _is_player_query(self, q: str) -> bool:
         player_words = ("player", "players", "who is the player", "who scored", "who has")
         ranking_words = (
-            "most", "highest", "best", "top", "lead", "leads",
-            "lowest", "fewest", "worst", "least", "commit",
-            "commits", "played", "play more"
+            "most",
+            "highest",
+            "best",
+            "top",
+            "lead",
+            "leads",
+            "lowest",
+            "fewest",
+            "worst",
+            "least",
+            "commit",
+            "commits",
+            "played",
+            "play more",
         )
         return any(w in q for w in player_words) or (
             not self._is_team_query(q) and any(w in q for w in ranking_words)

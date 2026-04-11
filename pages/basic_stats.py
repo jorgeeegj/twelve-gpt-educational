@@ -4,9 +4,8 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from utils.page_components import add_common_page_elements
 from utils.basic_stats.core.agent import BasicStatsAgent
-
+from utils.page_components import add_common_page_elements
 
 sidebar_container = add_common_page_elements()
 
@@ -133,27 +132,33 @@ for message in st.session_state[CHAT_KEY]:
 question = st.chat_input("Ask a question")
 
 if question:
-    st.session_state[CHAT_KEY].append({
-        "role": "user",
-        "content": question,
-    })
+    st.session_state[CHAT_KEY].append(
+        {
+            "role": "user",
+            "content": question,
+        }
+    )
 
     try:
         with st.spinner("Analysing..."):
             result = agent.ask(question)
 
-        st.session_state[CHAT_KEY].append({
-            "role": "assistant",
-            "content": result["content"],
-            "debug": result.get("debug", {}),
-        })
+        st.session_state[CHAT_KEY].append(
+            {
+                "role": "assistant",
+                "content": result["content"],
+                "debug": result.get("debug", {}),
+            }
+        )
 
         st.rerun()
 
     except Exception as e:
-        st.session_state[CHAT_KEY].append({
-            "role": "assistant",
-            "content": "Sorry, I couldn't answer that question. Enable debug info for details.",
-            "debug": {"error": repr(e)},
-        })
+        st.session_state[CHAT_KEY].append(
+            {
+                "role": "assistant",
+                "content": "Sorry, I couldn't answer that question. Enable debug info for details.",
+                "debug": {"error": repr(e)},
+            }
+        )
         st.rerun()

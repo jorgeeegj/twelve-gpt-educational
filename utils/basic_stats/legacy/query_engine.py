@@ -1,9 +1,8 @@
 import re
-import polars as pl
 from pathlib import Path
 
+import polars as pl
 from utils.basic_stats.metric_resolver import MetricResolver
-
 
 BASE = Path(__file__).resolve().parents[2]
 PLAYER_DATA_PATH = BASE / "output" / "player_full_stats.parquet"
@@ -43,7 +42,13 @@ class QueryEngine:
         sorted_df = self.players_df.sort(metric, descending=descending, nulls_last=True)
         top_n_df = sorted_df.head(n)
         boundary_val = top_n_df[metric][-1]
-        result_df = sorted_df.filter(pl.col(metric) == boundary_val).select(self._safe_player_columns(metric)) if n == 1 else top_n_df.select(self._safe_player_columns(metric))
+        result_df = (
+            sorted_df.filter(pl.col(metric) == boundary_val).select(
+                self._safe_player_columns(metric)
+            )
+            if n == 1
+            else top_n_df.select(self._safe_player_columns(metric))
+        )
 
         return {
             "source": "players",
@@ -60,8 +65,7 @@ class QueryEngine:
         n = self._extract_top_n(question, default=1)
 
         result_df = (
-            self.teams_df
-            .sort(metric, descending=descending, nulls_last=True)
+            self.teams_df.sort(metric, descending=descending, nulls_last=True)
             .select(self._safe_team_columns(metric))
             .head(n)
         )
@@ -89,8 +93,15 @@ class QueryEngine:
             if "birth_date" not in df.columns:
                 return None
             df = df.with_columns(
-                ((pl.lit(20240801) - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)) / 10000)
-                .cast(pl.Int64).alias("_age")
+                (
+                    (
+                        pl.lit(20240801)
+                        - pl.col("birth_date").str.replace_all("-", "").cast(pl.Int64)
+                    )
+                    / 10000
+                )
+                .cast(pl.Int64)
+                .alias("_age")
             ).filter(pl.col("_age") < age_lt)
 
         min_minutes = self._extract_min_minutes(question)
@@ -103,12 +114,7 @@ class QueryEngine:
         if "_age" in df.columns and "_age" not in selected_cols:
             selected_cols.insert(3, "_age")
 
-        result_df = (
-            df
-            .sort(metric, descending=True, nulls_last=True)
-            .select(selected_cols)
-            .head(n)
-        )
+        result_df = df.sort(metric, descending=True, nulls_last=True).select(selected_cols).head(n)
 
         return {
             "source": "players",
@@ -172,20 +178,20 @@ class QueryEngine:
 
         mapping = {
             "attacking midfielder": "attacking midfielder|am|cam",
-            "central defender":     "central defender|cb",
-            "goalkeepers":          "goalkeeper|gk",
-            "goalkeeper":           "goalkeeper|gk",
-            "midfielders":          "midfielder|cm|dm|am",
-            "midfielder":           "midfielder|cm|dm|am",
-            "defenders":            "central defender|full back|cb|lb|rb|wb|back|def",
-            "defender":             "central defender|full back|cb|lb|rb|wb|back|def",
-            "full back":            "full back|lb|rb|wb",
-            "forwards":             "striker|winger|cf|st|lw|rw|forward",
-            "forward":              "striker|winger|cf|st|lw|rw|forward",
-            "strikers":             "striker|cf|st|forward",
-            "striker":              "striker|cf|st|forward",
-            "wingers":              "winger|lw|rw",
-            "winger":               "winger|lw|rw",
+            "central defender": "central defender|cb",
+            "goalkeepers": "goalkeeper|gk",
+            "goalkeeper": "goalkeeper|gk",
+            "midfielders": "midfielder|cm|dm|am",
+            "midfielder": "midfielder|cm|dm|am",
+            "defenders": "central defender|full back|cb|lb|rb|wb|back|def",
+            "defender": "central defender|full back|cb|lb|rb|wb|back|def",
+            "full back": "full back|lb|rb|wb",
+            "forwards": "striker|winger|cf|st|lw|rw|forward",
+            "forward": "striker|winger|cf|st|lw|rw|forward",
+            "strikers": "striker|cf|st|forward",
+            "striker": "striker|cf|st|forward",
+            "wingers": "winger|lw|rw",
+            "winger": "winger|lw|rw",
         }
 
         for key, value in mapping.items():

@@ -4,10 +4,10 @@ Page components for pages/*.py
 
 # Stdlib imports
 import base64
+import copy
 from pathlib import Path
 
 import streamlit as st
-import copy
 
 # from pages import about, football_scout, embedder, wvs_chat, own_page
 
@@ -22,23 +22,17 @@ def insert_local_css():
 
     logo_url = (
         "url(data:image/png;base64,"
-        + base64.b64encode(
-            Path("data/ressources/img/twelve_logo_light.png").read_bytes()
-        ).decode()
+        + base64.b64encode(Path("data/ressources/img/twelve_logo_light.png").read_bytes()).decode()
         + ")"
     )
     font_url_medium = (
         "url(data:font/otf;base64,"
-        + base64.b64encode(
-            Path("data/ressources/fonts/Gilroy-Medium.otf").read_bytes()
-        ).decode()
+        + base64.b64encode(Path("data/ressources/fonts/Gilroy-Medium.otf").read_bytes()).decode()
         + ")"
     )
     font_url_light = (
         "url(data:font/otf;base64,"
-        + base64.b64encode(
-            Path("data/ressources/fonts/Gilroy-Light.otf").read_bytes()
-        ).decode()
+        + base64.b64encode(Path("data/ressources/fonts/Gilroy-Light.otf").read_bytes()).decode()
         + ")"
     )
 
@@ -58,9 +52,7 @@ def set_page_config():
         page_title="TwelveGPT Scout",
         page_icon="data/ressources/img/TwelveEdu.png",
         initial_sidebar_state="expanded",
-        menu_items={
-            "Report a bug": "mailto:matthias@twelve.football?subject=Bug report"
-        },
+        menu_items={"Report a bug": "mailto:matthias@twelve.football?subject=Bug report"},
     )
 
 
@@ -74,7 +66,6 @@ def add_page_selector():
     st.page_link("pages/own_page.py", label="Your Own Page")
     st.page_link("pages/quality_builder.py", label="Quality Builder")
     st.page_link("pages/basic_stats.py", label="Basic Stats Analyst")
-
 
     # st.image("data/ressources/img/TwelveEdu.png")
 
@@ -134,7 +125,6 @@ def select_player(container, players, gender, position):
 
     # Filter players by position and select a player with sidebar selectors
     with container:
-
         # Filter for player name
         player.select_and_filter(
             column_name="player_name",
@@ -155,7 +145,6 @@ def select_person(container, person_stat):
 
     # Filter players by position and select a player with sidebar selectors
     with container:
-
         # Filter for player name
         person.select_and_filter(
             column_name="name",

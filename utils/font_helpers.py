@@ -3,11 +3,11 @@ import os.path
 import time
 
 from matplotlib import font_manager
+
 import settings as settings
 
 
 class FontHelper:
-
     # def __init__(self):
     #     fontfamily_text = 'data/ressources/fonts/OpenSans-Regular.ttf'
     #     opensans = font_manager.FontProperties(fname=fontfamily_text)
@@ -50,7 +50,7 @@ class FontHelper:
         opensans = font_manager.FontProperties(fname=fontfamily_text)
         opensans._size = font_size
         opensans._weight = font_weight
-        print(f"custom_font: %s seconds ---" % (time.time() - start_time))
+        print("custom_font: %s seconds ---" % (time.time() - start_time))
 
         return opensans
 

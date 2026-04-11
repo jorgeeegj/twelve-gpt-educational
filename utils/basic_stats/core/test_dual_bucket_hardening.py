@@ -13,6 +13,7 @@ Pass criteria:
 """
 
 import sys
+
 from utils.basic_stats.core.llm_query_engine_v2 import LLMQueryEngineV2
 
 
@@ -84,7 +85,9 @@ def run_smoke_tests():
         content3 = r3.get("content", "").encode("ascii", errors="replace").decode()
         print(f"  engine  : {eng3}")
         print(f"  content : {content3[:120]}")
-        print(f"  T3: {'PASS' if ok3 else 'FAIL -- dual_bucket_comparison fired for unknown entity'}")
+        print(
+            f"  T3: {'PASS' if ok3 else 'FAIL -- dual_bucket_comparison fired for unknown entity'}"
+        )
         if ok3:
             passed += 1
     except Exception as e:

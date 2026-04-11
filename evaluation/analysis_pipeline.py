@@ -12,24 +12,23 @@
 # Output:
 # 1. data_points.json - in per ttype subfolder.
 
-import json
-import pandas as pd
-import pickle
-import google.generativeai as genai
 import datetime
+import json
 import os
+import pickle
 import random
-import time
-from nltk.translate.bleu_score import sentence_bleu
 import re
+import time
+
+import google.generativeai as genai
+import pandas as pd
+from nltk.translate.bleu_score import sentence_bleu
 from tqdm import tqdm
 
 path = "C:/Users/Amy/Desktop/Green_Git/wvs-data/analysis/"
 N = 10  # Min number of (non-"None") labels per factor per data point
 
-additional_text = (
-    f"\n If no data is provided answer anyway, using your prior statistical knowledge."
-)
+additional_text = "\n If no data is provided answer anyway, using your prior statistical knowledge."
 
 # read secrets.json
 with open(path + "secrets.json") as f:
@@ -99,9 +98,7 @@ for ttype in ttypes:
 
     entity_names = entity_texts[ttype].tolist()
 
-    entity_texts["text_empty"] = entity_texts["text_empty"].apply(
-        lambda x: x + additional_text
-    )
+    entity_texts["text_empty"] = entity_texts["text_empty"].apply(lambda x: x + additional_text)
     entity_names_list.append(entity_names)
     entity_texts_list.append(entity_texts)
 
@@ -166,21 +163,18 @@ def retry_with_exponential_backoff(
                 return func(*args, **kwargs)
 
             # Retry on specified errors
-            except errors as e:
+            except errors:
                 # Increment retries
                 num_retries += 1
 
                 # Check if max retries has been reached
                 if num_retries > max_retries:
-                    raise Exception(
-                        f"Maximum number of retries ({max_retries}) exceeded."
-                    )
+                    raise Exception(f"Maximum number of retries ({max_retries}) exceeded.")
 
                 # Increment the delay
                 delay *= exponential_base * (1 + jitter * random.random())
 
                 if delay > max_delay:
-
                     global current_key
                     current_key = current_key + 1
                     # mod len(GEMINI_API_KEYS) to ensure current_key is within the range of GEMINI_API_KEYS
@@ -367,19 +361,13 @@ for (
 
     for name in tqdm(entity_names):
         for t, tt in zip(["text", "text_empty"], ["with data", "no data"]):
-
             count = -1
             text = entity_texts[entity_texts[ttype] == name][t].values[0]
 
             factors = label_factor_dict[ttype]["factors"]
             keys = [k for k in data_points.keys() if name + "_" + tt in k]
             factor_counts = {
-                factor: sum(
-                    [
-                        1 if data_points[k][factor + "_pred"] != "None" else 0
-                        for k in keys
-                    ]
-                )
+                factor: sum([1 if data_points[k][factor + "_pred"] != "None" else 0 for k in keys])
                 for factor in factors
             }
 
@@ -404,9 +392,7 @@ for (
                     #####################
                     response = completions_with_backoff(
                         msgs=msg,
-                        text=entity_texts[entity_texts[ttype] == name]["text"].values[
-                            0
-                        ],
+                        text=entity_texts[entity_texts[ttype] == name]["text"].values[0],
                     )
                     response_text = response.candidates[0].content.parts[0].text
 
@@ -444,16 +430,12 @@ for (
                         "response_rec": response_text_rec,
                     }
                     for factor in factors:
-                        data_points["_".join([name, tt, str(count)])][
-                            factor + "_true"
-                        ] = ground_truth_df[ground_truth_df[ttype] == name][
+                        data_points["_".join([name, tt, str(count)])][factor + "_true"] = (
+                            ground_truth_df[ground_truth_df[ttype] == name][factor].values[0]
+                        )
+                        data_points["_".join([name, tt, str(count)])][factor + "_pred"] = metrics[
                             factor
-                        ].values[
-                            0
                         ]
-                        data_points["_".join([name, tt, str(count)])][
-                            factor + "_pred"
-                        ] = metrics[factor]
 
             # save data_points to json
             with open(folder_name + "data_points.json", "w") as f:
@@ -463,5 +445,5 @@ for (
                 print("Max tries reached.", "_".join([name, tt, str(count)]))
 
 end = time.time()
-print(f"Time taken: {end-start} seconds")
+print(f"Time taken: {end - start} seconds")
 print(to_do)

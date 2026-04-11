@@ -11,9 +11,9 @@ sys.path.insert(0, ".")
 
 from utils.basic_stats.core.llm_query_engine_v2 import (
     LLMQueryEngineV2,
-    _question_subject_entity,
     _has_match_context_filters,
     _has_match_level_logic,
+    _question_subject_entity,
 )
 
 BENCHMARK_PATH = "questions_benchmark_v5.json"
@@ -94,9 +94,11 @@ def explain_should_use(engine: LLMQueryEngineV2, question: str, plan) -> dict:
             should_use = False
             reasons.append("contextual_question_but_plan_scope_is_summary")
 
-    if not has_context and not has_match_logic and plan.table_scope in {
-        "player_match", "player_match_event", "team_match"
-    }:
+    if (
+        not has_context
+        and not has_match_logic
+        and plan.table_scope in {"player_match", "player_match_event", "team_match"}
+    ):
         should_use = False
         reasons.append("non_contextual_question_but_plan_scope_is_match_level_without_context")
 
@@ -178,9 +180,16 @@ def try_debug_question(engine: LLMQueryEngineV2, qitem: dict) -> dict:
                 }
             else:
                 debug["planned_query_result"] = None
-                debug["planned_eval"] = {"passed": False, "reason": "engine_execute_planned_query_returned_none"}
+                debug["planned_eval"] = {
+                    "passed": False,
+                    "reason": "engine_execute_planned_query_returned_none",
+                }
         except Exception as e:
-            debug["planned_eval"] = {"passed": False, "reason": "planned_query_exception", "error": repr(e)}
+            debug["planned_eval"] = {
+                "passed": False,
+                "reason": "planned_query_exception",
+                "error": repr(e),
+            }
 
     agent_result = engine.ask(question)
     agent_rows = (agent_result.get("debug") or {}).get("rows") or []
@@ -222,7 +231,9 @@ def summarize_focus(results: list[dict]) -> dict:
 
 def print_case_report(item: dict) -> None:
     print("\n" + "=" * 120)
-    print(f"{item['id']} | {item['category']} | {STAGE_NAMES.get(item['expected_stage'], item['expected_stage'])}")
+    print(
+        f"{item['id']} | {item['category']} | {STAGE_NAMES.get(item['expected_stage'], item['expected_stage'])}"
+    )
     print(f"QUESTION : {item['question']}")
     print(f"EXPECTED : {item['expected']}")
 
@@ -283,7 +294,9 @@ def save_results(payload: dict, run_label: str | None = None) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run focused Basic Stats benchmark v5 with deep planner debug")
+    parser = argparse.ArgumentParser(
+        description="Run focused Basic Stats benchmark v5 with deep planner debug"
+    )
     parser.add_argument("--benchmark", default=BENCHMARK_PATH, help="Path to benchmark JSON")
     parser.add_argument(
         "--ids",

@@ -1,10 +1,11 @@
 import argparse
 import json
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-import re
+
 sys.path.insert(0, ".")
 
 from utils.basic_stats.core.llm_query_engine_v2 import LLMQueryEngineV2
@@ -92,18 +93,20 @@ def run_benchmark(benchmark_path: str) -> dict:
 
         debug = result.get("debug", {})
 
-        results.append({
-            "id": q["id"],
-            "category": category,
-            "expected_stage": stage,
-            "expected_stage_name": STAGE_NAMES.get(stage, stage),
-            "question": q["question"],
-            "expected": q["answer"],
-            "agent_text": result["content"],
-            "debug": debug,
-            "passed": passed,
-            "eval_meta": meta,
-        })
+        results.append(
+            {
+                "id": q["id"],
+                "category": category,
+                "expected_stage": stage,
+                "expected_stage_name": STAGE_NAMES.get(stage, stage),
+                "question": q["question"],
+                "expected": q["answer"],
+                "agent_text": result["content"],
+                "debug": debug,
+                "passed": passed,
+                "eval_meta": meta,
+            }
+        )
 
         print(f"\n{'=' * 100}")
         print(f"{q['id']} | {category} | {STAGE_NAMES.get(stage, stage)}")
@@ -161,7 +164,7 @@ def save_results(payload: dict, run_label: str | None = None) -> None:
     print(f"Saved: {dated_path}")
 
     if run_label:
-        safe_label = re.sub(r'[^a-zA-Z0-9._-]+', "_", run_label.strip().lower())
+        safe_label = re.sub(r"[^a-zA-Z0-9._-]+", "_", run_label.strip().lower())
         label_path = OUTPUT_DIR / f"{timestamp}__{safe_label}.json"
         label_path.write_text(json_payload, encoding="utf8")
         print(f"Saved: {label_path}")

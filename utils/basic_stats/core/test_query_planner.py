@@ -1,8 +1,11 @@
 import json
 
+from utils.basic_stats.core.llm_query_engine_v2 import (
+    _bucket_label,
+    _detect_home_away_comparison,
+    _detect_metric_derived_bucket,
+)
 from utils.basic_stats.core.query_planner import QueryPlanner, _detect_dual_bucket_comparison
-from utils.basic_stats.core.llm_query_engine_v2 import _bucket_label, _detect_home_away_comparison, _detect_metric_derived_bucket
-
 
 TEST_CASES = [
     {
@@ -159,29 +162,50 @@ def check_expected(plan_dict: dict, expected: dict) -> list[str]:
     errors = []
 
     if "table_scope" in expected and plan_dict["table_scope"] != expected["table_scope"]:
-        errors.append(f"table_scope -> expected {expected['table_scope']}, got {plan_dict['table_scope']}")
+        errors.append(
+            f"table_scope -> expected {expected['table_scope']}, got {plan_dict['table_scope']}"
+        )
 
     if "entity_type" in expected and plan_dict["entity_type"] != expected["entity_type"]:
-        errors.append(f"entity_type -> expected {expected['entity_type']}, got {plan_dict['entity_type']}")
+        errors.append(
+            f"entity_type -> expected {expected['entity_type']}, got {plan_dict['entity_type']}"
+        )
 
     if "metric" in expected and plan_dict["metric"] != expected["metric"]:
         errors.append(f"metric -> expected {expected['metric']}, got {plan_dict['metric']}")
 
     if "aggregation" in expected and plan_dict["aggregation"] != expected["aggregation"]:
-        errors.append(f"aggregation -> expected {expected['aggregation']}, got {plan_dict['aggregation']}")
+        errors.append(
+            f"aggregation -> expected {expected['aggregation']}, got {plan_dict['aggregation']}"
+        )
 
     filters = plan_dict.get("filters", {})
     ranking = plan_dict.get("ranking", {})
 
-    for key in ["team_name", "player_name", "opponent_team_name", "position", "is_home", "opponent_rank_lte", "opponent_is_big6", "matchday_start", "matchday_end", "age_lt"]:
+    for key in [
+        "team_name",
+        "player_name",
+        "opponent_team_name",
+        "position",
+        "is_home",
+        "opponent_rank_lte",
+        "opponent_is_big6",
+        "matchday_start",
+        "matchday_end",
+        "age_lt",
+    ]:
         if key in expected and filters.get(key) != expected[key]:
             errors.append(f"filters.{key} -> expected {expected[key]}, got {filters.get(key)}")
 
     if "ranking_mode" in expected and ranking.get("mode") != expected["ranking_mode"]:
-        errors.append(f"ranking.mode -> expected {expected['ranking_mode']}, got {ranking.get('mode')}")
+        errors.append(
+            f"ranking.mode -> expected {expected['ranking_mode']}, got {ranking.get('mode')}"
+        )
 
     if "ordinal" in expected and ranking.get("ordinal") != expected["ordinal"]:
-        errors.append(f"ranking.ordinal -> expected {expected['ordinal']}, got {ranking.get('ordinal')}")
+        errors.append(
+            f"ranking.ordinal -> expected {expected['ordinal']}, got {ranking.get('ordinal')}"
+        )
 
     return errors
 
@@ -221,30 +245,193 @@ def main():
 
 CANONICALIZE_CASES = [
     # metric alias normalization (no LLM)
-    {"id": "C01", "plan": {"metric": "yellow_cards", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_yellow_cards"},
-    {"id": "C02", "plan": {"metric": "yellow_card", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_yellow_cards"},
-    {"id": "C03", "plan": {"metric": "goals_per_90", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "total_goals_p90"},
-    {"id": "C04", "plan": {"metric": "progressive_passes_per_90", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "progressive_passes_p90"},
-    {"id": "C05", "plan": {"metric": "passing_accuracy", "table_scope": "players_summary", "aggregation": "sum", "entity_type": "player"}, "expect_metric": "pass_accuracy_pct"},
-    {"id": "C06", "plan": {"metric": "offsides_drawn", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "offsides"},
-    {"id": "C07", "plan": {"metric": "team_score", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "total_goals"},
+    {
+        "id": "C01",
+        "plan": {
+            "metric": "yellow_cards",
+            "table_scope": "players_summary",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_metric": "total_yellow_cards",
+    },
+    {
+        "id": "C02",
+        "plan": {
+            "metric": "yellow_card",
+            "table_scope": "players_summary",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_metric": "total_yellow_cards",
+    },
+    {
+        "id": "C03",
+        "plan": {
+            "metric": "goals_per_90",
+            "table_scope": "players_summary",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_metric": "total_goals_p90",
+    },
+    {
+        "id": "C04",
+        "plan": {
+            "metric": "progressive_passes_per_90",
+            "table_scope": "players_summary",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_metric": "progressive_passes_p90",
+    },
+    {
+        "id": "C05",
+        "plan": {
+            "metric": "passing_accuracy",
+            "table_scope": "players_summary",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_metric": "pass_accuracy_pct",
+    },
+    {
+        "id": "C06",
+        "plan": {
+            "metric": "offsides_drawn",
+            "table_scope": "teams_summary",
+            "aggregation": "sum",
+            "entity_type": "team",
+        },
+        "expect_metric": "offsides",
+    },
+    {
+        "id": "C07",
+        "plan": {
+            "metric": "team_score",
+            "table_scope": "teams_summary",
+            "aggregation": "sum",
+            "entity_type": "team",
+        },
+        "expect_metric": "total_goals",
+    },
     # aggregation canonicalization
-    {"id": "C08", "plan": {"metric": "total_goals", "table_scope": "players_summary", "aggregation": "mean", "entity_type": "player"}, "expect_aggregation": "avg"},
-    {"id": "C09", "plan": {"metric": "total_goals", "table_scope": "players_summary", "aggregation": "average", "entity_type": "player"}, "expect_aggregation": "avg"},
+    {
+        "id": "C08",
+        "plan": {
+            "metric": "total_goals",
+            "table_scope": "players_summary",
+            "aggregation": "mean",
+            "entity_type": "player",
+        },
+        "expect_aggregation": "avg",
+    },
+    {
+        "id": "C09",
+        "plan": {
+            "metric": "total_goals",
+            "table_scope": "players_summary",
+            "aggregation": "average",
+            "entity_type": "player",
+        },
+        "expect_aggregation": "avg",
+    },
     # per_90 aggregation: must NOT be converted (leave for legacy fallback)
-    {"id": "C10", "plan": {"metric": "recoveries", "table_scope": "players_summary", "aggregation": "per_90", "entity_type": "player"}, "expect_aggregation": "per_90"},
+    {
+        "id": "C10",
+        "plan": {
+            "metric": "recoveries",
+            "table_scope": "players_summary",
+            "aggregation": "per_90",
+            "entity_type": "player",
+        },
+        "expect_aggregation": "per_90",
+    },
     # scope guard: total_goals must NOT become team_score in teams_summary
-    {"id": "C11", "plan": {"metric": "total_goals", "table_scope": "teams_summary", "aggregation": "sum", "entity_type": "team"}, "expect_metric": "total_goals"},
+    {
+        "id": "C11",
+        "plan": {
+            "metric": "total_goals",
+            "table_scope": "teams_summary",
+            "aggregation": "sum",
+            "entity_type": "team",
+        },
+        "expect_metric": "total_goals",
+    },
     # mid-table bucket: opponent_rank_between must be set to [7, 14]
-    {"id": "C12", "question": "How many goals has E. Haaland scored against mid-table teams?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_opponent_rank_between": [7, 14]},
-    {"id": "C13", "question": "Who scored the most goals against mid table teams?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_opponent_rank_between": [7, 14]},
+    {
+        "id": "C12",
+        "question": "How many goals has E. Haaland scored against mid-table teams?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_opponent_rank_between": [7, 14],
+    },
+    {
+        "id": "C13",
+        "question": "Who scored the most goals against mid table teams?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_opponent_rank_between": [7, 14],
+    },
     # Issue A: "last N gameweeks" must NOT be misread as a bottom-N opponent bucket
-    {"id": "C14", "question": "How many goals has Haaland scored in the last 5 gameweeks?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_opponent_rank_gte": None},
-    {"id": "C15", "question": "How many goals has E. Haaland scored in the last 3 rounds?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_opponent_rank_gte": None},
+    {
+        "id": "C14",
+        "question": "How many goals has Haaland scored in the last 5 gameweeks?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_opponent_rank_gte": None,
+    },
+    {
+        "id": "C15",
+        "question": "How many goals has E. Haaland scored in the last 3 rounds?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_opponent_rank_gte": None,
+    },
     # Temporal window: "last N gameweeks" → concrete matchday_start / matchday_end
     # max_matchday=38, so last 5 → start=34, end=38; last 3 rounds → start=36, end=38
-    {"id": "C16", "question": "How many goals has Haaland scored in the last 5 gameweeks?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_matchday_start": 34, "expect_matchday_end": 38, "expect_opponent_rank_gte": None},
-    {"id": "C17", "question": "How many goals has Bruno Fernandes scored in the last 3 rounds?", "plan": {"metric": "goals", "table_scope": "player_match", "aggregation": "sum", "entity_type": "player"}, "expect_matchday_start": 36, "expect_matchday_end": 38, "expect_opponent_rank_gte": None},
+    {
+        "id": "C16",
+        "question": "How many goals has Haaland scored in the last 5 gameweeks?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_matchday_start": 34,
+        "expect_matchday_end": 38,
+        "expect_opponent_rank_gte": None,
+    },
+    {
+        "id": "C17",
+        "question": "How many goals has Bruno Fernandes scored in the last 3 rounds?",
+        "plan": {
+            "metric": "goals",
+            "table_scope": "player_match",
+            "aggregation": "sum",
+            "entity_type": "player",
+        },
+        "expect_matchday_start": 36,
+        "expect_matchday_end": 38,
+        "expect_opponent_rank_gte": None,
+    },
 ]
 
 
@@ -265,30 +452,45 @@ def run_canonicalize_tests():
             errors = []
             if "expect_metric" in case and result.get("metric") != case["expect_metric"]:
                 ok = False
-                errors.append(f"metric -> expected {case['expect_metric']}, got {result.get('metric')}")
-            if "expect_aggregation" in case and result.get("aggregation") != case["expect_aggregation"]:
+                errors.append(
+                    f"metric -> expected {case['expect_metric']}, got {result.get('metric')}"
+                )
+            if (
+                "expect_aggregation" in case
+                and result.get("aggregation") != case["expect_aggregation"]
+            ):
                 ok = False
-                errors.append(f"aggregation -> expected {case['expect_aggregation']}, got {result.get('aggregation')}")
+                errors.append(
+                    f"aggregation -> expected {case['expect_aggregation']}, got {result.get('aggregation')}"
+                )
             if "expect_opponent_rank_between" in case:
                 got = result.get("filters", {}).get("opponent_rank_between")
                 if got != case["expect_opponent_rank_between"]:
                     ok = False
-                    errors.append(f"filters.opponent_rank_between -> expected {case['expect_opponent_rank_between']}, got {got}")
+                    errors.append(
+                        f"filters.opponent_rank_between -> expected {case['expect_opponent_rank_between']}, got {got}"
+                    )
             if "expect_opponent_rank_gte" in case:
                 got = result.get("filters", {}).get("opponent_rank_gte")
                 if got != case["expect_opponent_rank_gte"]:
                     ok = False
-                    errors.append(f"filters.opponent_rank_gte -> expected {case['expect_opponent_rank_gte']}, got {got}")
+                    errors.append(
+                        f"filters.opponent_rank_gte -> expected {case['expect_opponent_rank_gte']}, got {got}"
+                    )
             if "expect_matchday_start" in case:
                 got = result.get("filters", {}).get("matchday_start")
                 if got != case["expect_matchday_start"]:
                     ok = False
-                    errors.append(f"filters.matchday_start -> expected {case['expect_matchday_start']}, got {got}")
+                    errors.append(
+                        f"filters.matchday_start -> expected {case['expect_matchday_start']}, got {got}"
+                    )
             if "expect_matchday_end" in case:
                 got = result.get("filters", {}).get("matchday_end")
                 if got != case["expect_matchday_end"]:
                     ok = False
-                    errors.append(f"filters.matchday_end -> expected {case['expect_matchday_end']}, got {got}")
+                    errors.append(
+                        f"filters.matchday_end -> expected {case['expect_matchday_end']}, got {got}"
+                    )
 
             if ok:
                 passed += 1
@@ -386,8 +588,8 @@ def run_dual_bucket_tests():
 
 
 BUCKET_LABEL_CASES = [
-    ({"opponent_rank_lte": 5},  "top 5 teams"),
-    ({"opponent_rank_lte": 6},  "top 6 teams"),
+    ({"opponent_rank_lte": 5}, "top 5 teams"),
+    ({"opponent_rank_lte": 6}, "top 6 teams"),
     ({"opponent_rank_gte": 16}, "bottom 5 teams"),
     ({"opponent_rank_gte": 11}, "bottom 10 teams"),
     ({"opponent_rank_between": [7, 14]}, "mid-table teams (positions 7–14)"),
@@ -491,22 +693,42 @@ METRIC_BUCKET_CASES = [
     {
         "id": "M01",
         "question": "How many goals has Salah scored against the 3 teams that have conceded the fewest goals?",
-        "expect": {"n": 3, "bucket_metric": "total_goals_against", "descending": False, "label": "have conceded the fewest goals"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "total_goals_against",
+            "descending": False,
+            "label": "have conceded the fewest goals",
+        },
     },
     {
         "id": "M02",
         "question": "How many goals has Liverpool conceded against the 3 teams that score the most?",
-        "expect": {"n": 3, "bucket_metric": "total_goals", "descending": True, "label": "score the most goals"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "total_goals",
+            "descending": True,
+            "label": "score the most goals",
+        },
     },
     {
         "id": "M03",
         "question": "How many goals has Haaland scored against the 5 teams that scored the fewest goals?",
-        "expect": {"n": 5, "bucket_metric": "total_goals", "descending": False, "label": "have scored the fewest goals"},
+        "expect": {
+            "n": 5,
+            "bucket_metric": "total_goals",
+            "descending": False,
+            "label": "have scored the fewest goals",
+        },
     },
     {
         "id": "M04",
         "question": "How many goals has Arsenal scored against the 4 teams that have conceded the most goals?",
-        "expect": {"n": 4, "bucket_metric": "total_goals_against", "descending": True, "label": "have conceded the most goals"},
+        "expect": {
+            "n": 4,
+            "bucket_metric": "total_goals_against",
+            "descending": True,
+            "label": "have conceded the most goals",
+        },
     },
     {
         "id": "M05",
@@ -522,53 +744,103 @@ METRIC_BUCKET_CASES = [
     {
         "id": "M07",
         "question": "How many goals has Salah scored against the 3 teams that concede the most shots?",
-        "expect": {"n": 3, "bucket_metric": "shots_against", "descending": True, "label": "concede the most shots"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "shots_against",
+            "descending": True,
+            "label": "concede the most shots",
+        },
     },
     {
         "id": "M08",
         "question": "How many assists has Fernandes made against the 3 teams that concede the fewest shots?",
-        "expect": {"n": 3, "bucket_metric": "shots_against", "descending": False, "label": "concede the fewest shots"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "shots_against",
+            "descending": False,
+            "label": "concede the fewest shots",
+        },
     },
     {
         "id": "M09",
         "question": "How many goals has Liverpool conceded against the 4 teams that scored the most shots?",
-        "expect": {"n": 4, "bucket_metric": "shots", "descending": True, "label": "score the most shots"},
+        "expect": {
+            "n": 4,
+            "bucket_metric": "shots",
+            "descending": True,
+            "label": "score the most shots",
+        },
     },
     {
         "id": "M10",
         "question": "How many goals has Arsenal scored against the 5 teams that have scored the fewest shots?",
-        "expect": {"n": 5, "bucket_metric": "shots", "descending": False, "label": "score the fewest shots"},
+        "expect": {
+            "n": 5,
+            "bucket_metric": "shots",
+            "descending": False,
+            "label": "score the fewest shots",
+        },
     },
     # natural-language phrasing widening — shots bucket via take/attempt/allow/face
     {
         "id": "M11",
         "question": "How many goals has Salah scored against the 3 teams that allow the fewest shots?",
-        "expect": {"n": 3, "bucket_metric": "shots_against", "descending": False, "label": "concede the fewest shots"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "shots_against",
+            "descending": False,
+            "label": "concede the fewest shots",
+        },
     },
     {
         "id": "M12",
         "question": "How many goals has Salah scored against the 3 teams that face the fewest shots?",
-        "expect": {"n": 3, "bucket_metric": "shots_against", "descending": False, "label": "concede the fewest shots"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "shots_against",
+            "descending": False,
+            "label": "concede the fewest shots",
+        },
     },
     {
         "id": "M13",
         "question": "How many goals has Brentford conceded against the 4 teams that take the most shots?",
-        "expect": {"n": 4, "bucket_metric": "shots", "descending": True, "label": "score the most shots"},
+        "expect": {
+            "n": 4,
+            "bucket_metric": "shots",
+            "descending": True,
+            "label": "score the most shots",
+        },
     },
     {
         "id": "M14",
         "question": "How many goals has Brentford conceded against the 4 teams that attempt the most shots?",
-        "expect": {"n": 4, "bucket_metric": "shots", "descending": True, "label": "score the most shots"},
+        "expect": {
+            "n": 4,
+            "bucket_metric": "shots",
+            "descending": True,
+            "label": "score the most shots",
+        },
     },
     {
         "id": "M15",
         "question": "How many assists has Fernandes made against the 3 teams that allowed the most shots?",
-        "expect": {"n": 3, "bucket_metric": "shots_against", "descending": True, "label": "concede the most shots"},
+        "expect": {
+            "n": 3,
+            "bucket_metric": "shots_against",
+            "descending": True,
+            "label": "concede the most shots",
+        },
     },
     {
         "id": "M16",
         "question": "How many goals has Haaland scored against the 5 teams that took the fewest shots?",
-        "expect": {"n": 5, "bucket_metric": "shots", "descending": False, "label": "score the fewest shots"},
+        "expect": {
+            "n": 5,
+            "bucket_metric": "shots",
+            "descending": False,
+            "label": "score the fewest shots",
+        },
     },
 ]
 

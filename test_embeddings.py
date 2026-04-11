@@ -19,11 +19,10 @@ text = text.replace("\n", " ")
 # Generate embedding
 if USE_GEMINI:
     import google.generativeai as genai
+
     genai.configure(api_key=GEMINI_API_KEY)
     result = genai.embed_content(
-        model=GEMINI_EMBEDDING_MODEL,
-        content=text,
-        task_type="retrieval_document"
+        model=GEMINI_EMBEDDING_MODEL, content=text, task_type="retrieval_document"
     )
     embedding = result["embedding"]
 else:

@@ -1,25 +1,25 @@
-import streamlit as st
-from itertools import groupby
 import json
+from itertools import groupby
+
+import streamlit as st
 
 from settings import USE_GEMINI
 
 if USE_GEMINI:
-    from settings import USE_GEMINI, GEMINI_API_KEY, GEMINI_CHAT_MODEL
+    from settings import GEMINI_API_KEY, GEMINI_CHAT_MODEL, USE_GEMINI
 else:
     from openai import OpenAI
-    from settings import GPT_BASE, GPT_VERSION, GPT_KEY, GPT_ENGINE
 
-from classes.description import (
-    PlayerDescription,
-    CountryDescription,
-    PersonDescription,
-)
-from classes.embeddings import PlayerEmbeddings, CountryEmbeddings, PersonEmbeddings
-
-from classes.visual import Visual, DistributionPlot, DistributionPlotPersonality
+    from settings import GPT_BASE, GPT_ENGINE, GPT_KEY, GPT_VERSION
 
 import utils.sentences as sentences
+from classes.description import (
+    CountryDescription,
+    PersonDescription,
+    PlayerDescription,
+)
+from classes.embeddings import CountryEmbeddings, PersonEmbeddings, PlayerEmbeddings
+from classes.visual import DistributionPlot, DistributionPlotPersonality, Visual
 from utils.gemini import convert_messages_format
 
 
@@ -71,9 +71,7 @@ class Chat:
             }
         )
 
-        messages = [
-            message for message in messages if isinstance(message["content"], str)
-        ]
+        messages = [message for message in messages if isinstance(message["content"], str)]
 
         st.expander("Chat transcript", expanded=False).write(messages)
 
@@ -113,9 +111,7 @@ class Chat:
                 try:
                     st.write(content.get_string())
                 except Exception:
-                    raise ValueError(
-                        f"Message content of type {type(content)} not supported."
-                    )
+                    raise ValueError(f"Message content of type {type(content)} not supported.")
 
     def display_messages(self):
         for key, group in groupby(self.messages_to_display, lambda x: x["role"]):
@@ -184,12 +180,16 @@ class PlayerChat(Chat):
         ret_val += description.synthesize_text()
 
         results = self.embeddings.search(query, top_n=5)
-        ret_val += "\n\nHere is a description of some relevant information for answering the question:  \n"
+        ret_val += (
+            "\n\nHere is a description of some relevant information for answering the question:  \n"
+        )
         ret_val += "\n".join(results["assistant"].to_list())
 
         ret_val += "\n\nIf none of this information is relevent to the users's query then use the information below to remind the user about the chat functionality: \n"
         ret_val += "This chat can answer questions about a player's statistics and what they mean for how they play football."
-        ret_val += "The user can select the player they are interested in using the menu to the left."
+        ret_val += (
+            "The user can select the player they are interested in using the menu to the left."
+        )
 
         return ret_val
 
@@ -243,18 +243,20 @@ class WVSChat(Chat):
             query = self.messages_to_display[-1]["content"]
 
         ret_val = "Here is a description of the country in terms of data: \n\n"
-        description = CountryDescription(
-            self.country, self.description_dict, self.thresholds_dict
-        )
+        description = CountryDescription(self.country, self.description_dict, self.thresholds_dict)
         ret_val += description.synthesize_text()
 
         results = self.embeddings.search(query, top_n=5)
-        ret_val += "\n\nHere is a description of some relevant information for answering the question:  \n"
+        ret_val += (
+            "\n\nHere is a description of some relevant information for answering the question:  \n"
+        )
         ret_val += "\n".join(results["assistant"].to_list())
 
         ret_val += "\n\nIf none of this information is relevant to the users's query then use the information below to remind the user about the chat functionality: \n"
         ret_val += "This chat can answer questions about a country's core values."
-        ret_val += "The user can select the country they are interested in using the menu to the left."
+        ret_val += (
+            "The user can select the country they are interested in using the menu to the left."
+        )
 
         return ret_val
 
@@ -293,12 +295,16 @@ class PersonChat(Chat):
         ret_val += description.synthesize_text()
 
         results = self.embeddings.search(query, top_n=5)
-        ret_val += "\n\nHere is a description of some relevant information for answering the question:  \n"
+        ret_val += (
+            "\n\nHere is a description of some relevant information for answering the question:  \n"
+        )
         ret_val += "\n".join(results["assistant"].to_list())
 
         ret_val += "\n\nIf none of this information is relevent to the users's query then use the information below to remind the user about the chat functionality: \n"
         ret_val += "This chat can answer questions about person's statistics and what they mean about their personality."
-        ret_val += "The user can select the persons they are interested in using the menu to the left."
+        ret_val += (
+            "The user can select the persons they are interested in using the menu to the left."
+        )
 
         return ret_val
 

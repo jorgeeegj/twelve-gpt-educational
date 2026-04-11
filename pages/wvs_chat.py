@@ -11,17 +11,14 @@ countries.calculate_statistics(metrics=metrics)
 
 
 import streamlit as st
-from utils.utils import select_country, create_chat
-
 
 from classes.chat import WVSChat
-from classes.visual import DistributionPlot
-
-from utils.page_components import add_common_page_elements
-
 from classes.description import (
     CountryDescription,
 )
+from classes.visual import DistributionPlot
+from utils.page_components import add_common_page_elements
+from utils.utils import create_chat, select_country
 
 
 # Function to load and inject custom CSS from an external file
@@ -31,6 +28,7 @@ def load_css(file_name):
 
 
 import json
+
 import pandas as pd
 
 # def show():
@@ -129,18 +127,13 @@ else:
 # We can add or remove variables to this hash to change conditions for loading a new chat
 to_hash = (country.id,)
 
-chat = create_chat(
-    to_hash, WVSChat, country, countries, description_dict, thresholds_dict
-)
+chat = create_chat(to_hash, WVSChat, country, countries, description_dict, thresholds_dict)
 
 # Now we want to add basic content to chat if it's empty
 if chat.state == "empty":
-
     # Make a plot of the distribution of the metrics for all players
     # We reverse the order of the elements in metrics for plotting (because they plot from bottom to top)
-    visual = DistributionPlot(
-        metrics[::-1], labels=["Low", "Average", "High"], plot_type="wvs"
-    )
+    visual = DistributionPlot(metrics[::-1], labels=["Low", "Average", "High"], plot_type="wvs")
     visual.add_title_from_player(country)
     visual.add_players(countries, metrics=metrics)
     visual.add_player(country, len(countries.df), metrics=metrics)

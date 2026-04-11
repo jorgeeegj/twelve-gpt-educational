@@ -18,11 +18,11 @@ A question PASSES if its active check (debug_expected or rows) succeeds.
 
 import argparse
 import json
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-import re
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, ".")
@@ -33,16 +33,16 @@ BENCHMARK_PATH = "questions_benchmark_v6.json"
 OUTPUT_DIR = Path("docs/evals")
 
 STAGE_NAMES = {
-    "baseline":  "Baseline regression",
-    "sprint_1":  "Sprint 1 - Robust NL + Ordinal Ranking",
-    "sprint_2":  "Sprint 2 - Match-level tables (minutes + matches)",
-    "sprint_3":  "Sprint 3 - Opponent and home/away context",
-    "sprint_4":  "Sprint 4 - Event-level match context",
-    "sprint_5":  "Sprint 5 - Team match context",
-    "sprint_6":  "Sprint 6 - Planner robustness + mid-table bucket",
-    "sprint_7":  "Sprint 7 - Dual-bucket comparison",
-    "sprint_8":  "Sprint 8 - Home-away comparison",
-    "sprint_9":  "Sprint 9 - Metric-derived bucket",
+    "baseline": "Baseline regression",
+    "sprint_1": "Sprint 1 - Robust NL + Ordinal Ranking",
+    "sprint_2": "Sprint 2 - Match-level tables (minutes + matches)",
+    "sprint_3": "Sprint 3 - Opponent and home/away context",
+    "sprint_4": "Sprint 4 - Event-level match context",
+    "sprint_5": "Sprint 5 - Team match context",
+    "sprint_6": "Sprint 6 - Planner robustness + mid-table bucket",
+    "sprint_7": "Sprint 7 - Dual-bucket comparison",
+    "sprint_8": "Sprint 8 - Home-away comparison",
+    "sprint_9": "Sprint 9 - Metric-derived bucket",
     "sprint_10": "Sprint 10 - Temporal entity-value",
 }
 
@@ -162,19 +162,21 @@ def run_benchmark(benchmark_path: str) -> dict:
 
         debug = result.get("debug", {})
 
-        results.append({
-            "id": q["id"],
-            "category": category,
-            "expected_stage": stage,
-            "expected_stage_name": STAGE_NAMES.get(stage, stage),
-            "question": q["question"],
-            "expected": q.get("answer"),
-            "debug_expected": q.get("debug_expected"),
-            "agent_text": result["content"],
-            "debug": debug,
-            "passed": passed,
-            "eval_meta": meta,
-        })
+        results.append(
+            {
+                "id": q["id"],
+                "category": category,
+                "expected_stage": stage,
+                "expected_stage_name": STAGE_NAMES.get(stage, stage),
+                "question": q["question"],
+                "expected": q.get("answer"),
+                "debug_expected": q.get("debug_expected"),
+                "agent_text": result["content"],
+                "debug": debug,
+                "passed": passed,
+                "eval_meta": meta,
+            }
+        )
 
         print(f"\n{'=' * 100}")
         print(f"{q['id']} | {category} | {STAGE_NAMES.get(stage, stage)}")
@@ -196,10 +198,7 @@ def run_benchmark(benchmark_path: str) -> dict:
         "total_passed": total_passed,
         "total_questions": len(benchmark),
         "score": f"{total_passed}/{len(benchmark)}",
-        "by_category": {
-            cat: summarize_bucket(b)
-            for cat, b in dict(score_by_category).items()
-        },
+        "by_category": {cat: summarize_bucket(b) for cat, b in dict(score_by_category).items()},
         "by_expected_stage": {
             stage: {
                 **summarize_bucket(b),

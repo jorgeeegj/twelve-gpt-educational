@@ -1,48 +1,25 @@
 {
-  "model": "sonnet",
-  "env": {
-    "MAX_THINKING_TOKENS": "10000",
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku"
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/gsd-check-update.js"
-          }
-        ]
-      }
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(go version:*)",
+      "Bash(uv --version)",
+      "Bash(brew install:*)",
+      "Read(//Users/ricardoheredia/whatsapp-mcp/whatsapp-mcp-server/**)",
+      "Read(//Users/ricardoheredia/Library/Application Support/Claude/**)",
+      "Read(//Users/ricardoheredia/whatsapp-mcp/whatsapp-bridge/**)",
+      "Bash(go get:*)",
+      "Bash(git stash:*)",
+      "Bash(git merge:*)",
+      "Bash(git add:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(streamlit run:*)",
+      "Bash(.venv/bin/pip install:*)"
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash|Edit|Write|MultiEdit|Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/gsd-context-monitor.js",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/gsd-prompt-guard.js",
-            "timeout": 5
-          }
-        ]
-      }
+    "additionalDirectories": [
+      "/Users/ricardoheredia/Library/Application Support/Claude",
+      "/Users/ricardoheredia/whatsapp-mcp/whatsapp-bridge"
     ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "node .claude/hooks/gsd-statusline.js"
   }
 }

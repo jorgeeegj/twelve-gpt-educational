@@ -27,7 +27,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, ".")
 
-from utils.basic_stats.core.llm_query_engine_v2 import LLMQueryEngineV2
+from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
 
 BENCHMARK_PATH = "questions_benchmark_v6.json"
 OUTPUT_DIR = Path("docs/evals")

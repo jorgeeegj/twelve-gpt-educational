@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from utils.basic_stats.core.agent import BasicStatsAgent
+from src.basic_stats.agent import BasicStatsAgent
 from utils.page_components import add_common_page_elements
 
 sidebar_container = add_common_page_elements()

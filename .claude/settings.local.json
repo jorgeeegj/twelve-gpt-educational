@@ -1,32 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat /d/Twelve_Context_Eng/twelve-gpt-educational/requirements*.txt)",
-      "Bash(wc:*)",
-      "Bash(grep -E '\\(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|sk_test_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|xox[baprs]-[a-zA-Z0-9-]+|-----BEGIN.*PRIVATE KEY|eyJ[a-zA-Z0-9_-]+\\\\.eyJ[a-zA-Z0-9_-]+\\\\.\\)' .planning/codebase/*.md)",
-      "Bash(node:*)",
-      "Bash(python:*)",
-      "Bash(PYTHONIOENCODING=utf-8 python eval_runner_v4.py 2>&1)",
-      "Bash(venv/Scripts/python.exe utils/basic_stats/core/test_query_planner.py)",
-      "Bash(PYTHONPATH=. venv/Scripts/python.exe utils/basic_stats/core/test_query_planner.py)",
-      "Bash(set PYTHONPATH=.)",
-      "Bash(venv/Scripts/python.exe -c \":*)",
-      "Bash(timeout /t 30)",
-      "Bash(python -c \":*)",
-      "Bash(taskkill /PID 21032 /F)",
-      "Bash(cmd /c \"taskkill /PID 21032 /F\" 2>&1)",
-      "Bash(cmd /c \"taskkill /PID 21032 /F 2>&1\")",
-      "Bash(PYTHONIOENCODING=utf-8 python -m utils.basic_stats.core.test_dual_bucket_hardening 2>&1)",
-      "Bash(PYTHONIOENCODING=utf-8 python -m utils.basic_stats.core.test_query_planner)",
-      "Bash(PYTHONIOENCODING=utf-8 python utils/basic_stats/core/test_query_planner.py)",
-      "Bash(PYTHONIOENCODING=utf-8 python -c \":*)",
-      "Bash(tasklist:*)",
-      "Bash(cmd /c \"tasklist /FI \\\\\"PID eq 26060\\\\\"\" 2>&1)",
-      "Bash(cmd /c \"wmic process where \\\\\"ProcessId=26060\\\\\" get ProcessId,Name,CommandLine 2>&1\")",
-      "Bash(cmd /c \"wmic process where \"\"name=''''python.exe''''\"\" get ProcessId,CommandLine\")",
-      "Bash(cmd //c \"tasklist | findstr python\" 2>&1)",
-      "Bash(cmd //c \"taskkill /PID 26060 /F\" 2>&1)",
-      "Bash(cmd //c \"tasklist | findstr python\")"
+      "Bash(git checkout main)",
+      "Bash(git pull origin main)",
+      "Bash(git checkout -b feature/basic-stats-analyst)",
+      "Bash(git push -u origin feature/basic-stats-analyst)",
+      "Read(//Users/ricardoheredia/Desktop/Cursos /context_engineering_twelve_football/class4/PL_2024_wyscout/**)",
+      "Bash(/Users/ricardoheredia/Twelve-GPT-Educational/.venv/bin/python -c \":*)",
+      "Read(//Users/ricardoheredia/football-rag-intelligence/.claude/skills/substack-writer/**)"
     ]
   }
 }

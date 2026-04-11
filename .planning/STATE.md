@@ -2,10 +2,11 @@
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-03-26)
+See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
-**Current focus:** Phase 2 — Planner noise reduction (complete)
+**Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
+**Current focus:** Phase 4 — Extract & Clean (not started)
 
 ---
 
@@ -144,4 +145,4 @@ Saved outputs:
 | `docs/evals/` | Eval run outputs — read for historical data |
 
 ---
-*Last updated: 2026-03-29 — Phase 3 in progress: metric-derived bucket slice complete; 43/43 non-LLM tests; eval_runner_v4 benchmark rerun pending*
+*Last updated: 2026-04-12 — Milestone v2.0 started. Branch: feature/refactor-v2 from ricardoherediaj/main. Research complete (4 agents). Requirements written (19 v2 reqs). Roadmap pending.*

@@ -1,5 +1,22 @@
 # Basic Stats Analyst — Brownfield Operating Baseline
 
+## Current Milestone: v2.0 — Function Calling Architecture + Feature Completeness
+
+**Goal:** Replace regex-based canonicalization with typed function calling tools, add conversation memory for follow-up questions, and polish the analyst to production quality for the course final weeks.
+
+**Target features:**
+- Repo reorganization + quality tooling (ruff, pre-commit, pyproject.toml via uv)
+- Function calling core (4 typed tools replace ~2,000 lines of planner + detector code)
+- Conversation memory via `ConversationState` (Agust's top request: follow-up questions)
+- League context injection (dynamic team classification, no hardcoded labels)
+- Random question robustness hardening (stress test with diverse unprepared questions)
+- Natural language verbalization polish (fix robotic number dumps)
+
+**Branch:** `feature/refactor-v2` from `ricardoherediaj/main`
+**Benchmark gate:** 61/61 `evals/eval_runner.py` after every phase
+
+---
+
 ## What This Is
 
 An LLM-powered football statistics analyst embedded in the `twelve-gpt-educational` Streamlit app. Users ask natural-language questions about player and team stats; the system plans a structured query, executes it against DuckDB/Parquet data, and verbalizes a grounded answer with supporting rows. The active development focus is `utils/basic_stats/` and its core pipeline.

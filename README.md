@@ -145,6 +145,6 @@ python evals/smoke_test.py && git commit
 ## Original project
 
 Design and code by Matthias Green, David Sumpter and Ágúst Pálmason Merthens.
-v2.0 development by Ricardo Heredia and Jorge GJ.
+v2.0 development by Álvaro Molina, Ricardo Heredia, and Jorge Gómez.
 
 Contact: hello@twelve.football

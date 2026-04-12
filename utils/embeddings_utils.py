@@ -26,7 +26,6 @@ def _get_embedding_client():
 def get_embedding(
     text: str, engine="text-similarity-davinci-001", use_gemini=False, **kwargs
 ) -> List[float]:
-
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
@@ -55,7 +54,6 @@ def get_embedding(
 async def aget_embedding(
     text: str, engine="text-similarity-davinci-001", use_gemini=False, **kwargs
 ) -> List[float]:
-
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 

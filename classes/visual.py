@@ -285,7 +285,6 @@ class DistributionPlot(Visual):
             )
 
     def add_player(self, player: Union[Player, Country], n_group, metrics):
-
         # # Make list of all metrics with _Z and _Rank added at end
         metrics_Z = [metric + "_Z" for metric in metrics]
         metrics_Ranks = [metric + "_Ranks" for metric in metrics]
@@ -324,7 +323,6 @@ class DistributionPlot(Visual):
     #     )
 
     def add_players(self, players: Union[PlayerStats, CountryStats], metrics):
-
         # Make list of all metrics with _Z and _Rank added at end
         metrics_Z = [metric + "_Z" for metric in metrics]
         metrics_Ranks = [metric + "_Ranks" for metric in metrics]
@@ -490,7 +488,6 @@ class DistributionPlotPersonality(Visual):
         )
 
     def add_persons(self, persons: PersonStat, metrics):
-
         # Make list of all metrics with _Z and _Rank added at end
         metrics_Z = [metric + "_Z" for metric in metrics]
         metrics_Ranks = [metric + "_Ranks" for metric in metrics]
@@ -539,10 +536,10 @@ class DistributionPlotPersonality(Visual):
         # Update layout for better visualization
         fig.update_layout(
             title='Distribution of Personality Traits',
-            xaxis_title='Score',  
+            xaxis_title='Score',
             yaxis_title='Trait',
             xaxis=dict(range=[0, 40]),
-            violinmode='overlay', 
+            violinmode='overlay',
             showlegend=True)
 
         # Display the plot in Streamlit
@@ -551,10 +548,10 @@ class DistributionPlotPersonality(Visual):
 
     def radarPlot(Visual):
         # Data import
-        data_r = data_p.to_list()  
+        data_r = data_p.to_list()
         labels = ['Extraversion', 'Neuroticism', 'Agreeableness', 'Conscientiousness', 'Openness']
         df = pd.DataFrame({'data': data_r,'label': labels})
-    
+
         # Create the radar plot
         fig = px.line_polar(df, r='data', theta='label', line_close=True, markers=True)
         fig.update_layout(polar=dict(radialaxis=dict(visible=True,range=[0, 40])),showlegend=True, title= 'Candidate profile')

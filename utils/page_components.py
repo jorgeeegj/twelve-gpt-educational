@@ -119,7 +119,6 @@ def add_common_page_elements():
 
 
 def select_player(container, players, gender, position):
-
     # Make a copy of Players object
     player = copy.deepcopy(players)
 
@@ -139,7 +138,6 @@ def select_player(container, players, gender, position):
 
 
 def select_person(container, person_stat):
-
     # Make a copy of Players object
     person = copy.deepcopy(person_stat)
 

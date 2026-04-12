@@ -15,7 +15,6 @@ class Stat(DataPoint):
 
 class Player(Stat):
     def __init__(self, id, name, minutes_played, gender, position, ser_metrics, relevant_metrics):
-
         # Unpack ser_info
         self.id = id
         self.name = name
@@ -30,7 +29,6 @@ class Player(Stat):
 
 class Country(Stat):
     def __init__(self, id, name, ser_metrics, relevant_metrics, drill_down_metrics):
-
         # Unpack ser_info
         self.id = id
         self.name = name
@@ -44,7 +42,6 @@ class Country(Stat):
 
 class Person(Stat):
     def __init__(self, id, name, ser_metrics):
-
         # Unpack ser_info
         self.id = id
         self.name = name

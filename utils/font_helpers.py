@@ -25,7 +25,6 @@ class FontHelper:
     @staticmethod
     @functools.lru_cache(maxsize=128)
     def custom_font(font_size=12, font_weight="normal", font_name="Open Sans"):
-
         start_time = time.time()
         if font_name == "Open Sans":
             fontfamily_text = "data/ressources/fonts/OpenSans-Regular.ttf"

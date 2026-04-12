@@ -268,7 +268,6 @@ class PlayerDescription(Description):
         return intro
 
     def synthesize_text(self):
-
         player = self.player
         metrics = self.player.relevant_metrics
         description = f"Here is a statistical description of {player.name}, who played for {player.minutes_played} minutes as a {player.position}. \n\n "
@@ -347,7 +346,6 @@ class CountryDescription(Description):
         return intro
 
     def synthesize_text(self):
-
         description = f"Here is a statistical description of the societal values of {self.country.name.capitalize()}."
 
         # subject_p, object_p, possessive_p = sentences.pronouns(country.gender)

@@ -106,7 +106,6 @@ import copy
 
 
 def select_player(container, players, gender, position):
-
     # Make a copy of Players object
     player = copy.deepcopy(players)
 
@@ -126,7 +125,6 @@ def select_player(container, players, gender, position):
 
 
 def select_country(container, countries):
-
     # Make a copy of Players object
     country = copy.deepcopy(countries)
 

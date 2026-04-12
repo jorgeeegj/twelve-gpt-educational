@@ -46,7 +46,6 @@ st.write("Create a custom player quality by selecting metrics and assigning weig
 
 @st.cache_data
 def load_data():
-
     data_path = Path("output") / "player_full_stats.parquet"
 
     df = pd.read_parquet(data_path)
@@ -64,7 +63,7 @@ st.header("Step 1: Select metrics")
 
 st.info(
     """
-Metrics must be z-scores (`*_score`).  
+Metrics must be z-scores (`*_score`).
 All metrics are oriented so **higher = better**.
 """
 )

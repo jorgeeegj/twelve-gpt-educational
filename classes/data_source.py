@@ -38,12 +38,10 @@ class Data:
         raise NotImplementedError("Child class must implement process_data(self, df_raw)")
 
     def get_processed_data(self):
-
         raw = self.get_raw_data()
         return self.process_data(raw)
 
     def select_and_filter(self, column_name, label, default_index=0):
-
         df = self.df
         selected_id = st.selectbox(label, df[column_name].unique(), index=default_index)
         self.df = df[df[column_name] == selected_id]
@@ -65,7 +63,6 @@ class Stats(Data):
         self.negative_metrics = []
 
     def get_metric_zscores(self, df):
-
         df_z = df.apply(zscore, nan_policy="omit")
 
         # Rename every column to include "Z" at the end
@@ -116,7 +113,6 @@ class PlayerStats(Stats):
         super().__init__()
 
     def get_raw_data(self):
-
         df = pd.read_csv("data/events/Forwards.csv", encoding="unicode_escape")
 
         return df
@@ -134,7 +130,6 @@ class PlayerStats(Stats):
         return df_raw
 
     def to_data_point(self, gender, position) -> data_point.Player:
-
         id = self.df.index[0]
 
         # Reindexing dataframe
@@ -164,7 +159,6 @@ class CountryStats(Stats):
     negative_metrics = []
 
     def __init__(self):
-
         self.drill_down = self.get_drill_down_dict()
         self.drill_down_threshold = 1
 
@@ -176,7 +170,6 @@ class CountryStats(Stats):
         return dict(zip(df.country.values, df.drill_down_metric.values))
 
     def get_drill_down_data_values(self, file_path, metric_name):
-
         df = self.process_data(pd.read_csv(file_path))
 
         # create a value column that has the values from the columns is given by the dict self.drill_down_metric_country_question
@@ -198,7 +191,6 @@ class CountryStats(Stats):
     def get_drill_down_dict(
         self,
     ):
-
         # read all .csv files from path ending in _pre.csv
         path = "data/wvs/intermediate_data/"
         all_files = os.listdir(path)
@@ -246,7 +238,6 @@ class CountryStats(Stats):
         return dict(drill_down)
 
     def get_z_scores(self, df, metrics=None, negative_metrics=[]):
-
         if metrics is None:
             metrics = [m for m in df.columns if m not in ["country"]]
 
@@ -299,13 +290,11 @@ class CountryStats(Stats):
         return self.df.sample(1).index[0]
 
     def get_raw_data(self):
-
         df = pd.read_csv("data/wvs/wave_7.csv")
 
         return df
 
     def process_data(self, df_raw):
-
         # raise error if df_raw["country"] contains any NaN values
         if df_raw["country"].isnull().values.any():
             raise ValueError("Country column contains NaN values")
@@ -327,7 +316,6 @@ class CountryStats(Stats):
         return df_raw
 
     def to_data_point(self) -> data_point.Country:
-
         id = self.df.index[0]
 
         # Reindexing dataframe
@@ -537,7 +525,6 @@ class PersonStat(Stats):
         return df_raw
 
     def to_data_point(self) -> data_point.Person:
-
         id = self.df.index[0]
         name = self.df["name"].values[0]
 

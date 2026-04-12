@@ -25,14 +25,24 @@ Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
 ## Setup (una sola vez)
 
 ```bash
-# 1. Clonar y entrar
-git clone <repo> && cd Twelve-GPT-Educational
-git checkout feature/refactor-v2
+# 1. Pull de main (o clonar si es la primera vez)
+git pull origin main        # si ya tienes el repo
+# git clone <repo-jorge> && cd Twelve-GPT-Educational
 
-# 2. Instalar dependencias (elige uno)
-uv sync          # recomendado
-pip install -e . # alternativa con pip
+# 2. Instalar dependencias — usa lo que prefieras
+```
 
+Las dependencias están declaradas en `pyproject.toml` y también en `requirements.txt`.
+Usa el gestor que tengas:
+
+| Gestor | Comando |
+|---|---|
+| uv | `uv sync` |
+| pip + venv | `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt` |
+| pip directo | `pip install -r requirements.txt` |
+| conda | `conda create -n basicstats python=3.11 && conda activate basicstats && pip install -r requirements.txt` |
+
+```bash
 # 3. Verificar que todo funciona
 python evals/smoke_test.py
 ```

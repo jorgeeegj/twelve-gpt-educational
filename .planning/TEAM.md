@@ -1,5 +1,16 @@
 # Team Guide — Basic Stats v2.0
 
+## Regla de oro
+
+> Un cambio en `query_planner.py`, `llm_query_engine_v2.py` o `duckdb_manager.py`
+> **siempre** necesita pasar el smoke test antes del commit.
+
+```bash
+python evals/smoke_test.py && git add ... && git commit
+```
+
+---
+
 ## ¿Dónde estamos?
 
 **Milestone:** v2.0 — Function Calling Architecture
@@ -101,15 +112,4 @@ python evals/benchmark_runner.py --workers 5
 
 # Benchmark completo — secuencial (~20 min)
 python evals/eval_runner.py
-```
-
----
-
-## Regla de oro
-
-> Un cambio en `query_planner.py`, `llm_query_engine_v2.py` o `duckdb_manager.py`
-> **siempre** necesita pasar el smoke test antes del commit.
-
-```bash
-python evals/smoke_test.py && git add ... && git commit
 ```

@@ -29,6 +29,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
+import openai
+
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, ".")
 
@@ -50,6 +52,30 @@ COMPLETENESS_GATE = 0.90  # 90% of answers must be complete
 
 
 # ---------------------------------------------------------------------------
+# Retry helper
+# ---------------------------------------------------------------------------
+
+_MAX_RETRIES = 4
+_RETRY_BASE_DELAY = 5.0  # seconds
+
+
+def _ask_with_retry(agent: "BasicStatsAgent", question: str) -> str:
+    """Call agent.ask with exponential backoff on OpenAI 429 rate-limit errors."""
+    delay = _RETRY_BASE_DELAY
+    for attempt in range(_MAX_RETRIES):
+        try:
+            return agent.ask(question)
+        except openai.RateLimitError:
+            if attempt == _MAX_RETRIES - 1:
+                return f"ERROR: rate_limit after {_MAX_RETRIES} retries"
+            time.sleep(delay)
+            delay *= 2
+        except Exception as exc:
+            return f"ERROR: {exc}"
+    return f"ERROR: rate_limit after {_MAX_RETRIES} retries"  # unreachable but satisfies mypy
+
+
+# ---------------------------------------------------------------------------
 # Single question evaluation
 # ---------------------------------------------------------------------------
 
@@ -68,11 +94,8 @@ async def evaluate_one(
     """Run one question through the agent and both judges."""
     question = entry["question"]
 
-    # Agent call (sync wrapped in executor)
-    try:
-        answer = await loop.run_in_executor(executor, agent.ask, question)
-    except Exception as exc:
-        answer = f"ERROR: {exc}"
+    # Agent call (sync wrapped in executor) with exponential backoff on 429
+    answer = await loop.run_in_executor(executor, _ask_with_retry, agent, question)
 
     # Faithfulness (deterministic, no LLM)
     faith = judge_faithfulness(answer, entry)

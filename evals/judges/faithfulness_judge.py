@@ -77,12 +77,15 @@ def judge_faithfulness(answer: str, entry: dict) -> FaithfulnessResult:
 
     # Also pull from debug_expected numeric leaves (skip internal metadata keys)
     _DEBUG_SKIP_KEYS = {"engine", "table", "metric"}
-    _DEBUG_SKIP_SUFFIXES = ("_p90", "_pct", "_rate")
+    # Skip p90/rate stats — these are internal benchmark metadata, not values
+    # the agent should report. Keys use both _ and . separators (e.g. subset_p90,
+    # bucket_a.p90), so we strip to the last segment before checking.
+    _DEBUG_SKIP_LEAF_SUFFIXES = ("p90", "pct", "rate")
     debug_exp = entry.get("debug_expected") or {}
     if isinstance(debug_exp, dict):
         for k, v in debug_exp.items():
-            # Skip non-answer metadata: named skip-list or per-90/rate suffixes
-            if k in _DEBUG_SKIP_KEYS or any(k.endswith(s) for s in _DEBUG_SKIP_SUFFIXES):
+            leaf = k.rsplit(".", 1)[-1].rsplit("_", 1)[-1]
+            if k in _DEBUG_SKIP_KEYS or leaf in _DEBUG_SKIP_LEAF_SUFFIXES:
                 continue
             n = _normalize(v)
             if n is not None and n not in _META_WHITELIST:

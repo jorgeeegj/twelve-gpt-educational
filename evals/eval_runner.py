@@ -1,5 +1,5 @@
 """
-eval_runner_v6.py — benchmark runner for questions_benchmark_v6.json
+eval_runner.py — benchmark runner for evals/questions_benchmark.json
 
 Extends eval_runner_v4 with support for Phase 3 early-return paths
 (dual_bucket, home_away, metric_derived_bucket) via an optional
@@ -29,7 +29,7 @@ sys.path.insert(0, ".")
 
 from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
 
-BENCHMARK_PATH = "questions_benchmark_v6.json"
+BENCHMARK_PATH = str(Path(__file__).parent / "questions_benchmark.json")
 OUTPUT_DIR = Path("docs/evals")
 
 STAGE_NAMES = {
@@ -222,8 +222,8 @@ def save_results(payload: dict, run_label: str | None = None) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    latest_path = OUTPUT_DIR / "latest_eval_results_v6.json"
-    dated_path = OUTPUT_DIR / f"{timestamp}_eval_results_v6.json"
+    latest_path = OUTPUT_DIR / "latest_eval_results.json"
+    dated_path = OUTPUT_DIR / f"{timestamp}_eval_results.json"
 
     json_payload = json.dumps(payload, indent=2, ensure_ascii=False)
 

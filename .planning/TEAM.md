@@ -25,9 +25,10 @@ Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
 ## Setup (una sola vez)
 
 ```bash
-# 1. Pull de main (o clonar si es la primera vez)
-git pull origin main        # si ya tienes el repo
-# git clone <repo-jorge> && cd Twelve-GPT-Educational
+# 1. Pull de la rama activa (o clonar si es la primera vez)
+git pull jorge feature/refactor-v2        # si ya tienes el repo
+# git clone https://github.com/jorgeeegj/twelve-gpt-educational.git && cd twelve-gpt-educational
+# git checkout feature/refactor-v2
 
 # 2. Instalar dependencias — usa lo que prefieras
 ```

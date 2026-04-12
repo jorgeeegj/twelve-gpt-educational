@@ -1,5 +1,5 @@
-from utils.basic_stats.core.knowledge_base import KnowledgeBase
-from utils.basic_stats.core.llm_query_engine_v2 import LLMQueryEngineV2
+from src.basic_stats.knowledge_base import KnowledgeBase
+from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
 
 
 class BasicStatsAgent:

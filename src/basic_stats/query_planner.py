@@ -8,7 +8,7 @@ import polars as pl
 import yaml
 from pydantic import BaseModel, Field, ValidationError
 
-from utils.basic_stats.core.config import (
+from src.basic_stats.config import (
     PLAYER_DATA_PATH,
     PROMPTS_DIR,
     TEAM_DATA_PATH,

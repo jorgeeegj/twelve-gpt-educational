@@ -3,7 +3,7 @@ from typing import Any
 
 import duckdb
 
-BASE = Path(__file__).resolve().parents[3]
+BASE = Path(__file__).resolve().parents[2]
 
 OUTPUT_DIR = BASE / "output"
 DB_DIR = BASE / "db"

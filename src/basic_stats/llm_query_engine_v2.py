@@ -17,16 +17,16 @@ import unicodedata
 import polars as pl
 import yaml
 
-from utils.basic_stats.core.config import (
+from src.basic_stats.config import (
     PLAYER_DATA_PATH,
     PROMPTS_DIR,
     TEAM_DATA_PATH,
     get_llm_client,
     get_model,
 )
-from utils.basic_stats.core.duckdb_manager import DuckDBManager
-from utils.basic_stats.core.models import MetricResolution, QueryResult
-from utils.basic_stats.core.query_planner import (
+from src.basic_stats.duckdb_manager import DuckDBManager
+from src.basic_stats.models import MetricResolution, QueryResult
+from src.basic_stats.query_planner import (
     QueryPlanner,
     _classify_all_buckets,
     _detect_dual_bucket_comparison,
@@ -1099,7 +1099,6 @@ class LLMQueryEngineV2:
         )
 
     def _execute_planned_query(self, question: str) -> QueryResult | None:
-
         try:
             plan = self.planner.resolve(question)
         except Exception as e:

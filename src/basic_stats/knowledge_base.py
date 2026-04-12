@@ -2,7 +2,7 @@ from pathlib import Path
 
 import polars as pl
 
-BASE = Path(__file__).resolve().parents[3]
+BASE = Path(__file__).resolve().parents[2]
 QA_PATH = BASE / "data" / "verbal_model_qa.csv"
 
 

@@ -4,14 +4,20 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: ^(data/|docs/evals/|evaluation/)
       - id: ruff-format
+        exclude: ^(data/|docs/evals/|evaluation/)
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(data/|docs/evals/|evaluation/)
       - id: end-of-file-fixer
+        exclude: ^(data/|docs/evals/|evaluation/)
       - id: check-yaml
+        exclude: ^(data/|docs/evals/|evaluation/)
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: debug-statements
+        exclude: ^(data/|docs/evals/|evaluation/)

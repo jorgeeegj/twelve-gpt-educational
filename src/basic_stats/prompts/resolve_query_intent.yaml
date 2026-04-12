@@ -596,7 +596,7 @@ examples:
         mode: top_n
         n: 1
         ordinal: null
-  
+
   - question: "Which player has scored the most goals against top-6 teams this season?"
     plan:
       table_scope: player_match

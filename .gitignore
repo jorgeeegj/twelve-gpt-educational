@@ -22,3 +22,17 @@ venv/
 data/*.parquet
 data/*.csv
 data/event_data/
+
+# DuckDB runtime files
+db/*.duckdb
+db/*.duckdb.wal
+
+# Eval run artifacts (timestamped outputs)
+docs/evals/*_eval_results.json
+docs/evals/*__*.json
+
+# GSD planning artifacts
+.planning/
+
+# Lessons / scratch docs
+docs/lessons_inspo/

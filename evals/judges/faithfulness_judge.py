@@ -75,11 +75,15 @@ def judge_faithfulness(answer: str, entry: dict) -> FaithfulnessResult:
             if n is not None and n not in _META_WHITELIST:
                 expected_values.append(n)
 
-    # Also pull from debug_expected numeric leaves
+    # Also pull from debug_expected numeric leaves (skip internal metadata keys)
+    _DEBUG_SKIP_KEYS = {"engine", "table", "metric"}
+    _DEBUG_SKIP_SUFFIXES = ("_p90", "_pct", "_rate")
     debug_exp = entry.get("debug_expected") or {}
     if isinstance(debug_exp, dict):
         for k, v in debug_exp.items():
-            # Skip non-numeric fields like "engine", "table", "metric"
+            # Skip non-answer metadata: named skip-list or per-90/rate suffixes
+            if k in _DEBUG_SKIP_KEYS or any(k.endswith(s) for s in _DEBUG_SKIP_SUFFIXES):
+                continue
             n = _normalize(v)
             if n is not None and n not in _META_WHITELIST:
                 expected_values.append(n)

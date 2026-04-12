@@ -17,13 +17,13 @@ from typing import Any
 _FILTERS_SCHEMA: dict = {
     "type": "object",
     "description": (
-        "Optional match-level filters. Omit or set to null to use season totals. "
+        "Match-level filters. Set unused fields to null to use season totals. "
         "Set only the fields relevant to the question — leave others as null."
     ),
     "properties": {
         "opponent_team": {
             "type": ["string", "null"],
-            "description": "Filter to matches against this specific team (e.g. 'Arsenal').",
+            "description": "Filter to matches against this specific team (e.g. 'Arsenal'). Null = no filter.",
         },
         "is_home": {
             "type": ["boolean", "null"],
@@ -33,43 +33,55 @@ _FILTERS_SCHEMA: dict = {
             "type": ["integer", "null"],
             "description": (
                 "Filter to matches against teams ranked N or better. "
-                "E.g. 6 = top 6 teams, 4 = top 4 teams."
+                "E.g. 6 = top 6 teams, 4 = top 4 teams. Null = no filter."
             ),
         },
         "opponent_rank_min": {
             "type": ["integer", "null"],
             "description": (
-                "Filter to matches against teams ranked N or worse. E.g. 16 = bottom 5 of 20 teams."
+                "Filter to matches against teams ranked N or worse. E.g. 16 = bottom 5 of 20 teams. Null = no filter."
             ),
         },
         "matchday_start": {
             "type": ["integer", "null"],
-            "description": "First gameweek of the window, inclusive (1–38).",
+            "description": "First gameweek of the window, inclusive (1–38). Null = no filter.",
         },
         "matchday_end": {
             "type": ["integer", "null"],
-            "description": "Last gameweek of the window, inclusive (1–38).",
+            "description": "Last gameweek of the window, inclusive (1–38). Null = no filter.",
         },
         "min_minutes": {
             "type": ["integer", "null"],
-            "description": "Only include players with at least this many minutes played.",
+            "description": "Only include players with at least this many minutes played. Null = no filter.",
         },
         "min_matches": {
             "type": ["integer", "null"],
-            "description": "Only include players who appeared in at least this many matches.",
+            "description": "Only include players who appeared in at least this many matches. Null = no filter.",
         },
         "age_max": {
             "type": ["integer", "null"],
-            "description": "Only include players younger than this age (exclusive).",
+            "description": "Only include players younger than this age (exclusive). Null = no filter.",
         },
         "position": {
             "type": ["string", "null"],
             "description": (
                 "Filter by playing position. Use exact DB values: "
-                "'Striker', 'Winger', 'Midfielder', 'Defender', 'Goalkeeper'."
+                "'Striker', 'Winger', 'Midfielder', 'Defender', 'Goalkeeper'. Null = no filter."
             ),
         },
     },
+    "required": [
+        "opponent_team",
+        "is_home",
+        "opponent_rank_max",
+        "opponent_rank_min",
+        "matchday_start",
+        "matchday_end",
+        "min_minutes",
+        "min_matches",
+        "age_max",
+        "position",
+    ],
     "additionalProperties": False,
 }
 

@@ -1,21 +1,15 @@
-import json
+import os
 from pathlib import Path
 
-import pandas as pd
 import streamlit as st
 
-from src.basic_stats.agent import BasicStatsAgent
 from utils.page_components import add_common_page_elements
 
 sidebar_container = add_common_page_elements()
 
 st.header("Basic Stats Analyst")
 
-st.write(
-    """
-Ask factual football questions about players, teams, rankings and contextual statistics.
-"""
-)
+st.write("Ask factual football questions about players, teams, rankings and contextual statistics.")
 
 st.markdown(
     """
@@ -33,132 +27,104 @@ st.markdown(
 
 **Event-level**
 - Which player made the most key passes between matchdays 25 and 30?
-- Which midfielder has played the most progressive passes against top-6 teams this season?
+- Which midfielder has played the most progressive passes against top-6 teams?
 - Which player has the most shot assists against Big Six teams?
 
 **Team contextual**
 - Which team won the most points against Big Six teams this season?
 - Which team scored the most away goals against top-6 teams this season?
-- Which team had the most actions in z3 against Manchester City this season?
 
-**Top N**
-- Top 5 players with the most away goals
-- Top 4 forwards with the most passes to the box
+**Comparison**
+- Has Haaland scored more goals against top-5 or bottom-5 teams?
+- Compare Salah and Haaland's goals at home this season
 """
 )
 
+# ── Agent selection (USE_LEGACY_PLANNER=1 to roll back) ───────────
+USE_LEGACY = os.getenv("USE_LEGACY_PLANNER", "0") == "1"
+
+if USE_LEGACY:
+    from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
+
+    _legacy_engine = LLMQueryEngineV2()
+
+    def _ask(question: str, history=None) -> str:
+        result = _legacy_engine.ask(question)
+        return result.get("content", "")
+
+    st.caption("Mode: legacy planner (USE_LEGACY_PLANNER=1)")
+else:
+    from src.basic_stats.agent import BasicStatsAgent
+
+    _agent = BasicStatsAgent()
+
+    def _ask(question: str, history=None) -> str:
+        return _agent.ask(question, history=history)
+
+
 # ── Benchmark status ──────────────────────────────────────────────
-eval_candidates = [
-    Path("docs/evals/latest_eval_results_v4.json"),
+_eval_candidates = [
+    Path("evals/runs"),
     Path("docs/evals/latest_eval_results.json"),
 ]
+# Show latest agent benchmark score if available
+_runs_dir = Path("evals/runs")
+if _runs_dir.exists():
+    _agent_runs = sorted(
+        [d for d in _runs_dir.iterdir() if d.is_dir() and "agent" in d.name],
+        reverse=True,
+    )
+    if _agent_runs:
+        import json
 
-for eval_path in eval_candidates:
-    if eval_path.exists():
         try:
-            eval_data = json.loads(eval_path.read_text(encoding="utf8"))
-            summary = eval_data.get("summary", eval_data.get("SUMMARY", {}))
-            score = summary.get("score", "unknown")
-            st.caption(f"Benchmark status: {score}")
-            break
+            _summary = json.loads((_agent_runs[0] / "summary.json").read_text(encoding="utf-8"))
+            _gates = _summary.get("gates", {})
+            _faith = _gates.get("faithfulness", {}).get("score", "?")
+            st.caption(
+                f"Agent benchmark — faithfulness: {_faith} | run: {_agent_runs[0].name[:19]}"
+            )
         except Exception:
-            st.caption("Benchmark status: unavailable")
-            break
-
-agent = BasicStatsAgent()
+            pass
 
 CHAT_KEY = "basic_stats_messages"
-
 if CHAT_KEY not in st.session_state:
     st.session_state[CHAT_KEY] = []
 
-col1, col2, col3 = st.columns([1, 1, 1])
-
-with col1:
-    show_debug = st.checkbox("Show debug info", value=False)
-with col2:
-    show_rows_table = st.checkbox("Show result rows table", value=True)
-with col3:
-    if st.button("Clear chat"):
-        st.session_state[CHAT_KEY] = []
-        st.rerun()
+if st.button("Clear chat"):
+    st.session_state[CHAT_KEY] = []
+    st.rerun()
 
 # ── Render chat history ───────────────────────────────────────────
 for message in st.session_state[CHAT_KEY]:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-        debug = message.get("debug", {}) or {}
-        rows = debug.get("rows", []) or []
-
-        if message["role"] == "assistant":
-            # Mostrar aviso de empate solo si el backend lo marca explícitamente
-            if debug.get("is_tie") is True:
-                st.info("Tie detected: multiple rows matched the same top value.")
-
-            if show_rows_table and rows:
-                st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-            if show_debug:
-                with st.expander("Debug info", expanded=False):
-                    st.markdown("**Engine**")
-                    st.write(debug.get("engine"))
-
-                    st.markdown("**Resolved source**")
-                    st.write(debug.get("table"))
-
-                    st.markdown("**Resolved metric**")
-                    st.write(debug.get("metric"))
-
-                    st.markdown("**Sort direction**")
-                    descending = debug.get("descending")
-                    if descending is None:
-                        st.write("n/a")
-                    else:
-                        st.write("descending" if descending else "ascending")
-
-                    st.markdown("**Filters**")
-                    st.json(debug.get("filters", {}))
-
-                    st.markdown("**Rows**")
-                    st.json(rows)
-
-                    error = debug.get("error")
-                    if error:
-                        st.markdown("**Error**")
-                        st.code(error)
-
 # ── Chat input ────────────────────────────────────────────────────
-question = st.chat_input("Ask a question")
+question = st.chat_input("Ask a question about PL 2024-25")
 
 if question:
-    st.session_state[CHAT_KEY].append(
-        {
-            "role": "user",
-            "content": question,
-        }
-    )
+    st.session_state[CHAT_KEY].append({"role": "user", "content": question})
+
+    # Build history for follow-up context (Phase 6 wires this fully)
+    history = [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state[CHAT_KEY][:-1]  # exclude the question just appended
+        if m["role"] in ("user", "assistant")
+    ]
 
     try:
         with st.spinner("Analysing..."):
-            result = agent.ask(question)
+            answer = _ask(question, history=history if not USE_LEGACY else None)
 
-        st.session_state[CHAT_KEY].append(
-            {
-                "role": "assistant",
-                "content": result["content"],
-                "debug": result.get("debug", {}),
-            }
-        )
-
+        st.session_state[CHAT_KEY].append({"role": "assistant", "content": answer})
         st.rerun()
 
     except Exception as e:
         st.session_state[CHAT_KEY].append(
             {
                 "role": "assistant",
-                "content": "Sorry, I couldn't answer that question. Enable debug info for details.",
-                "debug": {"error": repr(e)},
+                "content": f"Sorry, I couldn't answer that. ({type(e).__name__}: {e})",
             }
         )
         st.rerun()

@@ -590,7 +590,7 @@ def _derive_teams_for_bucket(
 
 
 class LLMQueryEngineV2:
-    def __init__(self):
+    def __init__(self, in_memory: bool = False):
         self.players_df = pl.read_parquet(PLAYER_DATA_PATH)
         self.teams_df = pl.read_parquet(TEAM_DATA_PATH)
 
@@ -608,7 +608,7 @@ class LLMQueryEngineV2:
         self._resolve_prompt = _load_prompt("resolve_metric")
         self._verbalize_prompt = _load_prompt("verbalize")
 
-        self.duck = DuckDBManager()
+        self.duck = DuckDBManager(in_memory=in_memory)
         self.planner = QueryPlanner()
 
     def _metric_description(self, metric: str) -> str:

@@ -125,9 +125,9 @@ TEAM_MATCH_ALLOWED_METRICS = {
 
 
 class DuckDBManager:
-    def __init__(self, db_path: Path | None = None):
+    def __init__(self, db_path: Path | None = None, in_memory: bool = False):
         self.db_path = str(db_path or DUCKDB_PATH)
-        self.con = duckdb.connect(self.db_path)
+        self.con = duckdb.connect(":memory:" if in_memory else self.db_path)
         self._register_base_views()
 
     def close(self) -> None:

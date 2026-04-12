@@ -16,8 +16,8 @@
 
 ### v2.0 Milestones (Pending)
 
-- [ ] **Phase 4: Extract & Clean** - Repo reorganization + quality tooling + dead code removal
-- [ ] **Phase 5: Function Calling Core** - Replace regex canonicalization with typed tools
+- [x] **Phase 4: Extract & Clean** - Repo reorganization + quality tooling + dead code removal ✓ (2026-04-12)
+- [ ] **Phase 5: Function Calling Core** - Replace regex canonicalization with typed tools ◐ In Progress (51/61 = 83.6% as of 2026-04-13)
 - [ ] **Phase 6: Conversation Memory** - Multi-turn follow-up support via ConversationState
 - [ ] **Phase 7: League Context** - Dynamic team classification + standings injection
 - [ ] **Phase 8: Random Question Robustness** - Stress test + alias hardening
@@ -202,8 +202,8 @@
 | 1. Project Baseline | 0/2 | Complete | 2026-03-26 |
 | 2. Planner & Execution Fixes | 0/3 | Complete | 2026-03-27 |
 | 3. Verbalization & UI Quality | 0/2 | Complete | 2026-03-27 |
-| 4. Extract & Clean | 0/6 | Not started | — |
-| 5. Function Calling Core | 0/5 | Not started | — |
+| 4. Extract & Clean | 6/6 | Complete | 2026-04-12 |
+| 5. Function Calling Core | 2/5 | In Progress | — (51/61 = 83.6%) |
 | 6. Conversation Memory | 0/5 | Not started | — |
 | 7. League Context | 0/5 | Not started | — |
 | 8. Random Question Robustness | 0/4 | Not started | — |
@@ -226,3 +226,5 @@
 
 *v1 roadmap created: 2026-03-26*
 *v2.0 roadmap created: 2026-04-12*
+*Phase 4 marked complete: 2026-04-12*
+*Phase 5 in progress: 2026-04-13 — 51/61 = 83.6% faithfulness gate*

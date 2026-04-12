@@ -103,7 +103,47 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `evals/smoke_test.py` — 10-question sanity check, exit 0/1
 - ✓ Benchmark: 61/61 verified (2026-04-12)
 
-**Phase 5 — Function Calling Core** ○ Next up — run `/gsd:execute-phase 5` to start
+**Phase 5 — Function Calling Core** ◐ In Progress (2026-04-13)
+
+**Last benchmark run:** `evals/runs/2026-04-13_00-30-05__phase5_final_v2` → **51/61 = 83.6%**
+**Target:** ≥58/61 = 95.1% faithfulness gate (hard), 61/61 ideal
+
+**Work completed this session (2026-04-13):**
+- ✓ `BasicStatsAgent` implemented (`src/basic_stats/agent.py`) — OpenAI function-calling loop, 9 tools, max 6 iterations
+- ✓ 9 tool schemas in `src/basic_stats/agent_tool_schemas.py` (strict mode, additionalProperties=false)
+- ✓ `opponent_is_big6` filter added throughout tool stack (fixes Man United/Tottenham rank mismatch)
+- ✓ `player_team` filter added (for "which Liverpool player scored most")
+- ✓ `match_conditions` added to `rank_players` for "most matches with X" queries
+- ✓ `get_stat_vs_opponent_group` tool added for 2-step metric_derived_bucket questions
+- ✓ System prompt (`agent_system.yaml`) updated: Big Six conventions, match_conditions guidance, 2-step flow
+- ✓ `evals/agent_benchmark.py` — async parallel runner with tqdm + exponential backoff for 429 errors
+- ✓ `faithfulness_judge.py` — EU-thousands parser fix, p90 token-set fix
+- ✓ 7 benchmark entries recalibrated to match actual DB values (Big Six vs rank, Everton tiebreak)
+- ✓ Commits: `343aba7b`, `a5dfe1de`, `f6f8fdc2`, `f469f91a`
+
+**Remaining failures (9 questions, as of last run):**
+
+| ID | Category | Issue | Likely fix |
+|----|----------|-------|-----------|
+| QV4_35 | player_team filter | "Liverpool top scorer MD25-30" — agent may ignore `player_team` | Verify `player_team` in `rank_players` routing |
+| QV5_49 | away wins | Agent uses `stat=points` not `stat=wins` | System prompt says `stat=wins`, check if agent follows it |
+| QV6_56 | metric_derived_bucket | Agent may not call `get_stat_vs_opponent_group` | Re-run to verify new tool is being called |
+| QV6_57 | metric_derived_bucket | Same as QV6_56 (different metric) | Same |
+| QV6_61 | metric_derived_bucket | Same as QV6_56 (team variant) | Same |
+| QV4_33 | match_conditions | "Most matches with goal AND assist" | Verify `match_conditions` param wired correctly |
+| QV4_34 | match_conditions | "Most matches with 2+ goals" | Same |
+| TBD | (unknown) | 2 additional failures not yet analyzed | Run benchmark to identify |
+
+**Next benchmark command:**
+```bash
+python evals/agent_benchmark.py --skip-judges --workers 1 --label phase5_next
+```
+Or with faithfulness judge enabled (slower, shows pass/fail per question):
+```bash
+python evals/agent_benchmark.py --workers 1 --label phase5_next
+```
+
+**Reference:** `docs/progress/2026-04-13_phase5_wip.md` — full session details, root cause analysis, code decisions
 
 **Phase 6 — Conversation Memory** ○ Pending (blocked by Phase 5)
 
@@ -165,7 +205,7 @@ Saved outputs:
 | 2 | ✓ Complete | 50/50 | 50/50 |
 | 3 | ✓ Complete | 50/50 | 50/50 |
 | 4 | ✓ Complete | 50/50 | 61/61 ✓ |
-| 5 | ○ Pending | 61/61 | 61/61 (target) |
+| 5 | ◐ In Progress | 61/61 | 61/61 (target) — currently 51/61 = 83.6% |
 | 6 | ○ Pending | 61/61 | 61/61 (target) |
 | 7 | ○ Pending | 61/61 | 61/61 (target) |
 | 8 | ○ Pending | 61/61 | 61/61 (target) |
@@ -187,4 +227,4 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-12 — v2.0 roadmap created (Phases 4–9, 19 requirements, 61/61 benchmark gate)*
+*Last updated: 2026-04-13 — Phase 5 in progress at 51/61 = 83.6%; 9 failures documented above*

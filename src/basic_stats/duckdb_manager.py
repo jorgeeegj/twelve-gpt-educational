@@ -252,6 +252,47 @@ class DuckDBManager:
             FROM season_table
         """)
 
+        self.con.execute("""
+            CREATE OR REPLACE VIEW league_standings AS
+            WITH season AS (
+                SELECT
+                    team_id,
+                    team_name,
+                    COUNT(*)                                      AS matches_played,
+                    SUM(CASE WHEN is_win  THEN 1 ELSE 0 END)     AS wins,
+                    SUM(CASE WHEN is_draw THEN 1 ELSE 0 END)     AS draws,
+                    SUM(CASE WHEN is_loss THEN 1 ELSE 0 END)     AS losses,
+                    SUM(team_score)                               AS goals_for,
+                    SUM(opponent_score)                           AS goals_against,
+                    SUM(team_score) - SUM(opponent_score)        AS goal_difference,
+                    SUM(points)                                   AS points
+                FROM team_match_stats
+                GROUP BY team_id, team_name
+            )
+            SELECT
+                team_id,
+                team_name,
+                matches_played,
+                wins,
+                draws,
+                losses,
+                goals_for,
+                goals_against,
+                goal_difference,
+                points,
+                ROW_NUMBER() OVER (
+                    ORDER BY points DESC, goal_difference DESC, goals_for DESC, team_name ASC
+                ) AS position,
+                CASE
+                    WHEN team_name IN (
+                        'Arsenal', 'Chelsea', 'Liverpool',
+                        'Manchester City', 'Manchester United', 'Tottenham Hotspur'
+                    ) THEN TRUE
+                    ELSE FALSE
+                END AS is_big6
+            FROM season
+        """)
+
     def query_df(self, sql: str, params: list[Any] | None = None):
         if params is None:
             return self.con.execute(sql).df()

@@ -30,6 +30,7 @@ from datetime import datetime
 from pathlib import Path
 
 import openai
+from tqdm import tqdm
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, ".")
@@ -88,8 +89,6 @@ async def evaluate_one(
     judge_client,
     judge_model: str,
     skip_judges: bool,
-    counter: list[int],
-    total: int,
 ) -> dict:
     """Run one question through the agent and both judges."""
     question = entry["question"]
@@ -124,15 +123,6 @@ async def evaluate_one(
             is_complete = None
             completeness_rationale = "judge error"
             nat_error = str(exc)
-
-    counter[0] += 1
-    faith_icon = "F✓" if faith.passed else "F✗"
-    nat_icon = f"N{nat_score}" if nat_score is not None else "N-"
-    comp_icon = ("C✓" if is_complete else "C✗") if is_complete is not None else "C-"
-    print(
-        f"[{counter[0]:>3}/{total}] {faith_icon} {nat_icon} {comp_icon} "
-        f"{entry['id']} — {question[:60]}"
-    )
 
     return {
         "id": entry["id"],
@@ -178,7 +168,6 @@ async def run_benchmark_async(
     judge_client = get_llm_client()
     judge_model = get_model()
     loop = asyncio.get_event_loop()
-    counter = [0]
 
     t0 = time.perf_counter()
 
@@ -192,12 +181,17 @@ async def run_benchmark_async(
                 judge_client=judge_client,
                 judge_model=judge_model,
                 skip_judges=skip_judges,
-                counter=counter,
-                total=total,
             )
             for q in questions
         ]
-        results = await asyncio.gather(*tasks)
+        results = []
+        with tqdm(total=total, desc="Benchmarking", unit="q", ncols=80) as pbar:
+            for coro in asyncio.as_completed(tasks):
+                result = await coro
+                results.append(result)
+                faith_icon = "F✓" if result["faithfulness_passed"] else "F✗"
+                pbar.set_postfix_str(f"{result['id']} {faith_icon}")
+                pbar.update(1)
 
     elapsed = time.perf_counter() - t0
 

@@ -381,8 +381,9 @@
     "answer": {
       "short_name": "Omar Marmoush",
       "team_name": "Manchester City",
-      "goals_gw_25_30": 5
-    }
+      "goals": 5
+    },
+    "_note": "Manchester City top scorer MD25-30: Omar Marmoush 5 goals (Haaland 2)."
   },
   {
     "id": "QV4_37",
@@ -392,8 +393,9 @@
     "answer": {
       "short_name": "Mohamed Salah",
       "team_name": "Liverpool",
-      "goals_vs_top6": 8
-    }
+      "goals_vs_top6": 9
+    },
+    "_note": "Using is_big6=TRUE filter. Salah: 9 goals vs Big Six."
   },
   {
     "id": "QV4_38",
@@ -403,8 +405,9 @@
     "answer": {
       "short_name": "E. Haaland",
       "team_name": "Manchester City",
-      "goals_vs_top6": 4
-    }
+      "goals_vs_top6": 5
+    },
+    "_note": "Using is_big6=TRUE filter. Haaland: 5 goals vs Big Six."
   },
   {
     "id": "QV4_39",
@@ -435,8 +438,9 @@
     "answer": {
       "short_name": "Bruno Fernandes",
       "team_name": "Manchester United",
-      "progressive_passes_vs_top6": 111
-    }
+      "progressive_passes_vs_big6": 99
+    },
+    "_note": "Big6 = is_big6=true. Top midfielder: Bruno Fernandes 99 prog passes."
   },
   {
     "id": "QV5_42",
@@ -498,9 +502,10 @@
     "expected_stage": "sprint_5",
     "question": "Which team scored the most away goals against top-6 teams this season?",
     "answer": {
-      "team_name": "Bournemouth",
-      "away_goals_vs_top6": 10
-    }
+      "team_name": "Liverpool",
+      "away_goals_vs_top6": 14
+    },
+    "_note": "Using is_big6=TRUE filter. Liverpool: 14 away goals vs Big Six."
   },
   {
     "id": "QV5_48",
@@ -602,16 +607,16 @@
     "question": "How many goals has Salah scored against the 3 teams that have conceded the fewest goals?",
     "debug_expected": {
       "engine": "metric_derived_bucket",
-      "value": 4,
+      "value": 3,
       "subset_p90": 0.67,
       "season_p90": 0.77,
       "team_names": [
         "Arsenal",
         "Chelsea",
-        "Manchester City"
+        "Everton"
       ]
     },
-    "_note": "Derived bucket (fewest goals_against, n=3): Arsenal, Chelsea, Manchester City (Liverpool excluded as Salah's team). Salah: 4 goals / 535 min → 0.67p90. Season: 0.77p90."
+    "_note": "Derived bucket (fewest total_goals_against, n=3, Liverpool excluded): Arsenal(34), Chelsea(43), Everton(44). Salah: 3 goals."
   },
   {
     "id": "QV6_57",
@@ -639,16 +644,16 @@
     "question": "How many assists has Salah made against the 3 teams that have conceded the fewest goals?",
     "debug_expected": {
       "engine": "metric_derived_bucket",
-      "value": 3,
+      "value": 2,
       "subset_p90": 0.5,
       "season_p90": 0.43,
       "team_names": [
         "Arsenal",
         "Chelsea",
-        "Manchester City"
+        "Everton"
       ]
     },
-    "_note": "Same derived bucket as QV6_56 (Arsenal, Chelsea, Manchester City) but final metric = assists. Salah: 3 assists / 535 min → 0.50p90. Season: 0.43p90."
+    "_note": "Same derived bucket as QV6_56 (Arsenal, Chelsea, Everton) but metric = assists. Salah: 2 assists."
   },
   {
     "id": "QV6_58",

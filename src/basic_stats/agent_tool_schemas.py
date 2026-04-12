@@ -69,6 +69,23 @@ _FILTERS_SCHEMA: dict = {
                 "'Striker', 'Winger', 'Midfielder', 'Defender', 'Goalkeeper'. Null = no filter."
             ),
         },
+        "player_team": {
+            "type": ["string", "null"],
+            "description": (
+                "Filter to players belonging to this team (e.g. 'Liverpool'). "
+                "Use when the question asks for the top scorer within a specific club. Null = no filter."
+            ),
+        },
+        "opponent_is_big6": {
+            "type": ["boolean", "null"],
+            "description": (
+                "true = only matches against Big Six clubs (Arsenal, Chelsea, Liverpool, "
+                "Manchester City, Manchester United, Tottenham Hotspur). "
+                "Use this instead of opponent_rank_max=6 when the question mentions "
+                "'Big Six' or 'top 6 teams' — the Big Six is defined by club identity, "
+                "not final league position. Null = no filter."
+            ),
+        },
     },
     "required": [
         "opponent_team",
@@ -81,6 +98,8 @@ _FILTERS_SCHEMA: dict = {
         "min_matches",
         "age_max",
         "position",
+        "player_team",
+        "opponent_is_big6",
     ],
     "additionalProperties": False,
 }
@@ -162,6 +181,32 @@ GET_TEAM_STAT_SCHEMA: dict[str, Any] = {
     },
 }
 
+_MATCH_CONDITIONS_SCHEMA: dict = {
+    "type": ["array", "null"],
+    "description": (
+        "Optional list of per-match conditions that must ALL be true. "
+        "When set, rank_players counts the number of matches where ALL conditions hold "
+        "(e.g. goals>=1 AND assists>=1). Use this for questions like "
+        "'Which player has the most matches with both a goal and an assist?' or "
+        "'Which player has the most matches with 2+ goals?'. "
+        "When null, rank by the stat sum/total. "
+        "Player match metrics: goals, assists, minutes_played, yellow_card, red_card."
+    ),
+    "items": {
+        "type": "object",
+        "properties": {
+            "metric": {"type": "string"},
+            "operator": {
+                "type": "string",
+                "enum": [">", ">=", "<", "<=", "=", "!="],
+            },
+            "value": {"type": "number"},
+        },
+        "required": ["metric", "operator", "value"],
+        "additionalProperties": False,
+    },
+}
+
 RANK_PLAYERS_SCHEMA: dict[str, Any] = {
     "type": "function",
     "function": {
@@ -170,12 +215,14 @@ RANK_PLAYERS_SCHEMA: dict[str, Any] = {
         "description": (
             "Rank all players by a stat and return the top/bottom N. "
             "Use for questions like 'Which player has scored the most goals?' or "
-            "'Which midfielder has the most progressive passes against top-6 teams?'"
+            "'Which midfielder has the most progressive passes against top-6 teams?'. "
+            "For 'which player has the most matches with X' questions, set "
+            "match_conditions instead of stat."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "stat": {"type": "string", "description": _STAT_DESCRIPTION},
+                "stat": {"type": ["string", "null"], "description": _STAT_DESCRIPTION},
                 "filters": _FILTERS_SCHEMA,
                 "limit": {
                     "type": "integer",
@@ -185,8 +232,9 @@ RANK_PLAYERS_SCHEMA: dict[str, Any] = {
                     "type": "boolean",
                     "description": "true = highest first (most/best), false = lowest first (fewest/worst).",
                 },
+                "match_conditions": _MATCH_CONDITIONS_SCHEMA,
             },
-            "required": ["stat", "filters", "limit", "descending"],
+            "required": ["stat", "filters", "limit", "descending", "match_conditions"],
             "additionalProperties": False,
         },
     },
@@ -360,6 +408,42 @@ GET_LEAGUE_STANDINGS_SCHEMA: dict[str, Any] = {
     },
 }
 
+GET_STAT_VS_OPPONENT_GROUP_SCHEMA: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "get_stat_vs_opponent_group",
+        "strict": True,
+        "description": (
+            "Return a player's or team's aggregated stat across a specific list of opponents. "
+            "Use this for two-step questions like 'How many goals has Salah scored against the "
+            "3 teams that have conceded the fewest goals?'. "
+            "Step 1: call rank_teams to find which teams form the group. "
+            "Step 2: call this tool with those team names to aggregate the stat."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "entity_type": {
+                    "type": "string",
+                    "enum": ["player", "team"],
+                },
+                "entity_name": {
+                    "type": "string",
+                    "description": "Player or team name to aggregate stats for.",
+                },
+                "stat": {"type": "string", "description": _STAT_DESCRIPTION},
+                "opponent_teams": {
+                    "type": "array",
+                    "description": "List of opponent team names to aggregate against.",
+                    "items": {"type": "string"},
+                },
+            },
+            "required": ["entity_type", "entity_name", "stat", "opponent_teams"],
+            "additionalProperties": False,
+        },
+    },
+}
+
 ALL_AGENT_TOOLS: list[dict[str, Any]] = [
     GET_PLAYER_STAT_SCHEMA,
     GET_TEAM_STAT_SCHEMA,
@@ -369,4 +453,5 @@ ALL_AGENT_TOOLS: list[dict[str, Any]] = [
     COUNT_MATCHES_WHERE_SCHEMA,
     GET_STAT_OVER_WINDOW_SCHEMA,
     GET_LEAGUE_STANDINGS_SCHEMA,
+    GET_STAT_VS_OPPONENT_GROUP_SCHEMA,
 ]

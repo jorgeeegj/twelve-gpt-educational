@@ -21,18 +21,40 @@ from dataclasses import dataclass
 # (meta-numbers like gameweek counts, team counts, etc.)
 _META_WHITELIST = {6, 20, 38}
 
-_NUMBER_PATTERN = re.compile(r"\b\d+(?:[.,]\d+)?\b")
+# Matches integers and decimals, including European thousands separators.
+# Examples: 3420, 3.420, 3,420, 5.12, 0.85
+_NUMBER_PATTERN = re.compile(r"\b\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?\b|\b\d+(?:[.,]\d+)?\b")
 
 
 def _parse_numbers_from_text(text: str) -> list[float]:
-    """Extract all numeric values from a string."""
+    """Extract all numeric values from a string.
+
+    Handles both locale formats:
+      - English decimals:  3420  /  5.12  /  3,420
+      - European thousands: 3.420  (dot as thousands separator)
+
+    Heuristic: if the pattern is X.YYY or X,YYY (exactly 3 decimal digits)
+    treat it as a thousands-separated integer (3.420 → 3420), otherwise treat
+    the separator as a decimal point.
+    """
     results = []
     for m in _NUMBER_PATTERN.finditer(text):
-        raw = m.group().replace(",", "")
-        try:
-            results.append(float(raw))
-        except ValueError:
-            pass
+        raw = m.group()
+        # Detect European thousands: integer part >= 1 digit, then dot/comma,
+        # then exactly 3 digits, AND the integer part itself is >= 1 (i.e. "3.420")
+        # NOT "0.854" — a leading zero means it's a decimal, not thousands.
+        eu_thousands = re.fullmatch(r"([1-9]\d*)[.,](\d{3})", raw)
+        if eu_thousands:
+            # Strip the separator → treat as plain integer (3.420 → 3420)
+            value = float(raw.replace(".", "").replace(",", ""))
+        else:
+            # Normal: treat comma as thousands separator, dot as decimal
+            value_str = raw.replace(",", "")
+            try:
+                value = float(value_str)
+            except ValueError:
+                continue
+        results.append(value)
     return results
 
 
@@ -77,15 +99,14 @@ def judge_faithfulness(answer: str, entry: dict) -> FaithfulnessResult:
 
     # Also pull from debug_expected numeric leaves (skip internal metadata keys)
     _DEBUG_SKIP_KEYS = {"engine", "table", "metric"}
-    # Skip p90/rate stats — these are internal benchmark metadata, not values
-    # the agent should report. Keys use both _ and . separators (e.g. subset_p90,
-    # bucket_a.p90), so we strip to the last segment before checking.
-    _DEBUG_SKIP_LEAF_SUFFIXES = ("p90", "pct", "rate")
+    # Skip any key that contains "p90", "pct", or "rate" as a segment (separated
+    # by _ or .) — covers subset_p90, season_p90, bucket_a.p90, p90_away, etc.
+    _DEBUG_SKIP_TOKENS = {"p90", "pct", "rate"}
     debug_exp = entry.get("debug_expected") or {}
     if isinstance(debug_exp, dict):
         for k, v in debug_exp.items():
-            leaf = k.rsplit(".", 1)[-1].rsplit("_", 1)[-1]
-            if k in _DEBUG_SKIP_KEYS or leaf in _DEBUG_SKIP_LEAF_SUFFIXES:
+            segments = re.split(r"[._]", k)
+            if k in _DEBUG_SKIP_KEYS or _DEBUG_SKIP_TOKENS.intersection(segments):
                 continue
             n = _normalize(v)
             if n is not None and n not in _META_WHITELIST:

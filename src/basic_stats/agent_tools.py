@@ -39,6 +39,8 @@ class Filters:
     min_matches: int | None = None
     age_max: int | None = None
     position: str | None = None
+    opponent_is_big6: bool | None = None  # filter by Big Six club identity
+    player_team: str | None = None  # filter to players from this team
 
     @classmethod
     def from_dict(cls, d: dict | None) -> "Filters":
@@ -55,6 +57,8 @@ class Filters:
             min_matches=d.get("min_matches"),
             age_max=d.get("age_max"),
             position=d.get("position"),
+            opponent_is_big6=d.get("opponent_is_big6"),
+            player_team=d.get("player_team"),
         )
 
     def has_match_context(self) -> bool:
@@ -65,6 +69,7 @@ class Filters:
                 self.is_home,
                 self.opponent_rank_max,
                 self.opponent_rank_min,
+                self.opponent_is_big6,
                 self.matchday_start,
                 self.matchday_end,
             ]
@@ -136,6 +141,7 @@ def get_player_stat(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=1,
@@ -152,6 +158,7 @@ def get_player_stat(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=1,
@@ -196,6 +203,7 @@ def get_team_stat(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=1,
@@ -219,24 +227,48 @@ def get_team_stat(
 
 def rank_players(
     duck: DuckDBManager,
-    stat: str,
+    stat: str | None = None,
     filters: dict | None = None,
     limit: int = 1,
     descending: bool = True,
+    match_conditions: list[dict] | None = None,
 ) -> dict:
-    """Return top/bottom N players ranked by a stat."""
+    """Return top/bottom N players ranked by a stat or by a match-condition count."""
     f = Filters.from_dict(filters)
     limit = max(1, min(limit, 20))
+
+    # match_conditions mode: count matches where all conditions hold
+    if match_conditions:
+        rows = duck.query_player_match_context(
+            metric="goals",  # base metric; match_conditions do the actual filtering
+            agg="count_matches_positive",
+            team_name=f.player_team,
+            is_home=f.is_home,
+            opponent_team_name=f.opponent_team,
+            opponent_rank_lte=f.opponent_rank_max,
+            opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
+            matchday_start=f.matchday_start,
+            matchday_end=f.matchday_end,
+            match_conditions=match_conditions,
+            limit=limit,
+        )
+        return ToolResult(rows=rows).to_dict()
+
+    if stat is None:
+        raise ToolError("rank_players requires either stat or match_conditions")
 
     if _is_player_match_event_metric(stat):
         rows = duck.query_player_match_event_context(
             metric=stat,
             agg="sum",
             position=f.position,
+            team_name=f.player_team,
             is_home=f.is_home,
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=limit,
@@ -248,10 +280,12 @@ def rank_players(
         rows = duck.query_player_match_context(
             metric=effective_stat,
             agg="sum",
+            team_name=f.player_team,
             is_home=f.is_home,
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=limit,
@@ -297,6 +331,7 @@ def rank_teams(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=limit,
@@ -380,6 +415,7 @@ def count_matches_where(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             match_conditions=conditions,
@@ -401,6 +437,7 @@ def count_matches_where(
             opponent_team_name=f.opponent_team,
             opponent_rank_lte=f.opponent_rank_max,
             opponent_rank_gte=f.opponent_rank_min,
+            opponent_is_big6=f.opponent_is_big6,
             matchday_start=f.matchday_start,
             matchday_end=f.matchday_end,
             limit=1,
@@ -445,7 +482,74 @@ def get_stat_over_window(
 
 
 # ---------------------------------------------------------------------------
-# Tool 8 — get_league_standings
+# Tool 8 — get_stat_vs_opponent_group
+# ---------------------------------------------------------------------------
+
+
+def get_stat_vs_opponent_group(
+    duck: DuckDBManager,
+    entity_type: str,
+    entity_name: str,
+    stat: str,
+    opponent_teams: list[str],
+) -> dict:
+    """
+    Return a player's or team's aggregated stat across a specific list of opponents.
+
+    Use this when a question names a derived set of opponents, e.g.:
+    "How many goals has Salah scored against the 3 teams that concede the fewest goals?"
+
+    Workflow:
+      1. Call rank_teams to find which teams form the group (e.g. fewest goals conceded).
+      2. Extract the team names from the result rows.
+      3. Call this tool with those names to get the aggregated stat.
+    """
+    if not opponent_teams:
+        raise ToolError("opponent_teams list cannot be empty")
+
+    placeholders = ", ".join("?" for _ in opponent_teams)
+    params_lower = [t.lower() for t in opponent_teams]
+
+    if entity_type == "player":
+        if stat in PLAYER_MATCH_EVENT_ALLOWED_METRICS:
+            sql = f"""
+            SELECT pmes.short_name, pmes.team_name,
+                   SUM(pmes.{stat}) AS metric_value
+            FROM player_match_event_stats pmes
+            WHERE lower(pmes.short_name) = lower(?)
+              AND lower(pmes.opponent_team_name) IN ({placeholders})
+            GROUP BY pmes.short_name, pmes.team_name
+            """
+        else:
+            effective = stat if stat in PLAYER_MATCH_ALLOWED_METRICS else "goals"
+            sql = f"""
+            SELECT pms.short_name, pms.team_name,
+                   SUM(pms.{effective}) AS metric_value
+            FROM player_match_stats pms
+            WHERE lower(pms.short_name) = lower(?)
+              AND lower(pms.opponent_team_name) IN ({placeholders})
+            GROUP BY pms.short_name, pms.team_name
+            """
+        rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
+    else:
+        if stat not in TEAM_MATCH_ALLOWED_METRICS:
+            raise ToolError(f"stat '{stat}' is not available in team match data")
+        sql = f"""
+        SELECT tms.team_name,
+               SUM(tms.{stat}) AS metric_value
+        FROM team_match_stats tms
+        WHERE lower(tms.team_name) = lower(?)
+          AND lower(tms.opponent_team_name) IN ({placeholders})
+        GROUP BY tms.team_name
+        """
+        rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
+
+    note = f"Aggregated {stat} vs opponents: {', '.join(opponent_teams)}"
+    return ToolResult(rows=rows, note=note).to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Tool 9 — get_league_standings
 # ---------------------------------------------------------------------------
 
 

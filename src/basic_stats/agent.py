@@ -24,6 +24,7 @@ from src.basic_stats.agent_tools import (
     get_league_standings,
     get_player_stat,
     get_stat_over_window,
+    get_stat_vs_opponent_group,
     get_team_stat,
     rank_players,
     rank_teams,
@@ -50,6 +51,7 @@ def _build_tool_map(duck: DuckDBManager) -> dict[str, Any]:
         "count_matches_where": lambda **kw: count_matches_where(duck, **kw),
         "get_stat_over_window": lambda **kw: get_stat_over_window(duck, **kw),
         "get_league_standings": lambda **kw: get_league_standings(duck, **kw),
+        "get_stat_vs_opponent_group": lambda **kw: get_stat_vs_opponent_group(duck, **kw),
     }
 
 

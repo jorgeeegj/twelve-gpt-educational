@@ -850,11 +850,40 @@ class QueryPlanner:
                         "You are a football statistics assistant. "
                         "Given a user question, call the most appropriate tool to retrieve the answer. "
                         "Always use a tool — never respond with plain text. "
-                        "For metric names use the canonical English form: goals, assists, xg, "
-                        "progressive_passes, tackles_won, interceptions, aerial_duels_won, "
-                        "minutes_played, shots, shots_on_target, key_passes, yellow_card, red_card, "
-                        "dribbles_completed, clearances, saves, crosses, fouls_committed, fouls_drawn, "
-                        "touches_in_box, shot_assists, actions_z3, team_score, opponent_score. "
+                        "METRIC NAMES — always use the canonical form:\n"
+                        "- goals scored / goals (player/team): 'goals'\n"
+                        "- goals conceded / allowed / fewest goals: 'goals_conceded'\n"
+                        "- assists: 'assists'\n"
+                        "- passing accuracy / pass accuracy / most accurate passing: 'pass_accuracy'\n"
+                        "- progressive passes: 'progressive_passes'\n"
+                        "- progressive passes per 90: 'progressive_passes_per_90'\n"
+                        "- key passes: 'key_passes'\n"
+                        "- key passes per 90: 'key_passes_per_90'\n"
+                        "- xG / expected goals: 'xg'\n"
+                        "- xG per 90: 'xg_per_90'\n"
+                        "- minutes played: 'minutes_played'\n"
+                        "- tackles won: 'tackles_won'\n"
+                        "- interceptions: 'interceptions'\n"
+                        "- aerial duels won: 'aerial_duels_won'\n"
+                        "- aerial duels won per 90: 'aerial_duels_won_per_90'\n"
+                        "- shots on target: 'shots_on_target'\n"
+                        "- shots on target per 90: 'shots_on_target_per_90'\n"
+                        "- yellow cards: 'yellow_card'\n"
+                        "- red cards: 'red_card'\n"
+                        "- dribbles completed / dribble success rate: 'dribbles_completed'\n"
+                        "- touches in box / box touches: 'touches_in_box'\n"
+                        "- touches in box per 90: 'touches_in_box_per_90'\n"
+                        "- recoveries: 'recoveries'\n"
+                        "- recoveries per 90: 'recoveries_per_90'\n"
+                        "- clearances: 'clearances'\n"
+                        "- saves: 'saves'\n"
+                        "- crosses: 'crosses'\n"
+                        "- fouls committed: 'fouls_committed'\n"
+                        "- fouls drawn / fouls suffered: 'fouls_drawn'\n"
+                        "- shot assists: 'shot_assists'\n"
+                        "- actions in zone 3: 'actions_z3'\n"
+                        "- offsides drawn / offsides provoked: 'offsides_drawn'\n"
+                        "- points won: 'points'\n"
                         "For entity names use the canonical short form: 'E. Haaland', 'K. De Bruyne', "
                         "'Liverpool', 'Manchester City'. "
                         "For 'big six' or 'big 6' opponents use opponent_is_big6=true. "
@@ -1001,8 +1030,58 @@ class QueryPlanner:
             table_scope = "player_match" if has_match_context else "players_summary"
 
         # Apply scope-level metric renames (canonicalization_rules.md §15)
-        # so _post_process_plan receives the correct column name
-        if table_scope == "player_match":
+        # so _post_process_plan receives the correct column name.
+        #
+        # Summary scopes use prefixed names (total_goals, total_assists, etc.)
+        # Match scopes use unprefixed names (goals, assists, etc.)
+        _PLAYERS_SUMMARY_RENAMES = {
+            "goals": "total_goals",
+            "assists": "total_assists",
+            "minutes_played": "total_minutes",
+            "minutes": "total_minutes",
+            "yellow_card": "total_yellow_cards",
+            "yellow_cards": "total_yellow_cards",
+            "red_card": "total_red_cards",
+            "red_cards": "total_red_cards",
+            "xg": "xg_total",
+            "expected_goals": "xg_total",
+            "goals_per_90": "total_goals_p90",
+            "assists_per_90": "total_assists_p90",
+            "xg_per_90": "xg_total_p90",
+            "dribbles_completed": "dribbles_won",
+            "dribble_success_rate": "dribble_success_pct",
+            "pass_accuracy": "pass_accuracy_pct",
+            "passing_accuracy": "pass_accuracy_pct",
+            # p90 variants (LLM may use these for rank_by_metric p90 questions)
+            "progressive_passes_per_90": "progressive_passes_p90",
+            "recoveries_per_90": "recoveries_p90",
+            "aerial_duels_won_per_90": "aerial_duels_won_p90",
+            "touches_in_box_per_90": "touches_in_box_p90",
+            "shots_on_target_per_90": "shots_on_target_p90",
+            "key_passes_per_90": "key_passes_p90",
+            "interceptions_per_90": "interceptions_p90",
+        }
+        _TEAMS_SUMMARY_RENAMES = {
+            "goals": "total_goals",
+            "goals_scored": "total_goals",
+            "goals_conceded": "total_goals_against",
+            "goals_allowed": "total_goals_against",
+            "assists": "total_assists",
+            "xg": "xg_total",
+            "expected_goals": "xg_total",
+            "offsides_drawn": "offsides",
+            "offsides_provoked": "offsides",
+            "pass_accuracy": "pass_accuracy_pct",
+            "passing_accuracy": "pass_accuracy_pct",
+            "progressive_passes_per_90": "progressive_passes_p90",
+            "key_passes_per_90": "key_passes_p90",
+        }
+
+        if table_scope == "players_summary":
+            metric = _PLAYERS_SUMMARY_RENAMES.get(metric, metric)
+        elif table_scope == "teams_summary":
+            metric = _TEAMS_SUMMARY_RENAMES.get(metric, metric)
+        elif table_scope == "player_match":
             if metric in ("total_goals", "away_goals"):
                 metric = "goals"
             elif metric in ("total_assists",):

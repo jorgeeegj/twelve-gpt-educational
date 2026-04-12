@@ -1,0 +1,178 @@
+{
+  "benchmark_path": "/Users/ricardoheredia/Twelve-GPT-Educational/evals/questions_benchmark.json",
+  "total_passed": 59,
+  "total_questions": 61,
+  "score": "59/61",
+  "elapsed_seconds": 177.1,
+  "max_workers": 15,
+  "by_category": {
+    "baseline_player_advanced": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5"
+    },
+    "baseline_player_basic": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5"
+    },
+    "baseline_player_filtered": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3"
+    },
+    "baseline_team_advanced": {
+      "passed": 2,
+      "total": 2,
+      "score": "2/2"
+    },
+    "baseline_team_basic": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5"
+    },
+    "dual_bucket_comparison": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1"
+    },
+    "home_away_comparison": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1"
+    },
+    "home_away_context": {
+      "passed": 2,
+      "total": 2,
+      "score": "2/2"
+    },
+    "match_level_minutes": {
+      "passed": 4,
+      "total": 4,
+      "score": "4/4"
+    },
+    "metric_derived_bucket": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3"
+    },
+    "mid_table_bucket": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1"
+    },
+    "opponent_context": {
+      "passed": 1,
+      "total": 2,
+      "score": "1/2"
+    },
+    "ordinal_ranking": {
+      "passed": 6,
+      "total": 6,
+      "score": "6/6"
+    },
+    "planner_robustness": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1"
+    },
+    "planner_robustness_es": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1"
+    },
+    "player_match_event_context": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5"
+    },
+    "rephrase_en": {
+      "passed": 2,
+      "total": 3,
+      "score": "2/3"
+    },
+    "rephrase_es": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3"
+    },
+    "team_match_context": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5"
+    },
+    "temporal_entity_value": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3"
+    }
+  },
+  "by_expected_stage": {
+    "baseline": {
+      "passed": 20,
+      "total": 20,
+      "score": "20/20",
+      "stage_name": "Baseline regression"
+    },
+    "sprint_1": {
+      "passed": 11,
+      "total": 12,
+      "score": "11/12",
+      "stage_name": "Sprint 1 - Robust NL + Ordinal Ranking"
+    },
+    "sprint_10": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3",
+      "stage_name": "Sprint 10 - Temporal entity-value"
+    },
+    "sprint_2": {
+      "passed": 4,
+      "total": 4,
+      "score": "4/4",
+      "stage_name": "Sprint 2 - Match-level tables (minutes + matches)"
+    },
+    "sprint_3": {
+      "passed": 3,
+      "total": 4,
+      "score": "3/4",
+      "stage_name": "Sprint 3 - Opponent and home/away context"
+    },
+    "sprint_4": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5",
+      "stage_name": "Sprint 4 - Event-level match context"
+    },
+    "sprint_5": {
+      "passed": 5,
+      "total": 5,
+      "score": "5/5",
+      "stage_name": "Sprint 5 - Team match context"
+    },
+    "sprint_6": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3",
+      "stage_name": "Sprint 6 - Planner robustness + mid-table bucket"
+    },
+    "sprint_7": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1",
+      "stage_name": "Sprint 7 - Dual-bucket comparison"
+    },
+    "sprint_8": {
+      "passed": 1,
+      "total": 1,
+      "score": "1/1",
+      "stage_name": "Sprint 8 - Home-away comparison"
+    },
+    "sprint_9": {
+      "passed": 3,
+      "total": 3,
+      "score": "3/3",
+      "stage_name": "Sprint 9 - Metric-derived bucket"
+    }
+  }
+}

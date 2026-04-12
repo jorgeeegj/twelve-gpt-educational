@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 4 — Extract & Clean (not started)
+**Current focus:** Phase 5 — Function Calling Core (Phase 4 complete)
 
 ---
 
@@ -93,11 +93,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - Regression verified: dual-bucket → `dual_bucket_comparison` ✓; home-away → `home_away_comparison` ✓
 - ✓ eval_runner_v4 rerun confirmed 50/50 benchmark preserved after all Phase 3 changes (2026-04-12)
 
-**Phase 4 — Extract & Clean** ○ Not Started
-- Next: Plan Phase 4 implementation via `/gsd:plan-phase 4`
-- Critical blockers for Phase 5: `canonicalization_rules.md` + `league_standings` DuckDB view must be created in Phase 4 tail
+**Phase 4 — Extract & Clean** ✓ Complete (2026-04-12)
+- ✓ Repo reorganized: `utils/basic_stats/core/` → `src/basic_stats/`
+- ✓ `pyproject.toml` + uv + ruff + pre-commit configured
+- ✓ Dead code removed (legacy eval runners, setup.py, requirements.txt)
+- ✓ `league_standings` DuckDB view added to `duckdb_manager.py`
+- ✓ `docs/canonicalization_rules.md` written (17 rule categories, prereq for Phase 5)
+- ✓ `evals/benchmark_runner.py` — parallel runner (ThreadPoolExecutor, ~5x faster)
+- ✓ `evals/smoke_test.py` — 10-question sanity check, exit 0/1
+- ✓ Benchmark: 61/61 verified (2026-04-12)
 
-**Phase 5 — Function Calling Core** ○ Pending (blocked by Phase 4)
+**Phase 5 — Function Calling Core** ○ Next up — run `/gsd:execute-phase 5` to start
 
 **Phase 6 — Conversation Memory** ○ Pending (blocked by Phase 5)
 
@@ -135,7 +141,7 @@ Saved outputs:
 
 | Phase | Name | Key Deliverables | Status |
 |-------|------|------------------|--------|
-| 4 | Extract & Clean | Repo reorganization + pyproject.toml + pre-commit + dead code removal + `canonicalization_rules.md` + `league_standings` view | Not Started |
+| 4 | Extract & Clean | Repo reorganization + pyproject.toml + pre-commit + dead code removal + `canonicalization_rules.md` + `league_standings` view | ✓ Complete |
 | 5 | Function Calling Core | 4 typed tools + dual-run validation + graceful fallback + 61/61 preserved | Pending (blocked by 4) |
 | 6 | Conversation Memory | ConversationState + multi-turn flows + token budget cap + 61/61 preserved | Pending (blocked by 5) |
 | 7 | League Context | System prompt injection + standings view usage + 5+ league-context questions working | Pending (blocked by 4+5) |
@@ -158,7 +164,7 @@ Saved outputs:
 | 1 | ✓ Complete | — | 50/50 |
 | 2 | ✓ Complete | 50/50 | 50/50 |
 | 3 | ✓ Complete | 50/50 | 50/50 |
-| 4 | ○ Not Started | 50/50 | 61/61 (target) |
+| 4 | ✓ Complete | 50/50 | 61/61 ✓ |
 | 5 | ○ Pending | 61/61 | 61/61 (target) |
 | 6 | ○ Pending | 61/61 | 61/61 (target) |
 | 7 | ○ Pending | 61/61 | 61/61 (target) |

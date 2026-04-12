@@ -31,8 +31,8 @@ db/*.duckdb.wal
 docs/evals/*_eval_results.json
 docs/evals/*__*.json
 
-# GSD planning artifacts
-.planning/
+# GSD planning artifacts — tracked intentionally for team visibility
+# .planning/
 
 # Lessons / scratch docs
 docs/lessons_inspo/

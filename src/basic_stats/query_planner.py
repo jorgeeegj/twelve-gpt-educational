@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -15,6 +16,7 @@ from src.basic_stats.config import (
     get_llm_client,
     get_model,
 )
+from src.basic_stats.function_tools import ALL_TOOLS
 
 
 def _normalize_text(text: str) -> str:
@@ -641,6 +643,10 @@ class QueryPlanner:
         self.max_matchday = self._load_max_matchday()
         self._player_alias_map = self._build_player_alias_map()
 
+        # Phase 5: function calling path. Set USE_FUNCTION_CALLING=1 env var to enable.
+        # Default False — legacy _canonicalize_raw_plan path remains active until 61/61 confirmed.
+        self.use_function_calling: bool = os.getenv("USE_FUNCTION_CALLING", "0") == "1"
+
     def _load_prompt(self, name: str) -> dict:
         return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text(encoding="utf8"))
 
@@ -827,6 +833,202 @@ class QueryPlanner:
         )
         content = response.choices[0].message.content
         return json.loads(content)
+
+    def _call_llm_with_tools(self, question: str) -> dict:
+        """
+        Call OpenAI with function calling tools. Returns a normalized plan dict
+        in the same shape expected by _post_process_plan.
+
+        Raises ValueError if the LLM returns no tool call.
+        """
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a football statistics assistant. "
+                        "Given a user question, call the most appropriate tool to retrieve the answer. "
+                        "Always use a tool — never respond with plain text. "
+                        "For metric names use the canonical English form: goals, assists, xg, "
+                        "progressive_passes, tackles_won, interceptions, aerial_duels_won, "
+                        "minutes_played, shots, shots_on_target, key_passes, yellow_card, red_card, "
+                        "dribbles_completed, clearances, saves, crosses, fouls_committed, fouls_drawn, "
+                        "touches_in_box, shot_assists, actions_z3, team_score, opponent_score. "
+                        "For entity names use the canonical short form: 'E. Haaland', 'K. De Bruyne', "
+                        "'Liverpool', 'Manchester City'. "
+                        "For 'big six' or 'big 6' opponents use opponent_is_big6=true. "
+                        "For 'top N teams' opponents use opponent_rank_lte=N. "
+                        "For 'bottom N teams' opponents use opponent_rank_gte=21-N (e.g. bottom 5 = 16). "
+                        "For 'mid-table' opponents use opponent_rank_between=[7,14]. "
+                        "For comparison questions with 'or' (e.g. top 5 OR bottom 5) use compare_across_buckets. "
+                        "For temporal window questions (last N gameweeks) use query_temporal_window. "
+                        "For ranking questions (which player has the most X) use rank_by_metric."
+                    ),
+                },
+                {"role": "user", "content": question},
+            ],
+            tools=ALL_TOOLS,
+            tool_choice="required",
+        )
+
+        message = response.choices[0].message
+        if not message.tool_calls:
+            raise ValueError(f"LLM returned no tool call for: {question!r}")
+
+        tool_call = message.tool_calls[0]
+        tool_name = tool_call.function.name
+        args = json.loads(tool_call.function.arguments)
+
+        return self._normalize_tool_args_to_plan(tool_name, args, question)
+
+    def _normalize_tool_args_to_plan(self, tool_name: str, args: dict, question: str) -> dict:
+        """
+        Convert tool call args to the normalized plan dict that _post_process_plan expects.
+        This replaces _canonicalize_raw_plan for the function calling path.
+
+        Applies the same scope-level metric renames as canonicalization_rules.md §15,
+        so _post_process_plan receives a clean dict.
+        """
+        entity_type = args.get("entity_type", "player")
+        metric = args.get("metric", "goals")
+        aggregation = args.get("aggregation", "sum")
+
+        # Build filters dict
+        filters: dict = {
+            "player_name": None,
+            "team_name": None,
+            "opponent_team_name": None,
+            "position": args.get("position"),
+            "is_home": args.get("is_home"),
+            "opponent_rank_lte": args.get("opponent_rank_lte"),
+            "opponent_rank_gte": args.get("opponent_rank_gte"),
+            "opponent_rank_between": args.get("opponent_rank_between"),
+            "opponent_is_big6": args.get("opponent_is_big6"),
+            "matchday_start": args.get("matchday_start"),
+            "matchday_end": args.get("matchday_end"),
+            "min_minutes": args.get("min_minutes"),
+            "min_matches": args.get("min_matches"),
+            "age_lt": None,
+        }
+
+        # Resolve entity name — deterministic scan always overrides LLM value
+        entity_name = args.get("entity_name") or args.get("team_name")
+        if entity_name:
+            if entity_type == "player":
+                resolved = self._match_known_name(question, self.player_names)
+                if not resolved:
+                    resolved = self._match_player_alias(question)
+                if not resolved:
+                    resolved = self._resolve_player_suffix(entity_name)
+                if resolved:
+                    entity_name = resolved
+                filters["player_name"] = entity_name
+            else:
+                resolved = self._match_known_name(question, self.team_names)
+                if resolved:
+                    entity_name = resolved
+                filters["team_name"] = entity_name
+
+        # Opponent team from direct arg
+        if args.get("opponent_team"):
+            filters["opponent_team_name"] = args["opponent_team"]
+
+        # Temporal window: convert last_n_gameweeks to matchday range
+        if tool_name == "query_temporal_window":
+            last_n = args.get("last_n_gameweeks", 5)
+            filters["matchday_end"] = self.max_matchday
+            filters["matchday_start"] = self.max_matchday - last_n + 1
+
+        # Ranking
+        if tool_name == "rank_by_metric":
+            ranking_mode = args.get("ranking_mode", "top_n")
+            n = args.get("n", 1)
+            descending = args.get("descending", True)
+            if ranking_mode == "ordinal":
+                ranking = {"mode": "ordinal", "n": None, "ordinal": n}
+            else:
+                ranking = {"mode": "top_n", "n": n or 1, "ordinal": None}
+            # For ranking, entity_name filters don't apply — only team filter (e.g. "at Arsenal")
+            filters["player_name"] = None
+            if args.get("team_name") and entity_type == "player":
+                filters["team_name"] = args["team_name"]
+            else:
+                filters["team_name"] = None
+            # Carry rank-related filters from args top-level
+            for rank_key in (
+                "opponent_rank_lte",
+                "opponent_rank_gte",
+                "opponent_rank_between",
+                "opponent_is_big6",
+                "is_home",
+                "matchday_start",
+                "matchday_end",
+                "min_minutes",
+                "min_matches",
+            ):
+                if args.get(rank_key) is not None:
+                    filters[rank_key] = args[rank_key]
+        else:
+            ranking = {"mode": "entity_value", "n": None, "ordinal": None}
+
+        # For compare_across_buckets: apply bucket_a filters to this plan dict.
+        # The llm_query_engine_v2 dual-bucket detection fires on the question text,
+        # so the plan dict just needs bucket_a filters to route correctly.
+        if tool_name == "compare_across_buckets":
+            bucket_a = args.get("bucket_a", {})
+            for k, v in bucket_a.items():
+                if v is not None:
+                    filters[k] = v
+
+        # Determine table_scope based on entity type + filter context
+        has_match_context = any(
+            filters.get(k) is not None
+            for k in (
+                "opponent_team_name",
+                "opponent_rank_lte",
+                "opponent_rank_gte",
+                "opponent_rank_between",
+                "opponent_is_big6",
+                "is_home",
+                "matchday_start",
+            )
+        )
+
+        if entity_type == "team":
+            table_scope = "team_match" if has_match_context else "teams_summary"
+        else:
+            table_scope = "player_match" if has_match_context else "players_summary"
+
+        # Apply scope-level metric renames (canonicalization_rules.md §15)
+        # so _post_process_plan receives the correct column name
+        if table_scope == "player_match":
+            if metric in ("total_goals", "away_goals"):
+                metric = "goals"
+            elif metric in ("total_assists",):
+                metric = "assists"
+            elif metric in ("total_minutes",):
+                metric = "minutes_played"
+        elif table_scope == "team_match":
+            if metric in ("goals", "total_goals", "away_goals"):
+                metric = "team_score"
+            elif metric == "total_goals_against":
+                metric = "opponent_score"
+            elif metric in ("points", "wins", "goal_difference"):
+                # Keep metric as-is; aggregation carries semantic meaning
+                metric = "team_score"
+            elif metric in ("actions_in_z3", "z3_actions"):
+                metric = "actions_z3"
+
+        return {
+            "table_scope": table_scope,
+            "entity_type": entity_type,
+            "metric": metric,
+            "aggregation": aggregation,
+            "filters": filters,
+            "ranking": ranking,
+            "match_conditions": None,
+        }
 
     def _validate_scope_and_metric(self, plan: QueryPlan) -> None:
         if plan.table_scope not in self.allowed_scopes:
@@ -1708,9 +1910,19 @@ class QueryPlanner:
         return plan
 
     def resolve(self, question: str) -> QueryPlan:
-        raw_plan = self._call_llm_for_plan(question)
-        canonical_plan = self._canonicalize_raw_plan(question, raw_plan)
-        return self._post_process_plan(question, canonical_plan)
+        if self.use_function_calling:
+            try:
+                plan_dict = self._call_llm_with_tools(question)
+            except Exception as e:
+                print(f"[PLANNER] Function calling failed, falling back to legacy: {e}")
+                raw_plan = self._call_llm_for_plan(question)
+                canonical_plan = self._canonicalize_raw_plan(question, raw_plan)
+                return self._post_process_plan(question, canonical_plan)
+            return self._post_process_plan(question, plan_dict)
+        else:
+            raw_plan = self._call_llm_for_plan(question)
+            canonical_plan = self._canonicalize_raw_plan(question, raw_plan)
+            return self._post_process_plan(question, canonical_plan)
 
     def to_debug_dict(self, plan: QueryPlan) -> dict[str, Any]:
         return plan.model_dump()

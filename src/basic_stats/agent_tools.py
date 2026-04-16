@@ -327,7 +327,26 @@ def rank_teams(
     """Return top/bottom N teams ranked by a stat."""
     limit = max(1, min(limit, 20))
 
-    if _is_team_match_metric(stat) or _has_match_context(filters):
+    # Use match context only when there are active match-level filters OR the stat
+    # is exclusive to the match table (not in teams_summary). Avoids a DuckDB
+    # internal error when ranking all teams by a summary-available stat.
+    _TEAM_MATCH_ONLY = {
+        "team_score",
+        "opponent_score",
+        "points",
+        "goal_difference",
+        "assists",
+        "pass_z2_to_z4",
+        "pass_z2_to_z5",
+        "pass_z3_to_z4",
+        "pass_z3_to_z5",
+        "carry_z2_to_z4",
+        "carry_z2_to_z5",
+        "carry_z3_to_z4",
+        "carry_z3_to_z5",
+    }
+    needs_match = _has_match_context(filters) or stat in _TEAM_MATCH_ONLY
+    if needs_match:
         effective_stat = stat if _is_team_match_metric(stat) else "team_score"
         agg = stat if stat in {"points", "wins", "goal_difference"} else "sum"
         rows = duck.query_team_match_context(

@@ -19,3 +19,7 @@ def get_llm_client() -> AzureOpenAI:
 
 def get_model() -> str:
     return st.secrets["GPT_CHAT_MODEL"]
+
+
+def get_embeddings_model() -> str:
+    return st.secrets["GPT_EMBEDDINGS_MODEL"]

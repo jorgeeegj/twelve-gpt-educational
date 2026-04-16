@@ -771,3 +771,25 @@ class DuckDBManager:
             "player_match_event_stats": self.query_dicts(sql_player_match_event)[0]["n"],
             "team_match_stats": self.query_dicts(sql_team_match)[0]["n"],
         }
+
+    # ------------------------------------------------------------------
+    # Phase 6 — Embedding / VSS (stubs, not yet implemented)
+    # ------------------------------------------------------------------
+
+    def store_entity_embeddings(self) -> None:
+        """
+        Phase 6: Generate embeddings for all player/team names using
+        text-embedding-3-large and store them in a DuckDB VSS table
+        for fuzzy entity resolution.
+        """
+        raise NotImplementedError("store_entity_embeddings will be implemented in Phase 6")
+
+    def fuzzy_resolve_entity(self, user_input: str, entity_type: str) -> str:
+        """
+        Phase 6: Resolve a fuzzy or abbreviated player/team name to the
+        canonical DB name using cosine similarity over stored embeddings.
+
+        entity_type: 'player' | 'team'
+        Returns the best-matching canonical name from the DB.
+        """
+        raise NotImplementedError("fuzzy_resolve_entity will be implemented in Phase 6")

@@ -70,7 +70,11 @@ _FILTERS_SCHEMA: dict = {
             "type": ["string", "null"],
             "description": (
                 "Filter by playing position. Use exact DB values: "
-                "'Striker', 'Winger', 'Midfielder', 'Defender', 'Goalkeeper'. Null = no filter."
+                "'Striker', 'Winger', 'Midfielder', 'Central Defender', 'Full Back', 'Goalkeeper'. "
+                "Map user aliases: 'CB'/'centre-back' → 'Central Defender', "
+                "'LB'/'RB'/'full-back' → 'Full Back', 'GK'/'keeper' → 'Goalkeeper', "
+                "'CM'/'DM'/'AM' → 'Midfielder', 'CF'/'forward' → 'Striker', "
+                "'winger'/'LW'/'RW' → 'Winger'. Null = no filter."
             ),
         },
         "player_team": {

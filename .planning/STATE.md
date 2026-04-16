@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 6 — Random Question Robustness (Phase 5 complete)
+**Current focus:** Phase 7 — Conversation Memory (Phase 6 complete)
 
 ---
 
@@ -129,9 +129,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Step 7: `pages/basic_stats.py` wraps `BasicStatsAgent` in `@st.cache_resource`; calls `agent.reset()` on clear-chat; drops `history=` kwarg — state carried server-side (commit `492073d7`)
 - ✓ `TestFilters` removed from test suite (Filters dataclass eliminated in Step 4); 31 tests passing
 
-**Phase 6 — Random Question Robustness** ○ Pending (was blocked by Phase 5) ⬆️ *was Phase 8*
+**Phase 6 — Random Question Robustness** ✓ Complete (2026-04-16)
 
-**Phase 7 — Conversation Memory** ○ Pending (blocked by Phase 6) ⬆️ *was Phase 6*
+**Phase 7 — Conversation Memory** ○ Pending (blocked by Phase 6 — now unblocked) ⬆️ *was Phase 6*
 
 **Phase 8 — League Context** ○ Pending (blocked by Phase 7) ⬆️ *was Phase 7*
 

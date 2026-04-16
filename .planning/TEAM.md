@@ -14,11 +14,106 @@ python evals/agent_benchmark.py --workers 1 --label my_fix && git add ... && git
 ## ¿Dónde estamos?
 
 **Milestone:** v2.0 — Function Calling Architecture
-**Fase actual:** Phase 5 — Function Calling Core ◐ In Progress
-**Benchmark:** 51/61 = 83.6% faithfulness gate (2026-04-13) — objetivo ≥58/61
+**Fase actual:** Phase 7 — Conversation Memory (Phases 5 y 6 completas)
+**Benchmark random questions:** 21/21 (100%) faithfulness — 2026-04-16
 
 Para ver el estado completo: [STATE.md](./STATE.md)
 Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
+
+---
+
+## Brief v2.0 — El qué, cómo y por qué para el equipo
+
+### De dónde venimos (v1)
+
+La v1 era un pipeline clásico: el usuario escribe una pregunta, un `QueryPlanner`
+la parsea con regex y heurísticas, construye un plan SQL, y `DuckDBManager` ejecuta
+la query. Funcionaba para las 61 preguntas del benchmark original, pero era frágil:
+cada nuevo tipo de pregunta requería añadir más regex, más casos especiales, más
+código que parchea lo que el sistema no entendía bien.
+
+### La vuelta de tuerca de v2.0
+
+La v2.0 reemplaza el QueryPlanner por un agente de **function calling** con la
+Responses API de OpenAI. La idea central es:
+
+> **El LLM entiende la pregunta. El código solo ejecuta.**
+
+En lugar de intentar parsear lenguaje natural con regex, le damos al LLM un conjunto
+de herramientas (tools) con descripciones precisas, y él decide qué herramienta
+llamar y con qué parámetros. Python solo recibe esa llamada y ejecuta la query en
+DuckDB. Ni una línea de if/else para interpretar qué quiso decir el usuario.
+
+Esto no es solo un refactor técnico — es un cambio de responsabilidades:
+
+| Antes (v1) | Ahora (v2) |
+|---|---|
+| Python parsea la intención | LLM interpreta la intención |
+| Regex + heurísticas para entidades | Embeddings para resolución de nombres |
+| `_POSITION_MAP` en Python | Descripción en el schema de la herramienta |
+| Estado de conversación en memoria local | `previous_response_id` — el servidor lleva el contexto |
+
+### Las fases completadas
+
+**Phase 5 — Function Calling Core**
+
+Implementamos el `BasicStatsAgent`: un loop que llama a `client.responses.create`
+con 4 herramientas madre (`query_player_stats`, `query_team_stats`, `query_ranking`,
+`get_league_standings`). El LLM recibe la pregunta, elige la herramienta, Python
+ejecuta la query, el LLM recibe el resultado y escribe la respuesta final.
+
+Las conversaciones multi-turno funcionan con `previous_response_id` — no reconstruimos
+el historial de mensajes en cada turno, el servidor de OpenAI lo lleva.
+
+**Phase 6 — Random Question Robustness**
+
+El LLM extrae nombres de entidades tal como los escribe el usuario: "Salah", "Spurs",
+"Man City". La DB tiene "M. Salah", "Tottenham Hotspur", "Manchester City". Sin
+resolución, la query devuelve filas vacías.
+
+Solución: **embeddings de texto** (text-embedding-3-large) para todos los nombres de
+jugadores y equipos, almacenados en DuckDB. Cuando el LLM extrae "Salah", el código
+calcula la similitud coseno contra todos los nombres embeddingeados y devuelve el
+nombre canónico más cercano antes de tocar la DB. Esto maneja alias, abreviaturas y
+nombres parciales sin una sola regla hardcodeada.
+
+El benchmark de 21 preguntas inéditas (escritas por Ricardo, Álvaro y Jorge) pasó
+al 100% — incluyendo preguntas con "Isak", "Trent", "keeper", "centre back", "Villa".
+
+### La regla de oro que aprendimos
+
+Durante Phase 6 teníamos un `_POSITION_MAP` en Python que mapeaba "CB" →
+"Central Defender", "keeper" → "Goalkeeper", etc. Tiene sentido a primera vista.
+
+Pero Agust ya lo había demostrado en su commit de function calling para el football
+scout: **si el LLM tiene la información correcta en la descripción de la herramienta,
+no hace falta código que corrija lo que el LLM debería producir bien**.
+
+Quitamos el map de Python, pusimos los valores exactos y el mapeo de aliases en la
+descripción del parámetro `position` del schema. Resultado: el LLM mapea
+directamente, sin intermediarios. El código hace menos, el sistema es más claro.
+
+La regla: **no meter heurística en Python si la arquitectura agentica (tool
+descriptions, system prompt) puede soportarlo. Solo heurística cuando es
+estrictamente necesario.**
+
+### Cómo probar lo que tenemos ahora
+
+```bash
+# Preguntas del benchmark (21 preguntas inéditas)
+python evals/agent_benchmark.py --random
+
+# Preguntas preparadas (61 preguntas clásicas)
+python evals/agent_benchmark.py
+
+# Una sola pregunta interactiva
+python -c "
+from src.basic_stats.agent import BasicStatsAgent
+agent = BasicStatsAgent()
+print(agent.ask('How many goals has Isak scored this season?'))
+print(agent.ask('What about at home?'))   # follow-up — el agente recuerda
+"
+```
 
 ---
 
@@ -77,45 +172,38 @@ No hace falta leer los archivos de `.planning/` — GSD los carga solo.
 ## Estructura del repo
 
 ```
-src/basic_stats/             ← código del engine (Phase 4 completa)
-  agent.py                   ← BasicStatsAgent — loop function-calling (Phase 5)
-  agent_tools.py             ← implementación de los 9 tools (Phase 5)
-  agent_tool_schemas.py      ← schemas OpenAI strict mode (Phase 5)
-  agent_prompt.py            ← build_system_prompt() con contexto dinámico
-  config.py                  ← cliente Azure OpenAI + modelo
-  duckdb_manager.py          ← todas las queries SQL
-  llm_query_engine_v2.py     ← pipeline viejo (v1) — NO tocar, solo referencia
-  query_planner.py           ← pipeline viejo (v1) — NO tocar, solo referencia
-  models.py
-  knowledge_base.py
+src/basic_stats/             ← código del engine
+  agent.py                   ← BasicStatsAgent — loop function-calling
+  agent_tools.py             ← implementación de las 4 herramientas madre
+  agent_tool_schemas.py      ← schemas OpenAI Responses API (contratos LLM↔código)
+  agent_prompt.py            ← build_system_prompt() con contexto dinámico del DB
+  config.py                  ← cliente Azure OpenAI + modelos
+  duckdb_manager.py          ← todas las queries SQL + resolución de entidades
   prompts/
     agent_system.yaml        ← system prompt del agente (editar con cuidado)
 
+db/
+  basic_stats.duckdb         ← DB persistente (incluye entity_embeddings — Phase 6)
+
 evals/
-  questions_benchmark.json   ← 61 preguntas, fuente de verdad
-  agent_benchmark.py         ← benchmark del nuevo agente (Phase 5) ← USAR ESTE
+  questions_benchmark.json   ← 61 preguntas preparadas
+  random_questions.json      ← 21 preguntas inéditas (Phase 6)
+  agent_benchmark.py         ← benchmark del agente ← USAR ESTE
   judges/
-    faithfulness_judge.py    ← juez determinista: verifica números en respuesta
-  smoke_test.py              ← sanity check rápido (pipeline viejo)
-  benchmark_runner.py        ← benchmark pipeline viejo (referencia)
+    faithfulness_judge.py    ← juez: verifica que los números estén en la respuesta
 
 tests/
-  test_query_planner.py
-  test_dual_bucket_hardening.py
-
-docs/
-  canonicalization_rules.md  ← reglas del QueryPlanner viejo (referencia)
-  progress/                  ← logs de sesión — leer para contexto, no editar
-  evals/                     ← resultados de benchmarks anteriores
+  test_fuzzy_resolve.py      ← resolución de entidades (19 casos, sin LLM)
+  test_duckdb_vss_stubs.py   ← stubs Phase 5 (3 fallos conocidos, pendiente limpieza)
 
 pages/
   basic_stats.py             ← página Streamlit
 
-.planning/                   ← artefactos GSD (no editar a mano)
-  STATE.md                   ← estado actual + fallos pendientes Phase 5
+.planning/                   ← artefactos de planificación
+  STATE.md                   ← estado actual de fases y benchmark
   ROADMAP.md                 ← fases y criterios de éxito
-  REQUIREMENTS.md            ← requisitos trazables
   TEAM.md                    ← este archivo
+  phase-6/COMPLETION.md      ← resumen técnico de Phase 6
 ```
 
 ---
@@ -134,4 +222,4 @@ python evals/benchmark_runner.py --workers 5
 python evals/smoke_test.py
 ```
 
-**Última ejecución:** `evals/runs/2026-04-13_00-30-05__phase5_final_v2` → 51/61 = 83.6%
+**Última ejecución (random):** `evals/runs/2026-04-16_22-53-57__agent` → 21/21 = 100% faithfulness

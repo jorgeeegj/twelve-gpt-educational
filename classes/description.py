@@ -1,11 +1,10 @@
-import math
 from abc import ABC, abstractmethod
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict
 
 import pandas as pd
-import tiktoken
+
 from openai import OpenAI
-import numpy as np
+
 
 import utils.sentences as sentences
 from utils.gemini import convert_messages_format
@@ -15,15 +14,24 @@ from classes.data_source import PersonStat
 
 import json
 
-from settings import USE_GEMINI
+from settings import USE_GEMINI, USE_LM_STUDIO
 
 if USE_GEMINI:
-    from settings import USE_GEMINI, GEMINI_API_KEY, GEMINI_CHAT_MODEL
+    from settings import GEMINI_API_KEY, GEMINI_CHAT_MODEL
+elif USE_LM_STUDIO:
+    from settings import LM_STUDIO_API_KEY, LM_STUDIO_CHAT_MODEL, LM_STUDIO_API_BASE
 else:
-    from settings import GPT_BASE, GPT_VERSION, GPT_KEY, GPT_ENGINE
+    from settings import (
+        GPT_BASE,
+        GPT_KEY,
+        GPT_CHAT_MODEL,
+        GPT_SUPPORTS_REASONING,
+        GPT_AVAILABLE_REASONING_EFFORTS,
+        GPT_SUPPORTS_TEMPERATURE,
+    )
 
 import streamlit as st
-import random
+
 
 
 class Description(ABC):
@@ -141,7 +149,7 @@ class Description(ABC):
             messages += self.get_messages_from_excel(paths)
         except (
             FileNotFoundError
-        ) as e:  # FIXME: When merging with new_training, add the other exception
+        ) as e:  
             print(e)
         messages += self.get_prompt_messages()
 
@@ -155,7 +163,7 @@ class Description(ABC):
             )
         except (
             FileNotFoundError
-        ) as e:  # FIXME: When merging with new_training, add the other exception
+        ) as e:  
             print(e)
 
         messages += [
@@ -166,7 +174,7 @@ class Description(ABC):
         ]
         return messages
 
-    def stream_gpt(self, temperature=1):
+    def stream_gpt(self, temperature=1, reasoning_effort=None, stream=False):
         """
         Run the GPT model on the messages and stream the output.
 
@@ -178,7 +186,7 @@ class Description(ABC):
             str
         """
 
-        st.expander("Chat transcript", expanded=False).write(self.messages)
+        st.session_state["description_transcript"] = self.messages
 
         if USE_GEMINI:
             import google.generativeai as genai
@@ -198,19 +206,86 @@ class Description(ABC):
             response = chat.send_message(content=converted_msgs["content"])
 
             answer = response.text
+        elif USE_LM_STUDIO:
+            client = OpenAI(api_key=LM_STUDIO_API_KEY, base_url=LM_STUDIO_API_BASE)
+            if stream:
+                # Collect chunks eagerly so the generator over the list is
+                # near-instantaneous — preventing Streamlit re-runs from
+                # hitting the same generator while it is still executing.
+                chunks = [
+                    chunk.choices[0].delta.content
+                    for chunk in client.chat.completions.create(
+                        model=LM_STUDIO_CHAT_MODEL,
+                        messages=self.messages,
+                        temperature=temperature,
+                        stream=True,
+                    )
+                    if chunk.choices and chunk.choices[0].delta.content
+                ]
+
+                def streamed_chunks():
+                    yield from chunks
+
+                answer = streamed_chunks()
+            else:
+                response = client.chat.completions.create(
+                    model=LM_STUDIO_CHAT_MODEL,
+                    messages=self.messages,
+                    temperature=temperature,
+                )
+                answer = response.choices[0].message.content
         else:
-            client = OpenAI(
-                api_key=GPT_KEY,
-                base_url=GPT_BASE,
-            )
+            client = OpenAI(api_key=GPT_KEY, base_url=GPT_BASE)
+            if stream:
+                if GPT_SUPPORTS_REASONING:
+                    reasoning_effort = reasoning_effort if reasoning_effort in GPT_AVAILABLE_REASONING_EFFORTS else GPT_AVAILABLE_REASONING_EFFORTS[0]
+                    response_stream = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                        reasoning={"effort": reasoning_effort},
+                        stream=True,
+                    )
+                elif GPT_SUPPORTS_TEMPERATURE:
+                    response_stream = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                        temperature=temperature,
+                        stream=True,
+                    )
+                else:
+                    response_stream = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                        stream=True,
+                    )
 
-            response = client.chat.completions.create(
-                model=GPT_ENGINE,
-                messages=self.messages,
-                temperature=temperature,
-            )
+                def streamed_chunks():
+                    for event in response_stream:
+                        if event.type == "response.output_text.delta":
+                            yield event.delta
 
-            answer = response.choices[0].message.content
+                answer = streamed_chunks()
+            else:
+                if GPT_SUPPORTS_REASONING:
+                    reasoning_effort = reasoning_effort if reasoning_effort in GPT_AVAILABLE_REASONING_EFFORTS else GPT_AVAILABLE_REASONING_EFFORTS[0]
+                    response = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                        reasoning={"effort": reasoning_effort},
+                    )
+                elif GPT_SUPPORTS_TEMPERATURE:
+                    response = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                        temperature=temperature,
+                    )
+                else:
+                    response = client.responses.create(
+                        model=GPT_CHAT_MODEL,
+                        input=self.messages,
+                    )
+
+                answer = response.output_text
 
         return answer
 

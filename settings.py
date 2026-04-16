@@ -1,21 +1,28 @@
-import os
 import streamlit as st
 
-GPT_EMBEDDINGS_ENGINE = (
-    st.secrets.get("GPT_EMBEDDINGS_ENGINE")
-    or st.secrets.get("GPT_EMBEDDINGS_MODEL")
-)
-GPT_EMBEDDINGS_KEY = st.secrets.get("GPT_EMBEDDINGS_KEY") or st.secrets.get("GPT_KEY")
+GPT_BASE = st.secrets.get("GPT_BASE")
+GPT_VERSION = st.secrets.get("GPT_VERSION")
+GPT_KEY = st.secrets.get("GPT_KEY")
+GPT_CHAT_MODEL = st.secrets.get("GPT_CHAT_MODEL")
+GPT_EMBEDDINGS_MODEL = st.secrets.get("GPT_EMBEDDINGS_MODEL")
 
-GPT_DEFAULT = "3.5"
-GPT3_BASE = st.secrets.get("GPT_BASE")
-GPT3_VERSION = st.secrets.get("GPT_VERSION")
-GPT3_KEY = st.secrets.get("GPT_KEY")
-GPT3_ENGINE = st.secrets.get("GPT_ENGINE") or st.secrets.get("GPT_CHAT_MODEL")
-GPT4_BASE = st.secrets.get('GPT4o_BASE')
-GPT4_VERSION = st.secrets.get('GPT4o_VERSION')
-GPT4_KEY = st.secrets.get('GPT4o_KEY')
-GPT4_ENGINE = st.secrets.get("GPT4o_ENGINE") or st.secrets.get("GPT4o_CHAT_MODEL")
+
+if "gpt-5-mini" in GPT_CHAT_MODEL:
+	GPT_SUPPORTS_REASONING = True
+	GPT_AVAILABLE_REASONING_EFFORTS = ["minimal", "low", "medium", "high"]
+	GPT_SUPPORTS_TEMPERATURE = False
+elif "gpt-5-nano" in GPT_CHAT_MODEL:
+	GPT_SUPPORTS_REASONING = True
+	GPT_AVAILABLE_REASONING_EFFORTS = ["minimal", "low", "medium", "high"]
+	GPT_SUPPORTS_TEMPERATURE = False
+elif "gpt-4o-mini" in GPT_CHAT_MODEL:
+	GPT_SUPPORTS_REASONING = False
+	GPT_AVAILABLE_REASONING_EFFORTS = []
+	GPT_SUPPORTS_TEMPERATURE = True
+else:
+	GPT_SUPPORTS_REASONING = False
+	GPT_AVAILABLE_REASONING_EFFORTS = []
+	GPT_SUPPORTS_TEMPERATURE = True
 
 # Gemini secrets
 USE_GEMINI = st.secrets.get("USE_GEMINI", False)
@@ -23,15 +30,10 @@ GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 GEMINI_CHAT_MODEL = st.secrets.get("GEMINI_CHAT_MODEL", "")
 GEMINI_EMBEDDING_MODEL = st.secrets.get("GEMINI_EMBEDDING_MODEL", "")
 
-if GPT_DEFAULT == "4":
-    GPT_BASE = GPT4_BASE
-    GPT_VERSION = GPT4_VERSION
-    GPT_KEY = GPT4_KEY
-    GPT_ENGINE = GPT4_ENGINE
-elif GPT_DEFAULT == "3.5":
-    GPT_BASE = GPT3_BASE
-    GPT_VERSION = GPT3_VERSION
-    GPT_KEY = GPT3_KEY
-    GPT_ENGINE = GPT3_ENGINE
-else:
-    raise ValueError("GPT_DEFAULT must be '3.5' or '4'")
+#Local LM Studio secrets
+USE_LM_STUDIO = st.secrets.get("USE_LM_STUDIO", False)
+LM_STUDIO_API_KEY = st.secrets.get("LM_STUDIO_API_KEY", "")
+LM_STUDIO_API_BASE = st.secrets.get("LM_STUDIO_API_BASE", "")
+LM_STUDIO_CHAT_MODEL = st.secrets.get("LM_STUDIO_CHAT_MODEL", "")
+LM_STUDIO_EMBEDDING_MODEL = st.secrets.get("LM_STUDIO_EMBEDDING_MODEL", "")
+

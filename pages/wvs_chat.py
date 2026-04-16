@@ -127,7 +127,7 @@ else:
 
 # Chat state hash determines whether or not we should load a new chat or continue an old one
 # We can add or remove variables to this hash to change conditions for loading a new chat
-to_hash = (country.id,)
+to_hash = (country.id, "wvs_chat")
 
 chat = create_chat(
     to_hash, WVSChat, country, countries, description_dict, thresholds_dict

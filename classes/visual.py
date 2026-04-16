@@ -202,23 +202,12 @@ class DistributionPlot(Visual):
         )
 
     def add_group_data(self, df_plot, plots, names, legend, hover="", hover_string=""):
-        showlegend = True
 
         for i, col in enumerate(self.columns):
-            temp_hover_string = hover_string
-
-            metric_name = format_metric(col)
-
-            temp_df = pd.DataFrame(df_plot[col + hover])
-            temp_df["name"] = metric_name
-
-            x = df_plot[col + plots].tolist()
-            y = list(np.ones(len(x)) * i)
-
             self.fig.add_trace(
                 go.Scatter(
-                    x=x, 
-                    y=y,
+                    x=df_plot[col + plots].tolist(), 
+                    y=list(np.ones(len(df_plot[col + plots])) * i),
                     mode="markers",
                     marker={
                         "color": rgb_to_color(self.dark_green, opacity=0.2),
@@ -226,9 +215,9 @@ class DistributionPlot(Visual):
                         "line_width": 1.5,
                         "line_color": rgb_to_color(self.bright_green),
                     },
-                    hovertemplate="%{text}<br>" + temp_hover_string + "<extra></extra>",
+                    hovertemplate="%{text}<br>" + hover_string + "<extra></extra>",
                     text=names,
-                    customdata=df_plot[col + hover],
+                    customdata=df_plot[col + hover].tolist(),
                     showlegend=False,
                 )
             )

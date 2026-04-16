@@ -3,23 +3,16 @@ from typing import List, Optional
 
 import matplotlib.pyplot as plt
 import plotly.express as px
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from scipy import spatial
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics import average_precision_score, precision_recall_curve
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from settings import GPT3_KEY, GPT_BASE, GPT_EMBEDDINGS_KEY
+from settings import GPT_BASE, GPT_KEY
 from utils.datalib.numpy_helper import numpy as np
 from utils.datalib.pandas_helper import pandas as pd
-
-
-def _get_embedding_client():
-    return OpenAI(
-        api_key=GPT_EMBEDDINGS_KEY or GPT3_KEY,
-        base_url=GPT_BASE,
-    )
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -37,16 +30,8 @@ def get_embedding(
             "embedding"
         ]
     else:
-        client = _get_embedding_client()
-        embedding = (
-            client.embeddings.create(
-                model=engine,
-                input=[text],
-                **kwargs,
-            )
-            .data[0]
-            .embedding
-        )
+        client = OpenAI(api_key=GPT_KEY, base_url=GPT_BASE)
+        embedding = client.embeddings.create(input=[text], model=engine, **kwargs).data[0].embedding
     return embedding
 
 
@@ -66,18 +51,9 @@ async def aget_embedding(
             )
         )["embedding"]
     else:
-        client = _get_azure_embedding_client()
-        return (
-            (
-                await client.embeddings.create(
-                    model=engine,
-                    input=[text],
-                    **kwargs,
-                )
-            )
-            .data[0]
-            .embedding
-        )
+        client = AsyncOpenAI(api_key=GPT_KEY, base_url=GPT_BASE)
+        response = await client.embeddings.create(input=[text], model=engine, **kwargs)
+        return response.data[0].embedding
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -97,13 +73,12 @@ def get_embeddings(
             model=engine, content=list_of_text, task_type="retrieval_document"
         )
     else:
-        client = _get_azure_embedding_client()
-        data = client.embeddings.create(
-            model=engine,
-            input=list_of_text,
-            **kwargs,
-        ).data
-    return [d.embedding for d in data]
+        data = (
+            OpenAI(api_key=GPT_KEY, base_url=GPT_BASE)
+            .embeddings.create(input=list_of_text, model=engine, **kwargs)
+            .data
+        )
+    return [d["embedding"] if isinstance(d, dict) else d.embedding for d in data]
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -121,15 +96,12 @@ async def aget_embeddings(
             model=engine, content=list_of_text, task_type="retrieval_document"
         )
     else:
-        client = _get_azure_embedding_client()
         data = (
-            await client.embeddings.create(
-                model=engine,
-                input=list_of_text,
-                **kwargs,
+            await AsyncOpenAI(api_key=GPT_KEY, base_url=GPT_BASE).embeddings.create(
+                input=list_of_text, model=engine, **kwargs
             )
         ).data
-    return [d.embedding for d in data]
+    return [d["embedding"] if isinstance(d, dict) else d.embedding for d in data]
 
 
 def cosine_similarity(a, b):

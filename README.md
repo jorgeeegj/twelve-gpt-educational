@@ -1,158 +1,130 @@
 # TwelveGPT Educational
 
-A Streamlit app for building AI-powered football data assistants. Includes a general RAG chatbot for player reports and a **Basic Stats Analyst** — a grounded question-answering engine for Premier League statistics.
+## Description
 
-> This is **not** the Twelve GPT product. It is a stripped-down educational version under GNU GPL — free to use, fork, and learn from.
+TwelveGPT Educational is a basic retrieval augmented chatbot for making reports about data.
+The system is set up in a general way, to allow users to build bots which talk about data.
 
----
+The football scout botdisplays a distribution plot regarding football player's performance in various metrics. It then starts a chat giving an AI generated summary of the player's performance and asks a variety of questions about the player.
 
-## What's in this repo
+This is **not** the Twelve GPT product, but rather a (very) stripped down version of our code
+to help people who would like to learn how to build bots to talk about football data. There are lots of things which Twelve GPT can do, which TwelveGPT Educational cannot do. But we want more people to learn about the methods we use and to do this **TwelveGPT Educational** is an excellent alternative. We have thus used the the GNU GPL license which requires that all the released improved versions are also be free software. This will allow us to learn from each other in developing better
 
-| Page | What it does |
-|---|---|
-| `app.py` | Player report chatbot with radar charts and GPT-generated summaries |
-| `pages/basic_stats.py` | Basic Stats Analyst — factual Q&A grounded in structured match data |
+If you work for a footballing organisation and would like to see a demo of the full Twelve GPT product then please email us at hello@twelve.football.
 
----
+The design and code for this project was by Matthias Green, David Sumpter and Ágúst Pálmason Morthens.
 
-## Basic Stats Analyst
+## Usage
 
-Answers factual football questions directly from structured datasets — no hallucination, no invented stats.
-
-**Examples:**
-- *Who has scored the most goals this season?*
-- *Which midfielder has played the most progressive passes against top-6 teams?*
-- *Has Haaland scored more goals against top 5 or bottom 5 teams?*
-- *How many goals has Salah scored in the last 5 gameweeks?*
-
-### Architecture (v2 — Function Calling)
-
-```
-Question
-   ↓
-BasicStatsAgent (OpenAI function-calling loop, max 6 iterations)
-   ↓
-9 typed tools — the LLM decides which to call and with what args
-   ↓
-DuckDBManager (SQL against parquet datasets — no invented data)
-   ↓
-LLM verbalizes grounded results only
-   ↓
-Answer
-```
-
-The LLM owns semantic interpretation (which stat, which entity, which filters) and writes the final answer. Code owns data access only. No regex heuristics.
-
-**9 tools:** `get_player_stat`, `get_team_stat`, `rank_players`, `rank_teams`, `compare_entities`, `count_matches_where`, `get_stat_over_window`, `get_league_standings`, `get_stat_vs_opponent_group`
-
-### Source layout
-
-```
-src/basic_stats/
-├── agent.py                 ← BasicStatsAgent — function-calling loop
-├── agent_tools.py           ← 9 tool implementations
-├── agent_tool_schemas.py    ← OpenAI strict-mode schemas
-├── agent_prompt.py          ← dynamic system prompt builder
-├── config.py                ← Azure OpenAI client + paths
-├── duckdb_manager.py        ← SQL query execution against parquet
-├── models.py                ← Pydantic schemas
-├── knowledge_base.py        ← static Q&A (definitions)
-├── llm_query_engine_v2.py   ← v1 pipeline (legacy reference)
-├── query_planner.py         ← v1 pipeline (legacy reference)
-└── prompts/
-    └── agent_system.yaml    ← system prompt for the agent
-
-evals/
-├── questions_benchmark.json ← 61-question benchmark (source of truth)
-├── agent_benchmark.py       ← Phase 5 benchmark with faithfulness judge
-├── judges/
-│   └── faithfulness_judge.py ← deterministic: verifies numbers in answer
-├── benchmark_runner.py      ← v1 parallel runner (reference)
-└── smoke_test.py            ← v1 sanity check (reference)
-
-docs/
-├── canonicalization_rules.md ← v1 rule categories (reference)
-└── progress/                 ← session logs
-```
-
-### Benchmark
-
+This application was made with Streamlit.  To run locally, first create .streamlit/secrets.toml with keys, etc... then run:
 ```bash
-# New agent benchmark (Phase 5)
-python evals/agent_benchmark.py --workers 1 --label my_label
-
-# Skip faithfulness judge (faster iteration)
-python evals/agent_benchmark.py --skip-judges --workers 1 --label my_label
-```
-
-Current status: **51/61 = 83.6%** ◐ (Phase 5 in progress — target ≥58/61)
-
----
-
-## Setup
-
-### Requirements
-
-- Python 3.11+
-- Azure OpenAI API access (keys in `.streamlit/secrets.toml`)
-
-### Install
-
-```bash
-# Clone the active branch
-git clone https://github.com/jorgeeegj/twelve-gpt-educational.git
-cd twelve-gpt-educational
-git checkout feature/refactor-v2
-
-# Install dependencies — pick your tool
-pip install -r requirements.txt           # pip
-python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt  # venv
-uv sync                                   # uv
-conda create -n basicstats python=3.11 && conda activate basicstats && pip install -r requirements.txt  # conda
-```
-
-### Secrets
-
-Create `.streamlit/secrets.toml`:
-
-```toml
-GPT_KEY     = "your-azure-key"
-GPT_VERSION = "your-api-version"
-```
-
-### Run
-
-```bash
+conda create --name streamlit_env
+conda activate streamlit_env
+pip install -r requirements.txt
 streamlit run app.py
 ```
+Once you have made changes to the code, save, move focus to the streamlit tab, then press c to clear caches if necessary, then r to rerun.
 
----
+You also need to have access to GPT API to use this package. Alternatively, you need access to Gemini API but that requires changes to the [.streamlit/secrets.toml](.streamlit/secrets.toml) file (see below).
 
-## Development
+## How does it work?
+### App
+Streamlit reruns the code every time the user interacts with the app. This code is located in app.py. The user selects a player and the visual and word report starts to generate.
 
-This project uses [GSD](https://github.com/getshitdone-ai/gsd) for structured development with Claude Code.
+The application builds primarily around five classes: data_sources, visual, description, chat and embeddings. We now describe these in turn.
 
-```bash
-/gsd:progress       # see current phase and what's next
-/gsd:execute-phase 5  # execute next phase
+### Data sources
+
+The code data_sources.py consists of three classes:
+
+**class Data()**: Gets, processes and manage various forms of data. The data is primarily stored in data.df
+**class Stats(Data)**: Calculates z-scores, ranks and pct_ranks, adding these to stats.df
+
+While the above classes can be adapted to any data source, the last class is specifically for football player data.
+
+**class PlayerStats(Stats)**: Loads in a dataframe of statistics about forwards. The data is loaded in from data/events/Forwards.csv. This data is in turn generated by saving a dataframe from the following tutorial about scouting: https://soccermatics.readthedocs.io/en/latest/gallery/lesson3/plot_RadarPlot.html
+
+It provided the following statistics: Non-penalty goals, Assists, Key passes, Smart passes, Ariel duels won, Ground attacking duels won, Non-penalty expected goals, Passes ending in final third, Receptions in final third for players in the Premier League 2017/18 season.
+
+### Visual
+
+There is quite a lot of code here, but it is primarily about making nice visuals. Of particular interest our **add_player(...)** and **add_players(...)** which add the focal player and compare him to the other players in the data.
+
+### Description
+
+It is in this part of the code where we start doing something novel. The three most important functions for creating a text are:
+
+**get_intro_messages()**: This sets up the bot and explains to it what it does.
+**synthesize_text()**: This converts the stats.df to a description in words of what the data says.
+**get_prompt_messages()**: This is the prompt which tells GPT3 or GPT4 how to use the texts supplied.
+
+A key to success of prompting lies in two types of files, known as describe and gpt_example files. These are given for this application in
+data/describe/Forward
+and
+data/gpt_examples/Forward
+
+By clicking on the expander in the Description messages you can see how they have been used to construct a prompt to GPT4. It is this prompt which then generates the text under the figure.
+
+### Chat
+
+The chat also utilises prompting of GPT to allow user questions to be answered. This is the bot.
+
+The key function here is **handle_input(input)** which puts together a query combining:
+
+1, An instruction for the bot, which set up by **instruction_messages()**.
+2, The previous conversation
+3, And relevant information about the player and for answering the questuon, from  **get_relevant_info(input)**.
+
+The get_relevant_info(input) both retrieves the synthesize_text() from the description and searches a library of embedded questions to find relevant info. To do this the input is embedded in order to search the database of embedded questions for relevant entries.
+
+### Embeddings
+
+Certain files in /data/describe/ contain question-answer pairs that are embedded by pages/embedder.py. You can run this app by clicking on 'Embedding Tool' in top left corner of the app. This is then used to search (using cosine similarity) for the best question-answer pairs for answering the users query.
+
+
+### Using Open AI API
+To use Open AI you need a API key. Then you need to add the following lines to your [.streamlit/secrets.toml](.streamlit/secrets.toml) file.
+
+```toml
+USE_GEMINI = false
+USE_LM_STUDIO = false
+GPT_BASE = "address of you deployment of Chat GPT"
+GPT_VERSION = "version date"
+GPT_KEY = "your key"
+GPT_CHAT_MODEL = "chat model name"
+GPT_EMBEDDINGS_MODEL = "embedding model name"
 ```
 
-See `.planning/TEAM.md` for full team onboarding guide.
+### Using Gemini API
+If, instead of using OpenAI's API, you want to use Google's. You need to add the following lines to your [.streamlit/secrets.toml](.streamlit/secrets.toml) file.
 
-### Golden rule
+```toml
+USE_GEMINI = true
+USE_LM_STUDIO = false
+GEMINI_API_KEY = "YOUR_API_KEY"
 
-> Any change to `agent.py`, `agent_tools.py`, `agent_tool_schemas.py`, or `duckdb_manager.py`
-> **must** pass the agent benchmark before committing.
+# Can use any chat model
+GEMINI_CHAT_MODEL = "gemini-1.5-flash"
 
-```bash
-python evals/agent_benchmark.py --workers 1 --label verify && git commit
+# Can use any embedding model
+GEMINI_EMBEDDING_MODEL = "models/text-embedding-004"
 ```
 
----
+### Using LM Studio Local Models
+First you should download LM Studio and load a local model of your choosing. A good free option is `openai/gpt-oss-20b` for chat and `text-embedding-bge-m3` for embeddings.
 
-## Original project
+If you want to run models locally using LM Studio, you need to add the following lines to your [.streamlit/secrets.toml](.streamlit/secrets.toml) file.
 
-Design and code by Matthias Green, David Sumpter and Ágúst Pálmason Merthens.
-v2.0 development by Álvaro Molina, Ricardo Heredia, and Jorge Gómez.
+```toml
+USE_GEMINI = false
+USE_LM_STUDIO = true
+LM_STUDIO_API_KEY = "lmstudio"
 
-Contact: hello@twelve.football
+# Copy the "Reachable at" address from LM Studio's local server page and append /v1
+LM_STUDIO_API_BASE = "http://...../v1"
+
+# Can use any chat model loaded in LM Studio
+LM_STUDIO_CHAT_MODEL = "openai/gpt-oss-20b"
+
+# Can use any embedding model loaded in LM Studio
+LM_STUDIO_EMBEDDING_MODEL = "text-embedding-bge-m3"

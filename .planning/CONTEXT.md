@@ -34,9 +34,10 @@ When a new session starts:
 3. read `.planning/REQUIREMENTS.md`
 4. read `.planning/STATE.md`
 5. read `.planning/CONTEXT.md`
-6. define one narrow goal
-7. make a short plan
-8. only then implement
+6. read `.planning/STAKEHOLDER.md`
+7. define one narrow goal
+8. make a short plan
+9. only then implement
 
 ## Current assumption
 The best first development tasks after setup will likely be one of:

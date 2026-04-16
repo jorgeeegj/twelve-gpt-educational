@@ -70,7 +70,7 @@ st.expander("Dataframe used", expanded=False).write(players.df)
 
 # Chat state hash determines whether or not we should load a new chat or continue an old one
 # We can add or remove variables to this hash to change conditions for loading a new chat
-to_hash = (player.id,)
+to_hash = (player.id, "football_scout")
 # Now create the chat as type PlayerChat
 chat = create_chat(to_hash, PlayerChat, player, players)
 
@@ -85,7 +85,7 @@ if chat.state == "empty":
 
     # Now call the description class to get the summary of the player
     description = PlayerDescription(player)
-    summary = description.stream_gpt()
+    summary = description.stream_gpt(stream=True)
 
     # Add the visual and summary to the chat
     chat.add_message(
@@ -98,6 +98,12 @@ if chat.state == "empty":
     chat.add_message(summary)
 
     chat.state = "default"
+
+# Show the wordalisation pre-prompting — persists across chat turns via session state
+if "description_transcript" in st.session_state:
+    st.expander("Wordalisation pre-prompting", expanded=False).write(
+        st.session_state["description_transcript"]
+    )
 
 # Now we want to get the user input, display the messages and save the state
 chat.get_input()

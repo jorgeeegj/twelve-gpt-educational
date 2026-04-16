@@ -137,6 +137,15 @@ class DuckDBManager:
         self._embedding_client = client
         self._embedding_model = model
 
+    def column_exists(self, table_or_view: str, column: str) -> bool:
+        """Return True if column exists in the given table or view."""
+        rows = self.query_dicts(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name = ? AND column_name = ?",
+            [table_or_view, column],
+        )
+        return len(rows) > 0
+
     def close(self) -> None:
         self.con.close()
 

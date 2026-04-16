@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 5 — Function Calling Core (Phase 4 complete)
+**Current focus:** Phase 6 — Random Question Robustness (Phase 5 complete)
 
 ---
 
@@ -103,7 +103,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `evals/smoke_test.py` — 10-question sanity check, exit 0/1
 - ✓ Benchmark: 61/61 verified (2026-04-12)
 
-**Phase 5 — Function Calling Core** ◐ In Progress (revised 2026-04-16)
+**Phase 5 — Function Calling Core** ✓ Complete (2026-04-17)
 
 **Scope revision (2026-04-16):**
 - 61/61 benchmark gate DROPPED — tests known questions, not robustness signal
@@ -123,16 +123,13 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Step 4: `agent_tools.py` — 3 mother tool dispatchers added; `Filters` dataclass + `ToolResult` dataclass eliminated — functions now read plain dicts via `_f()` helper, matching OpenAI function calling convention (commit `f7c8639b`)
 - ✓ 44 unit tests passing across 4 test files (no LLM calls)
 
-**Checkpoint — stopped 2026-04-17:**
-Steps 1–4 complete and committed. Stopping here for the session.
+**Work completed (session 2026-04-17 — Phase 5 finish):**
+- ✓ Step 5: `agent.py` migrated to `client.responses.create`; `_last_response_id` / `reset()` added; `_build_tool_map` reduced to 4 mother tool entries; loop reads `response.output` items, appends `function_call_output` dicts (commit `492073d7`)
+- ✓ Step 6: `prompts/agent_system.yaml` HOW TO USE TOOLS rewritten for 4 mother tool names (commit `492073d7`)
+- ✓ Step 7: `pages/basic_stats.py` wraps `BasicStatsAgent` in `@st.cache_resource`; calls `agent.reset()` on clear-chat; drops `history=` kwarg — state carried server-side (commit `492073d7`)
+- ✓ `TestFilters` removed from test suite (Filters dataclass eliminated in Step 4); 31 tests passing
 
-**Remaining Phase 5 work (next session):**
-- [ ] Step 5: Migrate `agent.py` to `client.responses.create` — add `previous_response_id`, `_last_response_id`, update `_build_tool_map` to 4 entries, update loop pattern
-- [ ] Step 6: Update `src/basic_stats/prompts/agent_system.yaml` — HOW TO USE TOOLS section with new tool names
-- [ ] Step 7: Wire `previous_response_id` in `pages/basic_stats.py` via `RESP_ID_KEY` session state
-- [ ] Final: full test suite + benchmark smoke check + commit
-
-**Phase 6 — Random Question Robustness** ○ Pending (blocked by Phase 5) ⬆️ *was Phase 8*
+**Phase 6 — Random Question Robustness** ○ Pending (was blocked by Phase 5) ⬆️ *was Phase 8*
 
 **Phase 7 — Conversation Memory** ○ Pending (blocked by Phase 6) ⬆️ *was Phase 6*
 
@@ -169,7 +166,7 @@ Saved outputs:
 | Phase | Name | Key Deliverables | Status |
 |-------|------|------------------|--------|
 | 4 | Extract & Clean | Repo reorg + pyproject.toml + pre-commit + dead code removal + `league_standings` view | ✓ Complete |
-| 5 | Function Calling Core | Responses API + 3 mother tools + follow-up history via `previous_response_id` | ◐ In Progress |
+| 5 | Function Calling Core | Responses API + 4 mother tools + follow-up history via `previous_response_id` | ✓ Complete |
 | 6 | Random Question Robustness ⬆️ | Embeddings (VSS) + entity resolution + 20+ unprepared questions ≥80% pass | ○ Pending |
 | 7 | Conversation Memory ⬆️ | `previous_response_id` wired in Streamlit + Agust's follow-up chain working | ○ Pending |
 | 8 | League Context ⬆️ | Dynamic league paragraph in system prompt + no hardcoded labels | ○ Pending |
@@ -192,7 +189,7 @@ Saved outputs:
 | 2 | Planner Fixes | ✓ Complete | 50/50 benchmark |
 | 3 | Verbalization | ✓ Complete | 50/50 benchmark |
 | 4 | Extract & Clean | ✓ Complete | 61/61 benchmark |
-| 5 | Function Calling Core | ◐ In Progress | Responses API + 3 tools + follow-up history wired |
+| 5 | Function Calling Core | ✓ Complete | Responses API + 4 mother tools + follow-up history wired |
 | 6 | Robustness ⬆️ | ○ Pending | ≥80% on 20+ unprepared questions |
 | 7 | Memory ⬆️ | ○ Pending | Agust's follow-up chain works in UI |
 | 8 | League Context ⬆️ | ○ Pending | 5+ context questions + no hardcoded labels |
@@ -214,4 +211,4 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-16 — Phase order revised per Agust feedback; legacy code deleted (3,975 LOC); Phase 5 scope simplified to Responses API + 3 tools*
+*Last updated: 2026-04-17 — Phase 5 complete; Responses API live, 4 mother tools, previous_response_id wired, @st.cache_resource on agent*

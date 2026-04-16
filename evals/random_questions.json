@@ -2,6 +2,106 @@
   {
     "id": "RQ_01",
     "author": "Ricardo",
-    "question": "PLACEHOLDER — replace with your question"
+    "question": "How many goals has Isak scored this season?"
+  },
+  {
+    "id": "RQ_02",
+    "author": "Ricardo",
+    "question": "Which Brentford player has scored the most goals?"
+  },
+  {
+    "id": "RQ_03",
+    "author": "Ricardo",
+    "question": "How many assists does Saka have this season?"
+  },
+  {
+    "id": "RQ_04",
+    "author": "Ricardo",
+    "question": "Which team has the highest xG this season?"
+  },
+  {
+    "id": "RQ_05",
+    "author": "Ricardo",
+    "question": "How many goals has Watkins scored at home this season?"
+  },
+  {
+    "id": "RQ_06",
+    "author": "Ricardo",
+    "question": "Which winger has the most key passes per 90 this season?"
+  },
+  {
+    "id": "RQ_07",
+    "author": "Ricardo",
+    "question": "How many goals has Chris Wood scored this season?"
+  },
+  {
+    "id": "RQ_08",
+    "author": "Alvaro",
+    "question": "Who has more goals: Salah or Haaland?"
+  },
+  {
+    "id": "RQ_09",
+    "author": "Alvaro",
+    "question": "Which Nottingham Forest player has the most assists?"
+  },
+  {
+    "id": "RQ_10",
+    "author": "Alvaro",
+    "question": "How many goals has Spurs conceded this season?"
+  },
+  {
+    "id": "RQ_11",
+    "author": "Alvaro",
+    "question": "Which keeper has the most saves this season?"
+  },
+  {
+    "id": "RQ_12",
+    "author": "Alvaro",
+    "question": "How many yellow cards has Wolves received this season?"
+  },
+  {
+    "id": "RQ_13",
+    "author": "Alvaro",
+    "question": "Which center back has the most clearances per 90?"
+  },
+  {
+    "id": "RQ_14",
+    "author": "Alvaro",
+    "question": "How many goals has Villa scored away from home?"
+  },
+  {
+    "id": "RQ_15",
+    "author": "Jorge",
+    "question": "Which player has the most shots on target this season?"
+  },
+  {
+    "id": "RQ_16",
+    "author": "Jorge",
+    "question": "How many goals has Bruno scored this season?"
+  },
+  {
+    "id": "RQ_17",
+    "author": "Jorge",
+    "question": "Which team from London has scored the most goals?"
+  },
+  {
+    "id": "RQ_18",
+    "author": "Jorge",
+    "question": "How many assists has Trent made this season?"
+  },
+  {
+    "id": "RQ_19",
+    "author": "Jorge",
+    "question": "Which Man City player has the most progressive passes?"
+  },
+  {
+    "id": "RQ_20",
+    "author": "Jorge",
+    "question": "How many goals has Mbeumo scored this season?"
+  },
+  {
+    "id": "RQ_21",
+    "author": "Jorge",
+    "question": "Which striker under 25 has the most goals per 90?"
   }
 ]

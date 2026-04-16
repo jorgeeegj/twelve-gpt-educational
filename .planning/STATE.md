@@ -103,53 +103,32 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `evals/smoke_test.py` — 10-question sanity check, exit 0/1
 - ✓ Benchmark: 61/61 verified (2026-04-12)
 
-**Phase 5 — Function Calling Core** ◐ In Progress (2026-04-13)
+**Phase 5 — Function Calling Core** ◐ In Progress (revised 2026-04-16)
 
-**Last benchmark run:** `evals/runs/2026-04-13_00-30-05__phase5_final_v2` → **51/61 = 83.6%**
-**Target:** ≥58/61 = 95.1% faithfulness gate (hard), 61/61 ideal
+**Scope revision (2026-04-16):**
+- 61/61 benchmark gate DROPPED — tests known questions, not robustness signal
+- New exit gate: Responses API working + 3 mother tools + follow-up history wired
+- Legacy code deleted (2026-04-16): `query_planner.py`, `llm_query_engine_v2.py`, `knowledge_base.py`, `function_tools.py`, `models.py`, 3 legacy YAML prompts, legacy test + eval files (3,975 LOC removed, commit `92689d9d`)
 
-**Work completed this session (2026-04-13):**
-- ✓ `BasicStatsAgent` implemented (`src/basic_stats/agent.py`) — OpenAI function-calling loop, 9 tools, max 6 iterations
-- ✓ 9 tool schemas in `src/basic_stats/agent_tool_schemas.py` (strict mode, additionalProperties=false)
-- ✓ `opponent_is_big6` filter added throughout tool stack (fixes Man United/Tottenham rank mismatch)
-- ✓ `player_team` filter added (for "which Liverpool player scored most")
-- ✓ `match_conditions` added to `rank_players` for "most matches with X" queries
-- ✓ `get_stat_vs_opponent_group` tool added for 2-step metric_derived_bucket questions
-- ✓ System prompt (`agent_system.yaml`) updated: Big Six conventions, match_conditions guidance, 2-step flow
-- ✓ `evals/agent_benchmark.py` — async parallel runner with tqdm + exponential backoff for 429 errors
-- ✓ `faithfulness_judge.py` — EU-thousands parser fix, p90 token-set fix
-- ✓ 7 benchmark entries recalibrated to match actual DB values (Big Six vs rank, Everton tiebreak)
-- ✓ Commits: `343aba7b`, `a5dfe1de`, `f6f8fdc2`, `f469f91a`
+**Work completed:**
+- ✓ `BasicStatsAgent` implemented (`src/basic_stats/agent.py`) — tool-calling loop, 9 tools
+- ✓ 9 tool schemas in `src/basic_stats/agent_tool_schemas.py`
+- ✓ `evals/agent_benchmark.py` + `faithfulness_judge.py` — eval harness
+- ✓ Responses API confirmed working on Azure endpoint (`client.responses.create` → OK)
+- ✓ Legacy architecture deleted (2026-04-16)
 
-**Remaining failures (9 questions, as of last run):**
+**Remaining Phase 5 work:**
+- [ ] Migrate `agent.py` to `client.responses.create` (Responses API)
+- [ ] Collapse 9 tools → 3 mother tools (`query_player_stats`, `query_team_stats`, `query_ranking`)
+- [ ] Update tool schemas to flat format (name/description/parameters at root, not nested under `"function": {}`)
+- [ ] Wire `previous_response_id` for follow-up conversation history
+- [ ] Add VSS method stubs to `duckdb_manager.py` (activated in Phase 6)
 
-| ID | Category | Issue | Likely fix |
-|----|----------|-------|-----------|
-| QV4_35 | player_team filter | "Liverpool top scorer MD25-30" — agent may ignore `player_team` | Verify `player_team` in `rank_players` routing |
-| QV5_49 | away wins | Agent uses `stat=points` not `stat=wins` | System prompt says `stat=wins`, check if agent follows it |
-| QV6_56 | metric_derived_bucket | Agent may not call `get_stat_vs_opponent_group` | Re-run to verify new tool is being called |
-| QV6_57 | metric_derived_bucket | Same as QV6_56 (different metric) | Same |
-| QV6_61 | metric_derived_bucket | Same as QV6_56 (team variant) | Same |
-| QV4_33 | match_conditions | "Most matches with goal AND assist" | Verify `match_conditions` param wired correctly |
-| QV4_34 | match_conditions | "Most matches with 2+ goals" | Same |
-| TBD | (unknown) | 2 additional failures not yet analyzed | Run benchmark to identify |
+**Phase 6 — Random Question Robustness** ○ Pending (blocked by Phase 5) ⬆️ *was Phase 8*
 
-**Next benchmark command:**
-```bash
-python evals/agent_benchmark.py --skip-judges --workers 1 --label phase5_next
-```
-Or with faithfulness judge enabled (slower, shows pass/fail per question):
-```bash
-python evals/agent_benchmark.py --workers 1 --label phase5_next
-```
+**Phase 7 — Conversation Memory** ○ Pending (blocked by Phase 6) ⬆️ *was Phase 6*
 
-**Reference:** `docs/progress/2026-04-13_phase5_wip.md` — full session details, root cause analysis, code decisions
-
-**Phase 6 — Conversation Memory** ○ Pending (blocked by Phase 5)
-
-**Phase 7 — League Context** ○ Pending (blocked by Phase 4 tail + Phase 5)
-
-**Phase 8 — Random Question Robustness** ○ Pending (blocked by Phase 7)
+**Phase 8 — League Context** ○ Pending (blocked by Phase 7) ⬆️ *was Phase 7*
 
 **Phase 9 — Natural Language Polish** ○ Pending (blocked by Phase 8)
 
@@ -175,41 +154,41 @@ Saved outputs:
 
 ---
 
-## v2.0 Roadmap Summary
+## v2.0 Roadmap Summary (revised 2026-04-16)
 
-**6 phases, 19 requirements, 61/61 benchmark gate after each phase**
+**6 phases, 19 requirements — exit gate is robustness, not 61/61 benchmark**
 
 | Phase | Name | Key Deliverables | Status |
 |-------|------|------------------|--------|
-| 4 | Extract & Clean | Repo reorganization + pyproject.toml + pre-commit + dead code removal + `canonicalization_rules.md` + `league_standings` view | ✓ Complete |
-| 5 | Function Calling Core | 4 typed tools + dual-run validation + graceful fallback + 61/61 preserved | Pending (blocked by 4) |
-| 6 | Conversation Memory | ConversationState + multi-turn flows + token budget cap + 61/61 preserved | Pending (blocked by 5) |
-| 7 | League Context | System prompt injection + standings view usage + 5+ league-context questions working | Pending (blocked by 4+5) |
-| 8 | Random Question Robustness | 20+ unprepared questions tested + alias hardening | Pending (blocked by 7) |
-| 9 | Natural Language Polish | Verbalization templates + insight rules + no metric key exposure | Pending (blocked by 8) |
+| 4 | Extract & Clean | Repo reorg + pyproject.toml + pre-commit + dead code removal + `league_standings` view | ✓ Complete |
+| 5 | Function Calling Core | Responses API + 3 mother tools + follow-up history via `previous_response_id` | ◐ In Progress |
+| 6 | Random Question Robustness ⬆️ | Embeddings (VSS) + entity resolution + 20+ unprepared questions ≥80% pass | ○ Pending |
+| 7 | Conversation Memory ⬆️ | `previous_response_id` wired in Streamlit + Agust's follow-up chain working | ○ Pending |
+| 8 | League Context ⬆️ | Dynamic league paragraph in system prompt + no hardcoded labels | ○ Pending |
+| 9 | Natural Language Polish | Natural answers + no raw metric keys + insight rules | ○ Pending |
 
 ---
 
 ## Operating Rules
 
-- `query_planner.py`, `duckdb_manager.py`, `llm_query_engine_v2.py` are very sensitive — no change without test + eval validation
-- `models.py`, `resolve_query_intent.yaml`, `verbalize.yaml` are sensitive — validate outputs after any change
+- `duckdb_manager.py` is the highest-risk file — no change without smoke test validation
+- `agent.py`, `agent_tools.py`, `agent_tool_schemas.py` are sensitive — run `evals/agent_benchmark.py` after changes
 - `pages/basic_stats.py`, `docs/` are lower sensitivity — can change more freely
 - A task is done only when: implemented + relevant verification run + results checked + STATE.md updated
 
 ## Phase Progression
 
-| Phase | Status | Pass Rate (entry) | Pass Rate (exit) |
-|-------|--------|-------------------|------------------|
-| 1 | ✓ Complete | — | 50/50 |
-| 2 | ✓ Complete | 50/50 | 50/50 |
-| 3 | ✓ Complete | 50/50 | 50/50 |
-| 4 | ✓ Complete | 50/50 | 61/61 ✓ |
-| 5 | ◐ In Progress | 61/61 | 61/61 (target) — currently 51/61 = 83.6% |
-| 6 | ○ Pending | 61/61 | 61/61 (target) |
-| 7 | ○ Pending | 61/61 | 61/61 (target) |
-| 8 | ○ Pending | 61/61 | 61/61 (target) |
-| 9 | ○ Pending | 61/61 | 61/61 (target) |
+| Phase | Name | Status | Exit Gate |
+|-------|------|--------|-----------|
+| 1 | Project Baseline | ✓ Complete | — |
+| 2 | Planner Fixes | ✓ Complete | 50/50 benchmark |
+| 3 | Verbalization | ✓ Complete | 50/50 benchmark |
+| 4 | Extract & Clean | ✓ Complete | 61/61 benchmark |
+| 5 | Function Calling Core | ◐ In Progress | Responses API + 3 tools + follow-up history wired |
+| 6 | Robustness ⬆️ | ○ Pending | ≥80% on 20+ unprepared questions |
+| 7 | Memory ⬆️ | ○ Pending | Agust's follow-up chain works in UI |
+| 8 | League Context ⬆️ | ○ Pending | 5+ context questions + no hardcoded labels |
+| 9 | NLP Polish | ○ Pending | No raw metric keys in any answer |
 
 ---
 
@@ -227,4 +206,4 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-13 — Phase 5 in progress at 51/61 = 83.6%; 9 failures documented above*
+*Last updated: 2026-04-16 — Phase order revised per Agust feedback; legacy code deleted (3,975 LOC); Phase 5 scope simplified to Responses API + 3 tools*

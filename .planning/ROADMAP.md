@@ -96,19 +96,24 @@
 
 ---
 
-### Phase 5 — Function Calling Core
-**Goal:** Replace ~680 lines of regex-based `_canonicalize_raw_plan` and detector functions with 4 typed Python tools using Pydantic v2 schemas.
+### Phase 5 — Function Calling Core (Revised 2026-04-16)
+**Goal:** Migrate agent to OpenAI Responses API, simplify from 9 tools to 3 mother tools, and confirm the architecture is ready for embedding-based robustness work in Phase 6.
 
 **Depends on:** Phase 4
 
 **Requirements:** FUNC-01, FUNC-02, FUNC-03, FUNC-04
 
+**Revised scope (2026-04-16):**
+- Original gate (61/61 benchmark) is DROPPED — that benchmark tests known questions with hardcoded expected values; it is not a robustness signal.
+- New gate: architecture is clean, Responses API works, 3 tools cover all question types, follow-up history is wired correctly.
+
 **Success Criteria:**
-1. `canonicalization_rules.md` document created in `docs/` containing all implicit rules from old planner (prerequisite: must be written before implementation begins)
-2. 4 typed tools implemented with Pydantic v2 schemas: `query_entity_stats`, `compare_across_buckets`, `rank_by_metric`, `query_temporal_window`
-3. All 61 benchmark questions produce identical results via function calling path (dual-run validation: old plan vs new plan field-by-field for every metric and row)
-4. Graceful fallback to legacy planner via `use_function_calling` flag; removed only after 100% coverage confirmed
-5. 61/61 eval_runner.py benchmark passes after Phase 5 completes
+1. `BasicStatsAgent` migrated to `client.responses.create` (Responses API) — confirmed working against Azure endpoint
+2. 9 tools collapsed to 3 mother tools: `query_player_stats`, `query_team_stats`, `query_ranking` — plus `get_league_standings`
+3. Tool schemas use flat format (name/description/parameters at root level, not nested under `"function": {}`)
+4. Follow-up conversation history wired via `previous_response_id` — Agust's example chain works end-to-end
+5. Legacy benchmark (agent_benchmark.py) still runs as a smoke check but is NOT the exit gate
+6. `duckdb_manager.py` extended with 2 VSS methods (stub — activated in Phase 6): `store_entity_embeddings()`, `fuzzy_resolve_entity()`
 
 **Plans:** TBD
 
@@ -116,19 +121,44 @@
 
 ---
 
-### Phase 6 — Conversation Memory
-**Goal:** Enable multi-turn follow-up questions by tracking entity, metrics, filters, and last result across turns.
+### Phase 6 — Random Question Robustness (Reprioritised 2026-04-16)
+**Goal:** Make the agent answer arbitrary Premier League questions it has never seen — no hardcoded entity lists, no regex fallbacks. Uses embedding search for entity resolution.
 
 **Depends on:** Phase 5
 
-**Requirements:** MEM-01, MEM-02, MEM-03
+**Requirements:** ROB-01, ROB-02
+
+**Why this moved up:** Agust's #1 priority. The 61-question benchmark tests known questions; this phase tests unknown ones. Embedding-based entity resolution is the core enabler.
 
 **Success Criteria:**
-1. `ConversationState` dataclass implemented in Streamlit `session_state` tracking entity focus, active filters (opponent, time window, position), last metric, and last result rows
-2. Follow-up question chain works end-to-end: "How many goals has Haaland scored?" → "But against top 6?" → "Is that more than the rest?" → "What about per 90?"
-3. Multi-turn test suite (10+ conversation flows) passes before Phase 6 ships
-4. Token budget for context capped at 1,500 tokens per LLM call
-5. 61/61 eval_runner.py benchmark still passes after Phase 6 completes (regression check)
+1. `text-embedding-3-large` embeddings generated for all player short names and team names in the DB, stored in DuckDB VSS table
+2. `fuzzy_resolve_entity(user_input, entity_type)` resolves "Salah" → "M. Salah", "Man City" → "Manchester City" with ≥95% accuracy on a 20-name test set
+3. Parameter extraction step added to agent loop — entity resolution happens before tool call, not inside it
+4. 20+ unprepared questions (7 each from Ricardo, Álvaro, Jorge — no peeking at benchmark) tested and pass rate documented
+5. Pass rate target: ≥80% faithful answers on unprepared questions
+
+**Plans:** TBD
+
+**UI hint**: no
+
+---
+
+### Phase 7 — Conversation Memory (Reprioritised 2026-04-16)
+**Goal:** Enable multi-turn follow-up questions so users can dig deeper into topics across turns.
+
+**Depends on:** Phase 6
+
+**Requirements:** MEM-01, MEM-02, MEM-03
+
+**Why this moved here:** Agust said robustness (#1) and memory (#2) can run in parallel but robustness is harder — do it first. Memory is simpler now that Responses API handles state natively via `previous_response_id`.
+
+**Success Criteria:**
+1. Conversation history managed via Responses API `previous_response_id` — no manual ConversationState dataclass needed
+2. Agust's example chain works end-to-end in Streamlit UI:
+   "How many goals has Haaland scored?" → "But against top 6?" → "Is that more than the rest?" → "What about per 90?"
+3. Entity + filter context carries across turns without user repeating themselves
+4. Multi-turn test suite (10+ conversation flows) passes
+5. Streamlit session state stores `response_id` per conversation, reset on "Clear chat"
 
 **Plans:** TBD
 
@@ -136,38 +166,21 @@
 
 ---
 
-### Phase 7 — League Context
-**Goal:** Inject dynamic league classification (top 6, relegation zone, etc.) into LLM system prompt and enable standings-based queries.
-
-**Depends on:** Phase 4 (league_standings view), Phase 5 (function calling structure)
-
-**Requirements:** CTX-01, CTX-02, CTX-03
-
-**Success Criteria:**
-1. League description paragraph injected into LLM system prompt so "top 6", "big 6", "relegation zone" are classified dynamically without hardcoded labels
-2. `league_standings` DuckDB view (created in Phase 4 tail) successfully used in queries; standings derivable from match results
-3. At least 5 league-context questions answered correctly that previously failed or required hardcoded lookup
-4. Timestamp injected context ("as of Matchday X") to ground team classification in time
-5. 61/61 eval_runner.py benchmark still passes after Phase 7 completes (regression check)
-
-**Plans:** TBD
-
-**UI hint**: no
-
----
-
-### Phase 8 — Random Question Robustness
-**Goal:** Stress test the analyst with diverse unprepared questions and harden alias mapping for player/team name variants.
+### Phase 8 — League Context (Reprioritised 2026-04-16)
+**Goal:** Inject dynamic league classification into the system prompt so the LLM classifies teams without hardcoded labels.
 
 **Depends on:** Phase 7
 
-**Requirements:** ROB-01, ROB-02
+**Requirements:** CTX-01, CTX-02, CTX-03
+
+**Why this moved here:** Agust's priority #3. Simple to implement — one paragraph + standings view already built in Phase 4.
 
 **Success Criteria:**
-1. 20+ diverse unprepared questions tested beyond the 61-question benchmark; pass rate documented and tracked
-2. Alias gaps identified and resolved for common player/team name variants (accents, abbreviations, nicknames)
-3. Alias hardening prevents silent failures on unrecognized entity names
-4. 61/61 eval_runner.py benchmark still passes after Phase 8 completes (regression check)
+1. League description paragraph (as worded by Agust) injected into system prompt dynamically — no hardcoded "top 6 = [Arsenal, Chelsea, ...]" lists anywhere in code
+2. `league_standings` DuckDB view used to derive dynamic team classifications (top 4, top 6, relegation zone) at query time
+3. Timestamp injected: "as of Matchday X" grounds classifications in time
+4. At least 5 league-context questions answered correctly that previously required hardcoded lookup
+5. "No hardcoded labels" rule verified: grep for hardcoded team group lists returns zero results
 
 **Plans:** TBD
 
@@ -197,17 +210,19 @@
 
 ## Progress Tracking
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Project Baseline | 0/2 | Complete | 2026-03-26 |
-| 2. Planner & Execution Fixes | 0/3 | Complete | 2026-03-27 |
-| 3. Verbalization & UI Quality | 0/2 | Complete | 2026-03-27 |
-| 4. Extract & Clean | 6/6 | Complete | 2026-04-12 |
-| 5. Function Calling Core | 2/5 | In Progress | — (51/61 = 83.6%) |
-| 6. Conversation Memory | 0/5 | Not started | — |
-| 7. League Context | 0/5 | Not started | — |
-| 8. Random Question Robustness | 0/4 | Not started | — |
-| 9. Natural Language Polish | 0/5 | Not started | — |
+| Phase | Name | Plans | Status | Completed |
+|-------|------|-------|--------|-----------|
+| 1 | Project Baseline | 0/2 | Complete | 2026-03-26 |
+| 2 | Planner & Execution Fixes | 0/3 | Complete | 2026-03-27 |
+| 3 | Verbalization & UI Quality | 0/2 | Complete | 2026-03-27 |
+| 4 | Extract & Clean | 6/6 | Complete | 2026-04-12 |
+| 5 | Function Calling Core (revised) | 0/6 | In Progress | — |
+| 6 | Random Question Robustness ⬆️ | 0/5 | Not started | — |
+| 7 | Conversation Memory ⬆️ | 0/5 | Not started | — |
+| 8 | League Context ⬆️ | 0/5 | Not started | — |
+| 9 | Natural Language Polish | 0/5 | Not started | — |
+
+> Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
 ---
 

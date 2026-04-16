@@ -117,17 +117,17 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | INFRA-04 | Phase 4 | Complete ✓ (2026-04-12) |
 | INFRA-05 | Phase 4 | Complete ✓ (2026-04-12) |
 | FUNC-01 | Phase 5 | Complete ✓ (2026-04-13) |
-| FUNC-02 | Phase 5 | In Progress — 51/61 = 83.6% (2026-04-13) |
-| FUNC-03 | Phase 5 | Complete ✓ (2026-04-13) |
+| FUNC-02 | Phase 5 | In Progress — scope revised 2026-04-16 (exit gate changed from 61/61 to architecture gate) |
+| FUNC-03 | Phase 5 | Complete ✓ (2026-04-13, deleted 2026-04-16 — legacy fully removed) |
 | FUNC-04 | Phase 5 | Complete ✓ (2026-04-12) |
-| MEM-01 | Phase 6 | Pending |
-| MEM-02 | Phase 6 | Pending |
-| MEM-03 | Phase 6 | Pending |
-| CTX-01 | Phase 7 | Pending |
-| CTX-02 | Phase 7 | Pending |
-| CTX-03 | Phase 7 | Pending |
-| ROB-01 | Phase 8 | Pending |
-| ROB-02 | Phase 8 | Pending |
+| ROB-01 | Phase 6 ⬆️ | Pending |
+| ROB-02 | Phase 6 ⬆️ | Pending |
+| MEM-01 | Phase 7 ⬆️ | Pending |
+| MEM-02 | Phase 7 ⬆️ | Pending |
+| MEM-03 | Phase 7 ⬆️ | Pending |
+| CTX-01 | Phase 8 ⬆️ | Pending |
+| CTX-02 | Phase 8 ⬆️ | Pending |
+| CTX-03 | Phase 8 ⬆️ | Pending |
 | NLP-01 | Phase 9 | Pending |
 | NLP-02 | Phase 9 | Pending |
 | NLP-03 | Phase 9 | Pending |

@@ -110,19 +110,27 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - New exit gate: Responses API working + 3 mother tools + follow-up history wired
 - Legacy code deleted (2026-04-16): `query_planner.py`, `llm_query_engine_v2.py`, `knowledge_base.py`, `function_tools.py`, `models.py`, 3 legacy YAML prompts, legacy test + eval files (3,975 LOC removed, commit `92689d9d`)
 
-**Work completed:**
+**Work completed (session 2026-04-16):**
 - ✓ `BasicStatsAgent` implemented (`src/basic_stats/agent.py`) — tool-calling loop, 9 tools
-- ✓ 9 tool schemas in `src/basic_stats/agent_tool_schemas.py`
 - ✓ `evals/agent_benchmark.py` + `faithfulness_judge.py` — eval harness
 - ✓ Responses API confirmed working on Azure endpoint (`client.responses.create` → OK)
 - ✓ Legacy architecture deleted (2026-04-16)
 
-**Remaining Phase 5 work:**
-- [ ] Migrate `agent.py` to `client.responses.create` (Responses API)
-- [ ] Collapse 9 tools → 3 mother tools (`query_player_stats`, `query_team_stats`, `query_ranking`)
-- [ ] Update tool schemas to flat format (name/description/parameters at root, not nested under `"function": {}`)
-- [ ] Wire `previous_response_id` for follow-up conversation history
-- [ ] Add VSS method stubs to `duckdb_manager.py` (activated in Phase 6)
+**Work completed (session 2026-04-17 — checkpoint):**
+- ✓ Step 1: `config.py` — `get_embeddings_model()` added (commit `6ab846fe`)
+- ✓ Step 2: `duckdb_manager.py` — VSS stubs added: `store_entity_embeddings()`, `fuzzy_resolve_entity()` (commit `6ab846fe`)
+- ✓ Step 3: `agent_tool_schemas.py` — 9 schemas → 4, flat Responses API format, no `"function":{}` wrapper, no `"strict":True` (commit `6ab846fe`)
+- ✓ Step 4: `agent_tools.py` — 3 mother tool dispatchers added; `Filters` dataclass + `ToolResult` dataclass eliminated — functions now read plain dicts via `_f()` helper, matching OpenAI function calling convention (commit `f7c8639b`)
+- ✓ 44 unit tests passing across 4 test files (no LLM calls)
+
+**Checkpoint — stopped 2026-04-17:**
+Steps 1–4 complete and committed. Stopping here for the session.
+
+**Remaining Phase 5 work (next session):**
+- [ ] Step 5: Migrate `agent.py` to `client.responses.create` — add `previous_response_id`, `_last_response_id`, update `_build_tool_map` to 4 entries, update loop pattern
+- [ ] Step 6: Update `src/basic_stats/prompts/agent_system.yaml` — HOW TO USE TOOLS section with new tool names
+- [ ] Step 7: Wire `previous_response_id` in `pages/basic_stats.py` via `RESP_ID_KEY` session state
+- [ ] Final: full test suite + benchmark smoke check + commit
 
 **Phase 6 — Random Question Robustness** ○ Pending (blocked by Phase 5) ⬆️ *was Phase 8*
 

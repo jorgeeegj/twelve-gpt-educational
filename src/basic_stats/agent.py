@@ -24,7 +24,7 @@ from src.basic_stats.agent_tools import (
     query_ranking,
     query_team_stats,
 )
-from src.basic_stats.config import get_llm_client, get_model
+from src.basic_stats.config import get_embeddings_model, get_llm_client, get_model
 from src.basic_stats.duckdb_manager import DuckDBManager
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,7 @@ class BasicStatsAgent:
         self.duck = DuckDBManager()
         self.client = get_llm_client()
         self.model = get_model()
+        self.duck.set_embedding_client(self.client, get_embeddings_model())
         self.system_prompt = build_system_prompt(self.duck)
         self._tool_map = _build_tool_map(self.duck)
         self._last_response_id: str | None = None

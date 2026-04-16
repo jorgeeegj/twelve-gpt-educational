@@ -59,6 +59,65 @@ def _has_match_context(filters: dict | None) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Position normalization
+# ---------------------------------------------------------------------------
+
+_POSITION_MAP: dict[str, str] = {
+    # Central Defender aliases
+    "cb": "Central Defender",
+    "center back": "Central Defender",
+    "centre back": "Central Defender",
+    "central defender": "Central Defender",
+    "centre-back": "Central Defender",
+    "center-back": "Central Defender",
+    "defender": "Central Defender",
+    # Full Back aliases
+    "full back": "Full Back",
+    "fullback": "Full Back",
+    "lb": "Full Back",
+    "rb": "Full Back",
+    "left back": "Full Back",
+    "right back": "Full Back",
+    # Goalkeeper aliases
+    "gk": "Goalkeeper",
+    "keeper": "Goalkeeper",
+    "goalie": "Goalkeeper",
+    "goalkeeper": "Goalkeeper",
+    # Midfielder aliases
+    "mid": "Midfielder",
+    "midfielder": "Midfielder",
+    "cm": "Midfielder",
+    "dm": "Midfielder",
+    "cdm": "Midfielder",
+    "cam": "Midfielder",
+    "central midfielder": "Midfielder",
+    "defensive midfielder": "Midfielder",
+    "attacking midfielder": "Midfielder",
+    # Striker aliases
+    "striker": "Striker",
+    "cf": "Striker",
+    "center forward": "Striker",
+    "centre forward": "Striker",
+    "forward": "Striker",
+    "st": "Striker",
+    # Winger aliases
+    "winger": "Winger",
+    "lw": "Winger",
+    "rw": "Winger",
+    "left winger": "Winger",
+    "right winger": "Winger",
+    "wide": "Winger",
+}
+
+
+def normalize_position(value: str | None) -> str | None:
+    """Map a user-supplied position alias to a canonical DB position string."""
+    if value is None:
+        return None
+    return _POSITION_MAP.get(value.lower().strip(), value)
+
+
+# ---------------------------------------------------------------------------
 # Metric routing helpers
 # ---------------------------------------------------------------------------
 
@@ -83,6 +142,7 @@ def get_player_stat(
     filters: dict | None = None,
 ) -> dict:
     """Return the aggregated stat for a single named player."""
+    player_name = duck.fuzzy_resolve_entity(player_name, "player")
     if _is_player_match_event_metric(stat):
         rows = duck.query_player_match_event_context(
             metric=stat,
@@ -140,6 +200,7 @@ def get_team_stat(
     filters: dict | None = None,
 ) -> dict:
     """Return the aggregated stat for a single named team."""
+    team_name = duck.fuzzy_resolve_entity(team_name, "team")
     if _is_team_match_metric(stat) or _has_match_context(filters):
         effective_stat = stat if _is_team_match_metric(stat) else "team_score"
         rows = duck.query_team_match_context(
@@ -182,6 +243,8 @@ def rank_players(
 ) -> dict:
     """Return top/bottom N players ranked by a stat or by a match-condition count."""
     limit = max(1, min(limit, 20))
+    if filters and "position" in filters:
+        filters = {**filters, "position": normalize_position(filters["position"])}
 
     if match_conditions:
         rows = duck.query_player_match_context(
@@ -308,10 +371,11 @@ def compare_entities(
 
     rows = []
     for name in entities:
+        resolved = duck.fuzzy_resolve_entity(name, entity_type)
         if entity_type == "player":
-            result = get_player_stat(duck, name, stat, filters)
+            result = get_player_stat(duck, resolved, stat, filters)
         else:
-            result = get_team_stat(duck, name, stat, filters)
+            result = get_team_stat(duck, resolved, stat, filters)
 
         entity_rows = result.get("rows", [])
         if entity_rows:
@@ -337,6 +401,8 @@ def count_matches_where(
     """Count matches where a player/team meets all given conditions."""
     if entity_type not in {"player", "team"}:
         raise ToolError(f"entity_type must be 'player' or 'team', got '{entity_type}'")
+
+    entity_name = duck.fuzzy_resolve_entity(entity_name, entity_type)
 
     if entity_type == "player":
         rows = duck.query_player_match_context(
@@ -422,6 +488,9 @@ def get_stat_vs_opponent_group(
     """Return aggregated stat across a specific list of opponents."""
     if not opponent_teams:
         raise ToolError("opponent_teams list cannot be empty")
+
+    entity_name = duck.fuzzy_resolve_entity(entity_name, entity_type)
+    opponent_teams = [duck.fuzzy_resolve_entity(t, "team") for t in opponent_teams]
 
     placeholders = ", ".join("?" for _ in opponent_teams)
     params_lower = [t.lower() for t in opponent_teams]

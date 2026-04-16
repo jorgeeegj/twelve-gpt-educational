@@ -128,7 +128,14 @@ class DuckDBManager:
     def __init__(self, db_path: Path | None = None, in_memory: bool = False):
         self.db_path = str(db_path or DUCKDB_PATH)
         self.con = duckdb.connect(":memory:" if in_memory else self.db_path)
+        self._embedding_client = None
+        self._embedding_model: str | None = None
         self._register_base_views()
+
+    def set_embedding_client(self, client, model: str) -> None:
+        """Store the OpenAI client + model so fuzzy_resolve_entity can be called without args."""
+        self._embedding_client = client
+        self._embedding_model = model
 
     def close(self) -> None:
         self.con.close()
@@ -776,20 +783,116 @@ class DuckDBManager:
     # Phase 6 — Embedding / VSS (stubs, not yet implemented)
     # ------------------------------------------------------------------
 
-    def store_entity_embeddings(self) -> None:
+    def store_entity_embeddings(self, client, model: str) -> None:
         """
-        Phase 6: Generate embeddings for all player/team names using
-        text-embedding-3-large and store them in a DuckDB VSS table
-        for fuzzy entity resolution.
-        """
-        raise NotImplementedError("store_entity_embeddings will be implemented in Phase 6")
+        Generate embeddings for all player/team names and store in a persistent
+        DuckDB table for fuzzy entity resolution via cosine similarity.
 
-    def fuzzy_resolve_entity(self, user_input: str, entity_type: str) -> str:
+        Args:
+            client: OpenAI/AzureOpenAI client with an embeddings endpoint.
+            model:  Deployment name for text-embedding-3-large.
         """
-        Phase 6: Resolve a fuzzy or abbreviated player/team name to the
-        canonical DB name using cosine similarity over stored embeddings.
+        # 1. Collect all entity names
+        # For players: store 3 entries per player — short_name, full name, last name only.
+        # All point to the same canonical short_name. This ensures "Salah", "Mohamed Salah",
+        # and "M. Salah" all resolve correctly.
+        player_rows = self.query_dicts(
+            "SELECT DISTINCT short_name, first_name, last_name FROM players_summary ORDER BY short_name"
+        )
+        team_rows = self.query_dicts(
+            "SELECT DISTINCT team_name FROM players_summary ORDER BY team_name"
+        )
+
+        # (entity_type, canonical_name, text_to_embed)
+        entities: list[tuple[str, str, str]] = []
+        for r in player_rows:
+            short = r["short_name"]
+            full = f"{r['first_name']} {r['last_name']}".strip()
+            last = r["last_name"].strip()
+            entities.append(("player", short, short))  # "M. Salah"
+            entities.append(("player", short, full))  # "Mohamed Salah"
+            if last:
+                entities.append(("player", short, last))  # "Salah"
+        for r in team_rows:
+            entities.append(("team", r["team_name"], r["team_name"]))
+
+        # 2. Fetch embeddings in one batch (Azure supports up to 2048 inputs)
+        texts = [text for _, _, text in entities]
+        response = client.embeddings.create(model=model, input=texts)
+        vectors = [item.embedding for item in response.data]
+
+        # 3. Install VSS extension and create table
+        self.con.execute("INSTALL vss; LOAD vss;")
+        self.con.execute("DROP TABLE IF EXISTS entity_embeddings")
+        self.con.execute("""
+            CREATE TABLE entity_embeddings (
+                entity_type VARCHAR,
+                canonical_name VARCHAR,
+                embedding FLOAT[3072]
+            )
+        """)
+
+        # 4. Insert rows
+        rows = [
+            (entity_type, canonical_name, vector)
+            for (entity_type, canonical_name, _text), vector in zip(entities, vectors)
+        ]
+        self.con.executemany("INSERT INTO entity_embeddings VALUES (?, ?, ?)", rows)
+
+        # 5. Create HNSW index for fast cosine similarity search
+        self.con.execute("SET hnsw_enable_experimental_persistence = true")
+        self.con.execute("""
+            CREATE INDEX entity_embeddings_hnsw
+            ON entity_embeddings
+            USING HNSW (embedding)
+            WITH (metric = 'cosine')
+        """)
+
+        total = len(rows)
+        n_player_entries = sum(1 for r in rows if r[0] == "player")
+        print(
+            f"Stored {total} embeddings ({n_player_entries} player entries for {len(player_rows)} players, {len(team_rows)} teams)."
+        )
+
+    def fuzzy_resolve_entity(
+        self, user_input: str, entity_type: str, client=None, model: str | None = None
+    ) -> str:
+        """
+        Resolve a fuzzy/abbreviated name to the canonical DB name via cosine similarity.
 
         entity_type: 'player' | 'team'
-        Returns the best-matching canonical name from the DB.
+        client + model: OpenAI client and embeddings deployment name.
+                        Falls back to instance attributes set via set_embedding_client().
+                        If neither is available, returns user_input unchanged.
+        Returns the best-matching canonical name, or user_input if similarity < threshold.
         """
-        raise NotImplementedError("fuzzy_resolve_entity will be implemented in Phase 6")
+        client = client or self._embedding_client
+        model = model or self._embedding_model
+        if client is None or model is None:
+            return user_input
+
+        _SIMILARITY_THRESHOLD = 0.55
+
+        # Embed the user input
+        response = client.embeddings.create(model=model, input=[user_input])
+        query_vec = response.data[0].embedding
+
+        self.con.execute("LOAD vss;")
+
+        rows = self.query_dicts(f"""
+            SELECT canonical_name,
+                   array_cosine_similarity(embedding, {query_vec}::FLOAT[3072]) AS similarity
+            FROM entity_embeddings
+            WHERE entity_type = '{entity_type}'
+            ORDER BY similarity DESC
+            LIMIT 1
+        """)
+
+        if not rows:
+            return user_input
+
+        best = rows[0]
+        if best["similarity"] < _SIMILARITY_THRESHOLD:
+            return user_input
+
+        return best["canonical_name"]

@@ -4,7 +4,6 @@
 import pytest
 
 from src.basic_stats.agent_tools import (
-    Filters,
     ToolError,
     compare_entities,
     count_matches_where,
@@ -21,32 +20,6 @@ from src.basic_stats.duckdb_manager import DuckDBManager
 @pytest.fixture(scope="module")
 def duck():
     return DuckDBManager()
-
-
-# ---------------------------------------------------------------------------
-# Filters dataclass
-# ---------------------------------------------------------------------------
-
-
-class TestFilters:
-    def test_from_dict_empty(self):
-        f = Filters.from_dict(None)
-        assert f.opponent_team is None
-        assert not f.has_match_context()
-
-    def test_from_dict_with_values(self):
-        f = Filters.from_dict({"is_home": True, "opponent_rank_max": 6})
-        assert f.is_home is True
-        assert f.opponent_rank_max == 6
-        assert f.has_match_context()
-
-    def test_has_match_context_matchday(self):
-        f = Filters.from_dict({"matchday_start": 25})
-        assert f.has_match_context()
-
-    def test_has_match_context_summary_only(self):
-        f = Filters.from_dict({"min_minutes": 900, "age_max": 23})
-        assert not f.has_match_context()
 
 
 # ---------------------------------------------------------------------------

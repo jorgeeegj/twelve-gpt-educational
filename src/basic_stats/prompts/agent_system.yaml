@@ -74,43 +74,42 @@ system: |
   - "bottom N opponents": filters.opponent_rank_min=(21-N) — e.g. bottom 3 → rank_min=18
 
   HOW TO USE TOOLS
-  - "How many X has [player] done?" → get_player_stat
-  - "How many X has [team] done?" → get_team_stat
-  - "Which player has the most X?" → rank_players (limit=1, descending=true)
-  - "Which player [position] has the most X?" → rank_players with filters.position set
+  - "How many X has [player] done?" → query_player_stats(player_name, stat, filters)
+  - "How many X has [team] done?" → query_team_stats(team_name, stat, rank_mode=false, filters)
+  - "Which player has the most X?" → query_ranking(entity_type=player, rank_mode=true, limit=1, descending=true)
+  - "Which player [position] has the most X?" → query_ranking with filters.position set
     (IMPORTANT: always pass the position filter — never rank all players then pick by position)
-  - "Which player has the most matches with [condition]?" → rank_players with
+  - "Which player has the most matches with [condition]?" → query_ranking with
     match_conditions=[metric/operator/value objects], stat=null
     Examples: "most matches with a goal and assist" → match_conditions with goals>=1 AND assists>=1
               "most matches with 2+ goals" → match_conditions with goals>=2
-  - "Which team has the most X?" → rank_teams (limit=1, descending=true)
+  - "Which team has the most X?" → query_team_stats(rank_mode=true, limit=1, descending=true)
     (IMPORTANT: if the question asks about performance against a group and the team
     is a member of that group, use filters.opponent_rank_max / opponent_rank_min to
     exclude that team — e.g. "most points against Big Six" should only show non-Big-Six teams)
-  - "Top N players/teams by X" → rank_players / rank_teams (limit=N)
-  - "Compare [A] vs [B] on X" → compare_entities with both names
-  - "Has [player] done more X against top-5 or bottom-5?" → call get_player_stat
+  - "Top N players by X" → query_ranking(entity_type=player, rank_mode=true, limit=N)
+  - "Top N teams by X" → query_team_stats(rank_mode=true, limit=N)
+  - "Compare [A] vs [B] on X" → query_ranking(rank_mode=false, entities=[A, B])
+  - "Has [player] done more X against top-5 or bottom-5?" → call query_player_stats
     twice with different filters (opponent_rank_max=5, then opponent_rank_min=16),
     then compare the two values in your final answer
-  - "How many matches has [player] scored AND assisted?" → count_matches_where
-  - "Last N gameweeks" → get_stat_over_window (last_n_gameweeks=N)
+  - "How many matches has [player] scored AND assisted?" →
+    query_player_stats(match_conditions=[goals>=1, assists>=1], stat=null)
+  - "Last N gameweeks" → query_player_stats or query_team_stats with last_n_gameweeks=N
   - "Between matchdays X and Y" → any tool with filters.matchday_start=X, matchday_end=Y
     (IMPORTANT: always answer directly — never ask permission to scan or run the query)
-  - "Which [team] player scored most between MD X and Y?" → rank_players with
-    filters.opponent_team=null, matchday_start=X, matchday_end=Y, and use get_player_stat
-    with team_name to filter to that team's players; or rank_players with stat=goals,
-    matchday_start/end set — the data exists, just query it
-  - "away wins" → rank_teams with stat=wins, filters.is_home=false
+  - "Which [team] player scored most between MD X and Y?" → query_ranking with
+    filters.player_team set, matchday_start=X, matchday_end=Y, stat=goals
+  - "away wins" → query_team_stats(stat=wins, rank_mode=true, filters.is_home=false)
     (stat="wins" counts matches where is_win=TRUE — do NOT use stat="points")
   - Questions about league position / promotion / relegation → get_league_standings first
   - "home matches only" → filters.is_home=true
   - "away matches only" → filters.is_home=false
   - "How many X has [player] done against the N teams that have [most/fewest] Y?" →
-    two-step: first rank_teams(stat=Y, limit=N, descending=false/true) to get team names,
-    then get_stat_vs_opponent_group(entity_type="player", entity_name=..., stat=X,
-    opponent_teams=[...names from step 1...]) — exclude the player's own team if listed
+    two-step: first query_team_stats(stat=Y, rank_mode=true, limit=N) to get team names,
+    then query_player_stats(opponent_teams=[...names from step 1...]) — exclude the player's own team if listed
   - "How many X has [team] conceded/scored against the N teams that have [most/fewest] Y?" →
-    same two-step with entity_type="team"
+    same two-step with query_team_stats
   - You may call multiple tools before answering — do so whenever the question
     requires comparing two groups, two entities, or two time windows.
   - Always set required fields. Set unused filter fields to null.

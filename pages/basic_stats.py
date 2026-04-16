@@ -41,19 +41,20 @@ st.markdown(
 
 from src.basic_stats.agent import BasicStatsAgent
 
-_agent = BasicStatsAgent()
+
+@st.cache_resource
+def _get_agent() -> BasicStatsAgent:
+    return BasicStatsAgent()
 
 
-def _ask(question: str, history=None) -> str:
-    return _agent.ask(question, history=history)
+_agent = _get_agent()
+
+
+def _ask(question: str) -> str:
+    return _agent.ask(question)
 
 
 # ── Benchmark status ──────────────────────────────────────────────
-_eval_candidates = [
-    Path("evals/runs"),
-    Path("docs/evals/latest_eval_results.json"),
-]
-# Show latest agent benchmark score if available
 _runs_dir = Path("evals/runs")
 if _runs_dir.exists():
     _agent_runs = sorted(
@@ -79,6 +80,7 @@ if CHAT_KEY not in st.session_state:
 
 if st.button("Clear chat"):
     st.session_state[CHAT_KEY] = []
+    _agent.reset()
     st.rerun()
 
 # ── Render chat history ───────────────────────────────────────────
@@ -92,16 +94,9 @@ question = st.chat_input("Ask a question about PL 2024-25")
 if question:
     st.session_state[CHAT_KEY].append({"role": "user", "content": question})
 
-    # Build history for follow-up context (Phase 6 wires this fully)
-    history = [
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state[CHAT_KEY][:-1]  # exclude the question just appended
-        if m["role"] in ("user", "assistant")
-    ]
-
     try:
         with st.spinner("Analysing..."):
-            answer = _ask(question, history=history)
+            answer = _ask(question)
 
         st.session_state[CHAT_KEY].append({"role": "assistant", "content": answer})
         st.rerun()

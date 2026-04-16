@@ -1,0 +1,118 @@
+{
+  "benchmark_path": "/Users/ricardoheredia/Twelve-GPT-Educational/evals/questions_benchmark.json",
+  "total_questions": 61,
+  "elapsed_seconds": 2.2,
+  "max_workers": 10,
+  "error_count": 61,
+  "gates": {
+    "faithfulness": {
+      "value": 0.0,
+      "threshold": 0.95,
+      "passed": false,
+      "score": "0/61"
+    }
+  },
+  "all_gates_pass": false,
+  "by_category": {
+    "baseline_player_advanced": {
+      "total": 5,
+      "faithfulness": "0/5",
+      "naturalness_avg": null
+    },
+    "baseline_player_basic": {
+      "total": 5,
+      "faithfulness": "0/5",
+      "naturalness_avg": null
+    },
+    "baseline_player_filtered": {
+      "total": 3,
+      "faithfulness": "0/3",
+      "naturalness_avg": null
+    },
+    "baseline_team_advanced": {
+      "total": 2,
+      "faithfulness": "0/2",
+      "naturalness_avg": null
+    },
+    "baseline_team_basic": {
+      "total": 5,
+      "faithfulness": "0/5",
+      "naturalness_avg": null
+    },
+    "dual_bucket_comparison": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "home_away_comparison": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "home_away_context": {
+      "total": 2,
+      "faithfulness": "0/2",
+      "naturalness_avg": null
+    },
+    "match_level_minutes": {
+      "total": 4,
+      "faithfulness": "0/4",
+      "naturalness_avg": null
+    },
+    "metric_derived_bucket": {
+      "total": 3,
+      "faithfulness": "0/3",
+      "naturalness_avg": null
+    },
+    "mid_table_bucket": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "opponent_context": {
+      "total": 2,
+      "faithfulness": "0/2",
+      "naturalness_avg": null
+    },
+    "ordinal_ranking": {
+      "total": 6,
+      "faithfulness": "0/6",
+      "naturalness_avg": null
+    },
+    "planner_robustness": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "planner_robustness_es": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "player_match_event_context": {
+      "total": 5,
+      "faithfulness": "0/5",
+      "naturalness_avg": null
+    },
+    "rephrase_en": {
+      "total": 3,
+      "faithfulness": "0/3",
+      "naturalness_avg": null
+    },
+    "rephrase_es": {
+      "total": 3,
+      "faithfulness": "0/3",
+      "naturalness_avg": null
+    },
+    "team_match_context": {
+      "total": 5,
+      "faithfulness": "0/5",
+      "naturalness_avg": null
+    },
+    "temporal_entity_value": {
+      "total": 3,
+      "faithfulness": "0/3",
+      "naturalness_avg": null
+    }
+  }
+}

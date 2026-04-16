@@ -1,0 +1,1491 @@
+[
+  {
+    "id": "QV4_01",
+    "category": "baseline_player_basic",
+    "question": "Who has scored the most goals this season?",
+    "answer": "Mohamed Salah (Liverpool) is the top scorer this season, with 29 goals in 38 appearances.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_goals": 29
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      29.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_02",
+    "category": "baseline_player_basic",
+    "question": "Who has the most assists this season?",
+    "answer": "Mohamed Salah (Liverpool) is the assist leader this season with 16 assists in 38 appearances.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_assists": 16
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      16.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_03",
+    "category": "baseline_player_basic",
+    "question": "Which player has played the most minutes?",
+    "answer": "Bernd Leno of Fulham has played the most minutes this season, totaling 3,420 across all 38 Premier League games.",
+    "expected": {
+      "short_name": "B. Leno",
+      "team_name": "Fulham",
+      "total_minutes": 3420
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      3420.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_04",
+    "category": "baseline_player_basic",
+    "question": "Who has received the most yellow cards?",
+    "answer": "S. Lukić (Fulham) has the most yellow cards this season, with 12.",
+    "expected": {
+      "short_name": "S. Lukić",
+      "team_name": "Fulham",
+      "total_yellow_cards": 12
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      12.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_05",
+    "category": "baseline_player_basic",
+    "question": "Which player has the best goals per 90 minutes (minimum 10 appearances)?",
+    "answer": "J. Durán of Aston Villa has the best goals per 90 minutes among players with at least 10 appearances this season, at about 0.854 goals per 90 (20 appearances, 738 minutes).",
+    "expected": {
+      "short_name": "J. Durán",
+      "team_name": "Aston Villa",
+      "total_goals_p90": 0.85
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      0.85
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_06",
+    "category": "baseline_team_basic",
+    "question": "Which team has scored the most goals?",
+    "answer": "Liverpool topped the goalscoring chart, scoring 86 goals over the 2024-25 Premier League season.",
+    "expected": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      86.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_07",
+    "category": "baseline_team_basic",
+    "question": "Which team has conceded the fewest goals?",
+    "answer": "Arsenal have conceded the fewest goals this season, shipping 34 goals across the 38 gameweeks.",
+    "expected": {
+      "team_name": "Arsenal",
+      "total_goals_against": 34
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      34.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_08",
+    "category": "baseline_team_basic",
+    "question": "Which team wins the most aerial duels?",
+    "answer": "Everton win the most aerial duels this season, with 691 duels won. Brentford are second (666) and West Ham United third (660).",
+    "expected": {
+      "team_name": "Everton",
+      "aerial_duels_won": 691.0
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      691.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_09",
+    "category": "baseline_team_basic",
+    "question": "Which team has the most accurate passing?",
+    "answer": "Manchester City. They lead the league in pass accuracy, at about 89.84% across all matches this season.",
+    "expected": {
+      "team_name": "Manchester City",
+      "pass_accuracy_pct": 89.84
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      89.84
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_10",
+    "category": "baseline_team_basic",
+    "question": "Which team provokes the most offsides?",
+    "answer": "Nottingham Forest. They lead with 87 offsides this season.",
+    "expected": {
+      "team_name": "Nottingham Forest",
+      "offsides": 87.0
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      87.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_11",
+    "category": "baseline_player_advanced",
+    "question": "Which midfielder has the most progressive passes per 90?",
+    "answer": "Bruno Fernandes (Manchester United) leads midfielders with 11.03 progressive passes per 90 this season.",
+    "expected": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "progressive_passes_p90": 11.03
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      11.03
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_12",
+    "category": "baseline_player_advanced",
+    "question": "Which player has the highest dribble success rate (minimum 10 appearances)?",
+    "answer": "K. Tierney (Arsenal) – 100.0% dribble success rate with 13 appearances this season.",
+    "expected": {
+      "short_name": "K. Walker",
+      "team_name": "Manchester City",
+      "dribble_success_pct": 100.0
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      100.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_13",
+    "category": "baseline_player_advanced",
+    "question": "Which forward has the most shots on target per 90?",
+    "answer": "D. Malen (Aston Villa) leads among forwards with the most shots on target per 90, at about 1.89. Haaland (Manchester City, Striker) is second at about 1.81. Malen’s high rate comes with relatively fewer minutes (381) across 14 appearances.",
+    "expected": {
+      "short_name": "D. Malen",
+      "team_name": "Aston Villa",
+      "shots_on_target_p90": 1.89
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      1.89
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_14",
+    "category": "baseline_player_advanced",
+    "question": "Which player makes the most recoveries per 90?",
+    "answer": "M. Senesi (Bournemouth, Central Defender) posts the highest recoveries per 90 this season, at about 13.90 per 90 minutes.",
+    "expected": {
+      "short_name": "M. Senesi",
+      "team_name": "Bournemouth",
+      "recoveries_p90": 13.9
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      13.9
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_15",
+    "category": "baseline_player_advanced",
+    "question": "Which defender wins the most aerial duels per 90?",
+    "answer": "Dan Burn (Newcastle United) leads defenders with the most aerial duels won per 90 this season, averaging about 3.95 per 90 minutes (3330 minutes across 37 matches).",
+    "expected": {
+      "short_name": "D. Burn",
+      "team_name": "Newcastle United",
+      "aerial_duels_won_p90": 3.95
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      3.95
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_16",
+    "category": "baseline_player_filtered",
+    "question": "Which player under 23 has scored the most goals?",
+    "answer": "C. Palmer of Chelsea — age 22 — is the top under-23 scorer this season, with 15 goals (listed as a midfielder).",
+    "expected": {
+      "short_name": "C. Palmer",
+      "team_name": "Chelsea",
+      "age": 22,
+      "total_goals": 15
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      22.0,
+      15.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_17",
+    "category": "baseline_player_filtered",
+    "question": "Which midfielder has the best pass accuracy?",
+    "answer": "C. Jones (Liverpool) has the best pass accuracy among midfielders this season, at about 94.0% across 33 appearances (1788 minutes).",
+    "expected": {
+      "short_name": "C. Jones",
+      "team_name": "Liverpool",
+      "pass_accuracy_pct": 94.02
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      94.02
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_18",
+    "category": "baseline_player_filtered",
+    "question": "Which forward has the most touches in the box per 90?",
+    "answer": "Jeremy Doku (Manchester City, Winger) leads forwards with 8.91 touches in the box per 90. Diogo Jota (Liverpool, Striker) is next at 6.09 per 90.",
+    "expected": {
+      "short_name": "J. Doku",
+      "team_name": "Manchester City",
+      "touches_in_box_p90": 8.91
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      8.91
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_19",
+    "category": "baseline_team_advanced",
+    "question": "Which team has the most progressive passes per 90?",
+    "answer": "Liverpool have the most progressive passes per 90 this season, at about 70.38 per 90.",
+    "expected": {
+      "team_name": "Liverpool",
+      "progressive_passes_p90": 70.38
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      70.38
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_20",
+    "category": "baseline_team_advanced",
+    "question": "Which team has the most key passes per 90?",
+    "answer": "Liverpool have the most key passes per 90 in the season, averaging about 5.12 per 90 minutes.",
+    "expected": {
+      "team_name": "Liverpool",
+      "key_passes_p90": 5.12
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      5.12
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_21",
+    "category": "rephrase_en",
+    "question": "Who is the top scorer this season?",
+    "answer": "Mohamed Salah (Liverpool) is the season’s top scorer with 29 goals in 38 appearances.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_goals": 29
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      29.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_22",
+    "category": "rephrase_en",
+    "question": "Which club has the best attack by total goals this season?",
+    "answer": "Liverpool have the best attack by total goals this season, with 86 goals scored.",
+    "expected": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      86.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_23",
+    "category": "rephrase_en",
+    "question": "Which side allowed the fewest goals this season?",
+    "answer": "Arsenal have conceded the fewest goals this season, letting in 34 in total across the 38 gameweeks.",
+    "expected": {
+      "team_name": "Arsenal",
+      "total_goals_against": 34
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      34.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_24",
+    "category": "rephrase_es",
+    "question": "¿Quién lidera la liga en asistencias esta temporada?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "total_assists": 16
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [16.0]",
+    "faithfulness_expected": [
+      16.0
+    ],
+    "faithfulness_missing": [
+      16.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_25",
+    "category": "rephrase_es",
+    "question": "¿Qué equipo ha marcado más goles esta temporada?",
+    "answer": "Liverpool es el equipo con más goles esta temporada, con 86 tantos. ¿Quieres ver el top completo o comparar con goles en casa vs. lejos?",
+    "expected": {
+      "team_name": "Liverpool",
+      "total_goals": 86
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      86.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_26",
+    "category": "rephrase_es",
+    "question": "¿Qué jugador ha jugado más minutos esta temporada?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "B. Leno",
+      "team_name": "Fulham",
+      "total_minutes": 3420
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [3420.0]",
+    "faithfulness_expected": [
+      3420.0
+    ],
+    "faithfulness_missing": [
+      3420.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_27",
+    "category": "ordinal_ranking",
+    "question": "Who is 2nd in assists this season?",
+    "answer": "The 2nd-highest assister this season is J. Murphy of Newcastle United, with 11 assists. (Salah leads with 16 assists.)",
+    "expected": {
+      "short_name": "J. Murphy",
+      "team_name": "Newcastle United",
+      "total_assists": 11
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      11.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_28",
+    "category": "ordinal_ranking",
+    "question": "Who is 7th for total minutes played this season?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_minutes": 3413
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [3413.0]",
+    "faithfulness_expected": [
+      3413.0
+    ],
+    "faithfulness_missing": [
+      3413.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_29",
+    "category": "ordinal_ranking",
+    "question": "Who is 6th in the top scoring list this season?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "Y. Wissa",
+      "team_name": "Brentford",
+      "total_goals": 18
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [18.0]",
+    "faithfulness_expected": [
+      18.0
+    ],
+    "faithfulness_missing": [
+      18.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_30",
+    "category": "ordinal_ranking",
+    "question": "Which team is 3rd in goals scored this season?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "team_name": "Arsenal",
+      "total_goals": 69
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [69.0]",
+    "faithfulness_expected": [
+      69.0
+    ],
+    "faithfulness_missing": [
+      69.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_31",
+    "category": "ordinal_ranking",
+    "question": "Which team has the 3rd fewest goals conceded this season?",
+    "answer": "Chelsea. They have conceded 43 goals, which places them third-fewest this season (Arsenal 34, Liverpool 41, Chelsea 43).",
+    "expected": {
+      "team_name": "Chelsea",
+      "total_goals_against": 43
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      43.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_32",
+    "category": "ordinal_ranking",
+    "question": "Who is 20th in goals scored this season?",
+    "answer": "João Pedro (Brighton), with 10 goals this season.",
+    "expected": {
+      "short_name": "João Pedro",
+      "team_name": "Brighton",
+      "total_goals": 10
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      10.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_33",
+    "category": "match_level_minutes",
+    "question": "Which player has the most matches with both a goal and an assist?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "matches_scored_and_assisted": 10
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [10.0]",
+    "faithfulness_expected": [
+      10.0
+    ],
+    "faithfulness_missing": [
+      10.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_34",
+    "category": "match_level_minutes",
+    "question": "Which player has the most matches with 2 or more goals?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "two_goal_matches": 5
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [5.0]",
+    "faithfulness_expected": [
+      5.0
+    ],
+    "faithfulness_missing": [
+      5.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_35",
+    "category": "match_level_minutes",
+    "question": "Which Liverpool player scored the most goals between matchdays 25 and 30?",
+    "answer": "Mohamed Salah. He scored 5 goals for Liverpool between matchdays 25 and 30. The next highest scorers in that window were Darwin Núñez, Diogo Jota, and Luis Díaz with 1 each, while Cody Gakpo had 0.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "goals_gw_25_30": 5
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      5.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_36",
+    "category": "match_level_minutes",
+    "question": "Which Manchester City player scored the most goals between matchdays 25 and 30?",
+    "answer": "Omar Marmoush (Manchester City) scored the most goals for City in matchdays 25–30, with 5 goals. He was tied for the window’s overall top goals with Mohamed Salah.",
+    "expected": {
+      "short_name": "Omar Marmoush",
+      "team_name": "Manchester City",
+      "goals_gw_25_30": 5
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      5.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_37",
+    "category": "opponent_context",
+    "question": "Which player has scored the most goals against top-6 teams this season?",
+    "answer": "Mohamed Salah of Liverpool is the top scorer against top-6 teams this season, with 8 goals.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "goals_vs_top6": 8
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      8.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_38",
+    "category": "opponent_context",
+    "question": "How many goals has E. Haaland scored against top-6 teams this season?",
+    "answer": "E. Haaland has scored 4 goals against top-6 teams in the Premier League this season.",
+    "expected": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "goals_vs_top6": 4
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      4.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_39",
+    "category": "home_away_context",
+    "question": "Which player has scored the most away goals this season?",
+    "answer": "Mohamed Salah (Liverpool) has the most away goals this season, with 16 away goals.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "away_goals": 16
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      16.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV4_40",
+    "category": "home_away_context",
+    "question": "Which team has scored the most away goals this season?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "team_name": "Liverpool",
+      "away_goals": 44
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [44.0]",
+    "faithfulness_expected": [
+      44.0
+    ],
+    "faithfulness_missing": [
+      44.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_41",
+    "category": "player_match_event_context",
+    "question": "Which midfielder has played the most progressive passes against top-6 teams this season?",
+    "answer": "Mohamed Salah (Liverpool) leads among midfielders, averaging 8.0 progressive passes per 90 minutes against top-6 opponents this season.",
+    "expected": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "progressive_passes_vs_top6": 111
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [111.0]",
+    "faithfulness_expected": [
+      111.0
+    ],
+    "faithfulness_missing": [
+      111.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_42",
+    "category": "player_match_event_context",
+    "question": "Which player has recorded the most touches in the box away from home this season?",
+    "answer": "Mohamed Salah of Liverpool leads this season with 165 touches in the box in away games.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "touches_in_box_away": 165
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      165.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_43",
+    "category": "player_match_event_context",
+    "question": "Which player made the most key passes between matchdays 25 and 30?",
+    "answer": "Luis Díaz (Liverpool) made the most key passes between matchdays 25 and 30, with 8 key passes.",
+    "expected": {
+      "short_name": "L. Díaz",
+      "team_name": "Liverpool",
+      "key_passes_gw_25_30": 8
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      8.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_44",
+    "category": "player_match_event_context",
+    "question": "Which player has the most shot assists against Big Six teams?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "shot_assists_vs_big6": 19
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [19.0]",
+    "faithfulness_expected": [
+      19.0
+    ],
+    "faithfulness_missing": [
+      19.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_45",
+    "category": "player_match_event_context",
+    "question": "¿Qué jugador dio más shot assists contra equipos del Big Six esta temporada?",
+    "answer": "Bruno Fernandes (Manchester United) es el jugador con más shot assists contra los equipos del Big Six this temporada, con 20.",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "shot_assists_vs_big6": 19
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [19.0]",
+    "faithfulness_expected": [
+      19.0
+    ],
+    "faithfulness_missing": [
+      19.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_46",
+    "category": "team_match_context",
+    "question": "Which team won the most points against Big Six teams this season?",
+    "answer": "Liverpool, with 19 points against Big Six teams this season.",
+    "expected": {
+      "team_name": "Brighton",
+      "points_vs_big6": 24
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [24.0]",
+    "faithfulness_expected": [
+      24.0
+    ],
+    "faithfulness_missing": [
+      24.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_47",
+    "category": "team_match_context",
+    "question": "Which team scored the most away goals against top-6 teams this season?",
+    "answer": "Bournemouth and Liverpool are tied for the most away goals against top-6 teams this season, each with 10 away goals. Brighton and Fulham are next with 9.",
+    "expected": {
+      "team_name": "Bournemouth",
+      "away_goals_vs_top6": 10
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      10.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_48",
+    "category": "team_match_context",
+    "question": "Which team had the best goal difference between matchdays 25 and 30?",
+    "answer": "Liverpool had the best goal difference across matchdays 25–30, with a cumulative +8 goal difference over those six gameweeks.",
+    "expected": {
+      "team_name": "Liverpool",
+      "goal_difference_gw_25_30": 8
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      8.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_49",
+    "category": "team_match_context",
+    "question": "¿Qué equipo consiguió más victorias fuera de casa esta temporada?",
+    "answer": "¿Quieres que te diga cuál equipo obtuvo más victorias reales fuera de casa (desplazamientos), o prefieres que use los puntos obtenidos fuera de casa como proxy (ya que la métrica de “victorias fuera de casa” directa no siempre está disponible en un único dato agregado)? Dime cuál prefieres y te traigo la respuesta con números.",
+    "expected": {
+      "team_name": "Liverpool",
+      "away_wins": 11
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [11.0]",
+    "faithfulness_expected": [
+      11.0
+    ],
+    "faithfulness_missing": [
+      11.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV5_50",
+    "category": "team_match_context",
+    "question": "Which team had the most actions in z3 against Manchester City this season?",
+    "answer": "Leicester City. They had the most actions in z3 against Manchester City this season, with 378 actions (across all matches).",
+    "expected": {
+      "team_name": "Leicester City",
+      "actions_z3_vs_manchester_city": 378
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      378.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_51",
+    "category": "planner_robustness",
+    "question": "How many goals has Haaland scored this season?",
+    "answer": "Haaland has scored 22 goals this season for Manchester City (31 appearances, 2,741 minutes).",
+    "expected": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "total_goals": 22
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      22.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_52",
+    "category": "planner_robustness_es",
+    "question": "¿Cuántos goles ha marcado Erling Haaland contra los últimos 5 equipos?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": {
+      "short_name": "E. Haaland",
+      "goals_vs_bottom5": 7
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [7.0]",
+    "faithfulness_expected": [
+      7.0
+    ],
+    "faithfulness_missing": [
+      7.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_53",
+    "category": "mid_table_bucket",
+    "question": "Who has scored the most goals against mid-table teams this season?",
+    "answer": "I can pull that, but I need one clarification to define “mid-table.” which rank range should I treat as mid-table for opponents (e.g., 7th–13th, 9th–14th, etc.)? And should I use only Premier League games from GW1–GW38?",
+    "expected": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "goals": 11
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [11.0]",
+    "faithfulness_expected": [
+      11.0
+    ],
+    "faithfulness_missing": [
+      11.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_54",
+    "category": "dual_bucket_comparison",
+    "question": "Has E. Haaland scored more goals against top 5 teams or bottom 5 teams?",
+    "answer": "He’s scored more against bottom-5 teams. This season, Haaland has 7 goals vs bottom-5 teams and 4 goals vs top-5 teams (3 more against the bottom group).",
+    "expected": null,
+    "debug_expected": {
+      "engine": "dual_bucket_comparison",
+      "bucket_a.value": 4,
+      "bucket_b.value": 7,
+      "bucket_a.p90": 0.57,
+      "bucket_b.p90": 0.91
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [0.57, 0.91]",
+    "faithfulness_expected": [
+      4.0,
+      7.0,
+      0.57,
+      0.91
+    ],
+    "faithfulness_missing": [
+      0.57,
+      0.91
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_55",
+    "category": "home_away_comparison",
+    "question": "Has Mohamed Salah scored more away goals or home goals?",
+    "answer": "ERROR: Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}",
+    "expected": null,
+    "debug_expected": {
+      "engine": "home_away_comparison",
+      "away": 16,
+      "home": 13,
+      "p90_away": 0.85,
+      "p90_home": 0.69
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [16.0, 13.0, 0.85, 0.69]",
+    "faithfulness_expected": [
+      16.0,
+      13.0,
+      0.85,
+      0.69
+    ],
+    "faithfulness_missing": [
+      16.0,
+      13.0,
+      0.85,
+      0.69
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_56",
+    "category": "metric_derived_bucket",
+    "question": "How many goals has Salah scored against the 3 teams that have conceded the fewest goals?",
+    "answer": "Two goals in total.\n\n- Arsenal (fewest goals conceded): Salah 1 goal\n- Chelsea (3rd fewest): Salah 1 goal\n- Liverpool (the other of the three): Salah 0 goals\n\nSo, Salah has 2 goals against those three teams this season.",
+    "expected": null,
+    "debug_expected": {
+      "engine": "metric_derived_bucket",
+      "value": 4,
+      "subset_p90": 0.67,
+      "season_p90": 0.77,
+      "team_names": [
+        "Arsenal",
+        "Chelsea",
+        "Manchester City"
+      ]
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [4.0, 0.67, 0.77]",
+    "faithfulness_expected": [
+      4.0,
+      0.67,
+      0.77
+    ],
+    "faithfulness_missing": [
+      4.0,
+      0.67,
+      0.77
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_57",
+    "category": "metric_derived_bucket",
+    "question": "How many goals has Brentford conceded against the 4 teams that take the most shots?",
+    "answer": "Brentford have conceded 9 goals in total against those four teams this season: 0 vs Liverpool, 3 vs Manchester City, 5 vs Bournemouth, and 1 vs Chelsea.",
+    "expected": null,
+    "debug_expected": {
+      "engine": "metric_derived_bucket",
+      "value": 13,
+      "subset_p90": 1.62,
+      "season_p90": 1.47,
+      "team_names": [
+        "Liverpool",
+        "Manchester City",
+        "Bournemouth",
+        "Chelsea"
+      ]
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [13.0, 1.62, 1.47]",
+    "faithfulness_expected": [
+      13.0,
+      1.62,
+      1.47
+    ],
+    "faithfulness_missing": [
+      13.0,
+      1.62,
+      1.47
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_61",
+    "category": "metric_derived_bucket",
+    "question": "How many assists has Salah made against the 3 teams that have conceded the fewest goals?",
+    "answer": "The three teams with the fewest goals conceded are Arsenal, Liverpool, and Chelsea.\n\n- Salah vs Arsenal: 1 assist\n- Salah vs Liverpool: 0 assists (Liverpool is his own team, so no matches against them)\n- Salah vs Chelsea: 1 assist\n\nTotal assists against these three teams: 2.",
+    "expected": null,
+    "debug_expected": {
+      "engine": "metric_derived_bucket",
+      "value": 3,
+      "subset_p90": 0.5,
+      "season_p90": 0.43,
+      "team_names": [
+        "Arsenal",
+        "Chelsea",
+        "Manchester City"
+      ]
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [3.0, 0.5, 0.43]",
+    "faithfulness_expected": [
+      3.0,
+      0.5,
+      0.43
+    ],
+    "faithfulness_missing": [
+      3.0,
+      0.5,
+      0.43
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_58",
+    "category": "temporal_entity_value",
+    "question": "How many assists has Bruno Fernandes made between matchdays 25 and 30?",
+    "answer": "Bruno Fernandes has 3 assists between matchdays 25 and 30 (this season, for Manchester United).",
+    "expected": null,
+    "debug_expected": {
+      "engine": "planner_duckdb",
+      "table": "player_match_stats",
+      "metric": "assists",
+      "subset_p90": 0.33,
+      "season_p90": 0.27
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [0.33, 0.27]",
+    "faithfulness_expected": [
+      0.33,
+      0.27
+    ],
+    "faithfulness_missing": [
+      0.33,
+      0.27
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_59",
+    "category": "temporal_entity_value",
+    "question": "How many shot assists has Salah produced between matchdays 25 and 30?",
+    "answer": "I searched for Mohamed Salah’s shot assists between matchdays 25 and 30, but the data returned no records for that window.\n\nWould you like me to re-run the query over a broader window (e.g., matchdays 25–31) to see if data exists there?",
+    "expected": null,
+    "debug_expected": {
+      "engine": "planner_duckdb",
+      "table": "player_match_event_stats",
+      "metric": "shot_assists",
+      "subset_p90": 1.82,
+      "season_p90": 2.0
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [1.82, 2.0]",
+    "faithfulness_expected": [
+      1.82,
+      2.0
+    ],
+    "faithfulness_missing": [
+      1.82,
+      2.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  },
+  {
+    "id": "QV6_60",
+    "category": "temporal_entity_value",
+    "question": "How many goals has Haaland scored between matchdays 25 and 30?",
+    "answer": "Haaland scored 1 goal across matchdays 25 to 30 (the six-gameweek window). If you’d like a per-gameweek breakdown, I can pull that next.",
+    "expected": null,
+    "debug_expected": {
+      "engine": "planner_duckdb",
+      "table": "player_match_stats",
+      "metric": "goals",
+      "subset_p90": 0.5,
+      "season_p90": 0.72
+    },
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [0.5, 0.72]",
+    "faithfulness_expected": [
+      0.5,
+      0.72
+    ],
+    "faithfulness_missing": [
+      0.5,
+      0.72
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null
+  }
+]

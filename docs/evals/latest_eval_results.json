@@ -51,12 +51,12 @@
         "total": 4,
         "score": "4/4"
       },
-      "home_away_context": {
+      "opponent_context": {
         "passed": 2,
         "total": 2,
         "score": "2/2"
       },
-      "opponent_context": {
+      "home_away_context": {
         "passed": 2,
         "total": 2,
         "score": "2/2"
@@ -81,17 +81,17 @@
         "total": 3,
         "score": "3/3"
       },
-      "planner_robustness_es": {
-        "passed": 1,
-        "total": 1,
-        "score": "1/1"
-      },
-      "home_away_comparison": {
-        "passed": 1,
-        "total": 1,
-        "score": "1/1"
-      },
       "mid_table_bucket": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "dual_bucket_comparison": {
+        "passed": 1,
+        "total": 1,
+        "score": "1/1"
+      },
+      "planner_robustness_es": {
         "passed": 1,
         "total": 1,
         "score": "1/1"
@@ -101,7 +101,7 @@
         "total": 3,
         "score": "3/3"
       },
-      "dual_bucket_comparison": {
+      "home_away_comparison": {
         "passed": 1,
         "total": 1,
         "score": "1/1"
@@ -156,11 +156,11 @@
         "score": "3/3",
         "stage_name": "Sprint 9 - Metric-derived bucket"
       },
-      "sprint_8": {
+      "sprint_7": {
         "passed": 1,
         "total": 1,
         "score": "1/1",
-        "stage_name": "Sprint 8 - Home-away comparison"
+        "stage_name": "Sprint 7 - Dual-bucket comparison"
       },
       "sprint_10": {
         "passed": 3,
@@ -168,11 +168,11 @@
         "score": "3/3",
         "stage_name": "Sprint 10 - Temporal entity-value"
       },
-      "sprint_7": {
+      "sprint_8": {
         "passed": 1,
         "total": 1,
         "score": "1/1",
-        "stage_name": "Sprint 7 - Dual-bucket comparison"
+        "stage_name": "Sprint 8 - Home-away comparison"
       }
     }
   },
@@ -189,7 +189,7 @@
         "total_goals": 29
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah has scored the most goals this season, with 29 goals.",
+      "agent_text": "Mohamed Salah has the most goals this season, with 29 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -257,7 +257,7 @@
         "total_assists": 16
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah of Liverpool leads this season with 16 assists.",
+      "agent_text": "Mohamed Salah leads this season with 16 assists.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -325,7 +325,7 @@
         "total_minutes": 3420
       },
       "debug_expected": null,
-      "agent_text": "B. Leno has played the most minutes this season, with 3,420 minutes.",
+      "agent_text": "B. Leno has played the most minutes this season with 3420 minutes.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -391,7 +391,7 @@
         "total_yellow_cards": 12
       },
       "debug_expected": null,
-      "agent_text": "S. Lukić leads this season with 12 yellow cards.",
+      "agent_text": "S. Lukić leads with 12 yellow cards this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -459,7 +459,7 @@
         "total_goals_p90": 0.85
       },
       "debug_expected": null,
-      "agent_text": "J. Durán of Aston Villa leads this season with 0.85 goals per 90 minutes.",
+      "agent_text": "J. Durán leads this season with 0.85 goals per 90 minutes.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -507,7 +507,7 @@
         "total_goals": 86
       },
       "debug_expected": null,
-      "agent_text": "Liverpool have scored the most goals this season, with 86.",
+      "agent_text": "Liverpool has scored the most goals this season, with 86.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -564,7 +564,7 @@
         "total_goals_against": 34
       },
       "debug_expected": null,
-      "agent_text": "Arsenal has conceded the fewest goals this season, with 34.",
+      "agent_text": "Arsenal leads with 34 goals conceded this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -621,7 +621,7 @@
         "aerial_duels_won": 691.0
       },
       "debug_expected": null,
-      "agent_text": "Everton have the most aerial duels won this season, with 691.",
+      "agent_text": "Everton leads with 691 aerial duels won.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -678,7 +678,7 @@
         "pass_accuracy_pct": 89.84
       },
       "debug_expected": null,
-      "agent_text": "Manchester City has the most accurate passing, with a pass accuracy of 89.84278471305015%.",
+      "agent_text": "Manchester City has the most accurate passing this season, with a pass accuracy of 89.84278471305015%.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -779,7 +779,7 @@
         "progressive_passes_p90": 11.03
       },
       "debug_expected": null,
-      "agent_text": "Bruno Fernandes leads with 11.034368803701257 progressive passes per 90 this season.",
+      "agent_text": "Bruno Fernandes of Manchester United leads midfielders this season with 11.034368803701257 progressive passes per 90.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -847,7 +847,7 @@
         "dribble_success_pct": 100.0
       },
       "debug_expected": null,
-      "agent_text": "K. Tierney leads with a dribble success rate of 100.0% this season (13 appearances).",
+      "agent_text": "K. Tierney of Arsenal leads with a dribble success rate of 100.0% from 13 appearances.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1272,7 +1272,7 @@
         "shots_on_target_p90": 1.89
       },
       "debug_expected": null,
-      "agent_text": "D. Malen of Aston Villa leads with 1.89 shots on target per 90 this season.",
+      "agent_text": "D. Malen (Aston Villa) leads with 1.89 shots on target per 90 this season.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1321,7 +1321,7 @@
         "recoveries_p90": 13.9
       },
       "debug_expected": null,
-      "agent_text": "M. Senesi leads this season with 13.9 recoveries per 90.",
+      "agent_text": "M. Senesi of Bournemouth leads with 13.9 recoveries per 90.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1369,7 +1369,7 @@
         "aerial_duels_won_p90": 3.95
       },
       "debug_expected": null,
-      "agent_text": "D. Burn of Newcastle United leads with 3.95 aerial duels won per 90.",
+      "agent_text": "D. Burn, the central defender for Newcastle United, leads this season with 3.95 aerial duels won per 90.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1419,7 +1419,7 @@
         "total_goals": 15
       },
       "debug_expected": null,
-      "agent_text": "C. Palmer leads the under-23s with 15 goals this season.",
+      "agent_text": "C. Palmer leads among players under 23 with 15 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1487,7 +1487,7 @@
         "pass_accuracy_pct": 94.02
       },
       "debug_expected": null,
-      "agent_text": "C. Jones leads midfielders this season with a pass accuracy of 94.02%.",
+      "agent_text": "C. Jones, a midfielder for Liverpool, has the best pass accuracy this season at 94.02%.",
       "debug": {
         "engine": "llm_query_engine_v2",
         "table": "players",
@@ -1584,7 +1584,7 @@
         "progressive_passes_p90": 70.38
       },
       "debug_expected": null,
-      "agent_text": "Liverpool leads with 70.37622115984203 progressive passes per 90.",
+      "agent_text": "Liverpool leads with 70.37622115984203 progressive passes per 90 this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -1685,7 +1685,7 @@
         "total_goals": 29
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah leads this season with 29 goals.",
+      "agent_text": "Mohamed Salah is the top scorer this season with 29 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1809,7 +1809,7 @@
         "total_goals_against": 34
       },
       "debug_expected": null,
-      "agent_text": "Arsenal leads with 34 goals conceded this season.",
+      "agent_text": "Arsenal conceded 34 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -1867,7 +1867,7 @@
         "total_assists": 16
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah lidera la liga en asistencias esta temporada con 16 asistencias.",
+      "agent_text": "Mohamed Salah lidera la liga con 16 asistencias esta temporada.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -1992,7 +1992,7 @@
         "total_minutes": 3420
       },
       "debug_expected": null,
-      "agent_text": "B. Leno, de Fulham, es el jugador que más minutos ha disputado esta temporada, con 3420 minutos.",
+      "agent_text": "B. Leno ha jugado más minutos esta temporada: 3420 minutos.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2058,7 +2058,7 @@
         "total_assists": 11
       },
       "debug_expected": null,
-      "agent_text": "J. Murphy is second in assists this season with 11 assists.",
+      "agent_text": "J. Murphy of Newcastle United is second in assists this season with 11 assists.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2126,7 +2126,7 @@
         "total_minutes": 3413
       },
       "debug_expected": null,
-      "agent_text": "B. Mbeumo is 7th for total minutes played this season with 3413 minutes.",
+      "agent_text": "B. Mbeumo is 7th for total minutes played this season, with 3,413 minutes.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2192,7 +2192,7 @@
         "total_goals": 18
       },
       "debug_expected": null,
-      "agent_text": "Sixth in the top scorers this season is Y. Wissa, with 18 goals.",
+      "agent_text": "Sixth in the top scorers this season is Y. Wissa with 18 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2259,49 +2259,33 @@
         "total_goals": 69
       },
       "debug_expected": null,
-      "agent_text": "Arsenal is third with 69 goals this season.",
+      "agent_text": "Arsenal is third in goals scored this season with 69 goals.",
       "debug": {
-        "engine": "planner_duckdb",
-        "table": "teams_summary",
+        "engine": "llm_query_engine_v2",
+        "table": "teams",
         "metric": "total_goals",
-        "descending": null,
+        "descending": true,
         "filters": {
-          "player_name": null,
-          "team_name": null,
-          "opponent_team_name": null,
-          "position": null,
-          "is_home": null,
-          "opponent_rank_lte": null,
-          "opponent_rank_gte": null,
-          "opponent_rank_between": null,
-          "opponent_is_big6": null,
-          "matchday_start": null,
-          "matchday_end": null,
-          "min_minutes": null,
-          "min_matches": null,
-          "age_lt": null,
-          "ranking": {
-            "mode": "ordinal",
-            "n": null,
-            "ordinal": 3
-          }
+          "rank_position": 3
         },
         "rows": [
           {
             "team_name": "Arsenal",
-            "total_goals": 69.0
+            "total_goals": 69,
+            "total_goals_against": 34
           }
         ],
         "is_tie": false,
         "ranking_mode": "ordinal",
-        "ranking_n": null
+        "ranking_n": 1
       },
       "passed": true,
       "eval_meta": {
         "reason": "matched",
         "matched_row": {
           "team_name": "Arsenal",
-          "total_goals": 69.0
+          "total_goals": 69,
+          "total_goals_against": 34
         }
       }
     },
@@ -2316,7 +2300,7 @@
         "total_goals_against": 43
       },
       "debug_expected": null,
-      "agent_text": "Chelsea are 3rd for the fewest goals conceded this season, having conceded 43 goals.",
+      "agent_text": "Chelsea has the 3rd fewest goals conceded this season, conceding 43 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "teams_summary",
@@ -2374,7 +2358,7 @@
         "total_goals": 10
       },
       "debug_expected": null,
-      "agent_text": "João Pedro is 20th in goals scored this season, with 10 goals.",
+      "agent_text": "João Pedro is 20th in goals this season, with 10 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -2502,7 +2486,7 @@
         "two_goal_matches": 5
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah has the most matches with two or more goals this season, with 5 such matches.",
+      "agent_text": "Mohamed Salah has the most matches with two goals, with 5 such matches this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2562,7 +2546,7 @@
         "goals_gw_25_30": 5
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah scored the most goals between matchdays 25 and 30 for Liverpool, with 5 goals.",
+      "agent_text": "Mohamed Salah of Liverpool led with 5 goals between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2622,7 +2606,7 @@
         "goals_gw_25_30": 5
       },
       "debug_expected": null,
-      "agent_text": "Omar Marmoush scored the most goals for Manchester City between matchdays 25 and 30, with 5 goals.",
+      "agent_text": "Omar Marmoush scored 5 goals between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2742,7 +2726,7 @@
         "goals_vs_top6": 4
       },
       "debug_expected": null,
-      "agent_text": "E. Haaland has scored 4 goals against top-6 teams this season.",
+      "agent_text": "E. Haaland has 4 goals against top-6 teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -2861,7 +2845,7 @@
         "away_goals": 44
       },
       "debug_expected": null,
-      "agent_text": "Liverpool have the most away goals this season, with 44.",
+      "agent_text": "Liverpool has the most away goals this season with 44.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -2920,7 +2904,7 @@
         "progressive_passes_vs_top6": 111
       },
       "debug_expected": null,
-      "agent_text": "Bruno Fernandes leads with 111.0 progressive passes against top-6 teams this season.",
+      "agent_text": "Bruno Fernandes of Manchester United leads with 111 progressive passes against top-6 teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -2981,7 +2965,7 @@
         "touches_in_box_away": 165
       },
       "debug_expected": null,
-      "agent_text": "Mohamed Salah leads with 165 touches in the box away from home this season.",
+      "agent_text": "Mohamed Salah of Liverpool has the most touches in the box away from home this season, with 165 touches.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -3042,7 +3026,7 @@
         "key_passes_gw_25_30": 8
       },
       "debug_expected": null,
-      "agent_text": "L. Díaz of Liverpool led with 8.0 key passes between matchdays 25 and 30.",
+      "agent_text": "L. Díaz of Liverpool leads with 8 key passes between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",
@@ -3224,7 +3208,7 @@
         "points_vs_big6": 24
       },
       "debug_expected": null,
-      "agent_text": "Brighton leads with 24.0 points against Big Six teams this season.",
+      "agent_text": "Brighton lead with 24 points against Big Six teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3282,7 +3266,7 @@
         "away_goals_vs_top6": 10
       },
       "debug_expected": null,
-      "agent_text": "Bournemouth lead with 10 away goals against top-6 teams this season.",
+      "agent_text": "Bournemouth leads with 10 away goals against top-6 teams this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3340,7 +3324,7 @@
         "goal_difference_gw_25_30": 8
       },
       "debug_expected": null,
-      "agent_text": "Liverpool had the best goal difference between matchdays 25 and 30, with a value of 8.0.",
+      "agent_text": "Liverpool leads with a goal difference of 8 between matchdays 25 and 30.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3398,7 +3382,7 @@
         "away_wins": 11
       },
       "debug_expected": null,
-      "agent_text": "Liverpool lidera con 11 victorias fuera de casa esta temporada.",
+      "agent_text": "Liverpool es el equipo que más victorias fuera de casa consiguió esta temporada, con 11 victorias.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3456,7 +3440,7 @@
         "actions_z3_vs_manchester_city": 378
       },
       "debug_expected": null,
-      "agent_text": "Leicester City has the most actions in z3 against Manchester City this season, with 378.",
+      "agent_text": "Leicester City had the most actions in z3 against Manchester City this season, with 378 actions.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "team_match_stats",
@@ -3515,7 +3499,7 @@
         "total_goals": 22
       },
       "debug_expected": null,
-      "agent_text": "E. Haaland has scored 22 goals this season.",
+      "agent_text": "E. Haaland has 22 goals this season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "players_summary",
@@ -3582,7 +3566,7 @@
         "goals_vs_bottom5": 7
       },
       "debug_expected": null,
-      "agent_text": "E. Haaland ha marcado 7 goles contra los últimos 5 equipos esta temporada.",
+      "agent_text": "E. Haaland de Manchester City ha marcado 7 goles contra los últimos 5 equipos en esta temporada.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -3604,8 +3588,8 @@
           "min_matches": null,
           "age_lt": null,
           "ranking": {
-            "mode": "top_n",
-            "n": 5,
+            "mode": "entity_value",
+            "n": 1,
             "ordinal": null
           }
         },
@@ -3617,8 +3601,8 @@
           }
         ],
         "is_tie": false,
-        "ranking_mode": "top_n",
-        "ranking_n": 5
+        "ranking_mode": "entity_value",
+        "ranking_n": 1
       },
       "passed": true,
       "eval_meta": {
@@ -3642,7 +3626,7 @@
         "goals": 11
       },
       "debug_expected": null,
-      "agent_text": "E. Haaland leads with 11 goals this season.",
+      "agent_text": "E. Haaland has scored the most goals against mid-table teams this season, with 11 goals.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_stats",
@@ -4034,7 +4018,7 @@
         "subset_p90": 1.82,
         "season_p90": 2.0
       },
-      "agent_text": "Mohamed Salah had 11 shot assists between matchdays 25 and 30. That is 1.82 per 90 in this subset, compared with 2.00 per 90 across the full season.",
+      "agent_text": "Mohamed Salah produced 11 shot assists between matchdays 25 and 30. That is 1.82 per 90 in this subset, compared with 2.00 per 90 across the full season.",
       "debug": {
         "engine": "planner_duckdb",
         "table": "player_match_event_stats",

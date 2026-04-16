@@ -1,12 +1,9 @@
 """
-agent.py — BasicStatsAgent: Phase 5 tool-calling agent.
+agent.py — BasicStatsAgent: tool-calling agent for Premier League 2024-25 stats.
 
 The LLM owns semantic interpretation (which stat, which entity, which filter)
 and verbalization (writing the final answer). Code owns data access only.
 No if/else heuristics.
-
-Legacy path (LLMQueryEngineV2 + QueryPlanner) is kept in llm_query_engine_v2.py
-and activated via USE_LEGACY_PLANNER=1 in Task 5.
 """
 
 from __future__ import annotations

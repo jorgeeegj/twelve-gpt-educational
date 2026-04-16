@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import streamlit as st
@@ -40,26 +39,13 @@ st.markdown(
 """
 )
 
-# ── Agent selection (USE_LEGACY_PLANNER=1 to roll back) ───────────
-USE_LEGACY = os.getenv("USE_LEGACY_PLANNER", "0") == "1"
+from src.basic_stats.agent import BasicStatsAgent
 
-if USE_LEGACY:
-    from src.basic_stats.llm_query_engine_v2 import LLMQueryEngineV2
+_agent = BasicStatsAgent()
 
-    _legacy_engine = LLMQueryEngineV2()
 
-    def _ask(question: str, history=None) -> str:
-        result = _legacy_engine.ask(question)
-        return result.get("content", "")
-
-    st.caption("Mode: legacy planner (USE_LEGACY_PLANNER=1)")
-else:
-    from src.basic_stats.agent import BasicStatsAgent
-
-    _agent = BasicStatsAgent()
-
-    def _ask(question: str, history=None) -> str:
-        return _agent.ask(question, history=history)
+def _ask(question: str, history=None) -> str:
+    return _agent.ask(question, history=history)
 
 
 # ── Benchmark status ──────────────────────────────────────────────
@@ -115,7 +101,7 @@ if question:
 
     try:
         with st.spinner("Analysing..."):
-            answer = _ask(question, history=history if not USE_LEGACY else None)
+            answer = _ask(question, history=history)
 
         st.session_state[CHAT_KEY].append({"role": "assistant", "content": answer})
         st.rerun()

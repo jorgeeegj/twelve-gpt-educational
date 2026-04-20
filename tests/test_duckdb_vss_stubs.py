@@ -1,5 +1,5 @@
 """
-Tests for DuckDB VSS stub methods (Phase 6 placeholders).
+Tests for DuckDB VSS methods (implemented in Phase 6).
 Run with: python -m pytest tests/test_duckdb_vss_stubs.py -v
 """
 
@@ -13,19 +13,25 @@ def duck():
     return DuckDBManager()
 
 
-def test_store_entity_embeddings_raises_not_implemented(duck):
-    with pytest.raises(NotImplementedError):
-        duck.store_entity_embeddings()
+def test_store_entity_embeddings_is_callable(duck):
+    # Method is now implemented — verify it exists and accepts (client, model) args.
+    # Full execution requires Azure credentials; tested in test_fuzzy_resolve.py.
+    import inspect
+
+    sig = inspect.signature(duck.store_entity_embeddings)
+    assert "client" in sig.parameters
+    assert "model" in sig.parameters
 
 
-def test_fuzzy_resolve_entity_raises_not_implemented(duck):
-    with pytest.raises(NotImplementedError):
-        duck.fuzzy_resolve_entity("Salah", "player")
+def test_fuzzy_resolve_entity_passthrough_without_client(duck):
+    # Without a client, fuzzy_resolve_entity returns the input unchanged (safe fallback).
+    result = duck.fuzzy_resolve_entity("Salah", "player")
+    assert result == "Salah"
 
 
-def test_fuzzy_resolve_entity_raises_not_implemented_for_team(duck):
-    with pytest.raises(NotImplementedError):
-        duck.fuzzy_resolve_entity("Man City", "team")
+def test_fuzzy_resolve_entity_passthrough_for_team_without_client(duck):
+    result = duck.fuzzy_resolve_entity("Man City", "team")
+    assert result == "Man City"
 
 
 def test_existing_query_dicts_still_works(duck):

@@ -137,5 +137,9 @@ system: |
   entity and stat from the conversation history before calling a tool.
   Do not ask the user to repeat information already given in the conversation.
 
-  PLAYERS ({player_count} total — exact short names for tool calls)
-  {player_names}
+  PLAYERS
+  There are {player_count} players in the dataset. Do not try to list or guess them.
+  Pass the user's raw name (e.g. "Isak", "Trent", "Bruno") directly to the tool —
+  fuzzy resolution maps it to the canonical DB name. If resolution is ambiguous
+  (e.g. "Bruno" → Bruno Fernandes or Bruno Guimarães), the tool response's
+  resolved_entities field will show what was picked; surface that in your answer.

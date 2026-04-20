@@ -66,10 +66,12 @@ class BasicStatsAgent:
         self.system_prompt = build_system_prompt(self.duck)
         self._tool_map = _build_tool_map(self.duck)
         self._last_response_id: str | None = None
+        self.last_telemetry: dict[str, Any] = {}
 
     def reset(self) -> None:
         """Clear conversation state (e.g. when user clicks 'Clear chat')."""
         self._last_response_id = None
+        self.last_telemetry = {}
 
     def ask(self, question: str, history: list[dict] | None = None) -> str:
         """
@@ -92,18 +94,27 @@ class BasicStatsAgent:
             # Follow-up — server carries conversation context
             input_messages = [{"role": "user", "content": question}]
 
+        # previous_response_id links this turn to prior conversation history.
+        # We only pass it on the first API call of each turn; inside the tool
+        # loop we chain via explicit input (response.output + tool output) so
+        # Azure never sees a duplicate item.
+        turn_response_id = self._last_response_id
+
+        tool_calls: list[dict[str, Any]] = []
+        iterations_used = 0
+
         for iteration in range(_MAX_ITERATIONS):
+            iterations_used = iteration + 1
             kwargs: dict[str, Any] = {
                 "model": self.model,
                 "input": input_messages,
                 "tools": ALL_AGENT_TOOLS,
                 "tool_choice": "auto",
             }
-            if self._last_response_id is not None:
-                kwargs["previous_response_id"] = self._last_response_id
+            if iteration == 0 and turn_response_id is not None:
+                kwargs["previous_response_id"] = turn_response_id
 
             response = self.client.responses.create(**kwargs)
-            self._last_response_id = response.id
 
             # Check for a function call in output items
             fc_item = next(
@@ -112,17 +123,32 @@ class BasicStatsAgent:
             )
 
             if fc_item is None:
-                # No tool call — final answer
+                # No tool call — final answer; save response id for next turn
+                self._last_response_id = response.id
+                self.last_telemetry = {
+                    "iterations_used": iterations_used,
+                    "tool_calls": tool_calls,
+                    "hit_max_iterations": False,
+                }
                 answer = (response.output_text or "").strip()
                 if not answer:
                     logger.warning("Agent returned empty content on iteration %d", iteration)
                     return _FALLBACK_MESSAGE
                 return answer
 
-            # Execute the tool
+            # Execute the tool and chain explicitly via input for next iteration
             tool_result = self._execute_tool(fc_item.name, fc_item.arguments)
-
-            # Next iteration: append the tool output to carry conversation forward
+            tool_calls.append(
+                {
+                    "name": fc_item.name,
+                    "arguments": fc_item.arguments,
+                    "resolved_entities": tool_result.get("resolved_entities")
+                    if isinstance(tool_result, dict)
+                    else None,
+                    "note": tool_result.get("note") if isinstance(tool_result, dict) else None,
+                    "error": tool_result.get("error") if isinstance(tool_result, dict) else None,
+                }
+            )
             input_messages = list(response.output) + [
                 {
                     "type": "function_call_output",
@@ -134,6 +160,11 @@ class BasicStatsAgent:
         logger.warning(
             "Agent loop exhausted after %d iterations for: %r", _MAX_ITERATIONS, question
         )
+        self.last_telemetry = {
+            "iterations_used": iterations_used,
+            "tool_calls": tool_calls,
+            "hit_max_iterations": True,
+        }
         return _FALLBACK_MESSAGE
 
     def _execute_tool(self, tool_name: str, arguments: str) -> dict:

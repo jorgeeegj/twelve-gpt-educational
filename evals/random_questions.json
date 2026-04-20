@@ -2,106 +2,243 @@
   {
     "id": "RQ_01",
     "author": "Ricardo",
-    "question": "How many goals has Isak scored this season?"
+    "category": "factual_answerable",
+    "question": "How many goals has Isak scored this season?",
+    "answer": {
+      "short_name": "A. Isak",
+      "team_name": "Newcastle United",
+      "total_goals": 23
+    }
   },
   {
     "id": "RQ_02",
     "author": "Ricardo",
-    "question": "Which Brentford player has scored the most goals?"
+    "category": "factual_answerable",
+    "question": "Which Brentford player has scored the most goals?",
+    "answer": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_goals": 20
+    }
   },
   {
     "id": "RQ_03",
     "author": "Ricardo",
-    "question": "How many assists does Saka have this season?"
+    "category": "factual_answerable",
+    "question": "How many assists does Saka have this season?",
+    "answer": {
+      "short_name": "B. Saka",
+      "team_name": "Arsenal",
+      "total_assists": 10
+    }
   },
   {
     "id": "RQ_04",
     "author": "Ricardo",
-    "question": "Which team has the highest xG this season?"
+    "category": "factual_answerable",
+    "question": "Which team has the highest xG this season?",
+    "answer": {
+      "team_name": "Liverpool",
+      "xg_total": 78.53
+    }
   },
   {
     "id": "RQ_05",
     "author": "Ricardo",
-    "question": "How many goals has Watkins scored at home this season?"
+    "category": "factual_answerable",
+    "question": "How many goals has Watkins scored at home this season?",
+    "answer": {
+      "short_name": "O. Watkins",
+      "team_name": "Aston Villa",
+      "goals_home": 9
+    }
   },
   {
     "id": "RQ_06",
     "author": "Ricardo",
-    "question": "Which winger has the most key passes per 90 this season?"
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which winger has the most key passes per 90 this season?",
+    "answer": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "key_passes_p90": 1.23
+    },
+    "expected_behavior": "Apply min_minutes>=600 filter. Without it the top result (R. Nelson, 531 min, 1.53) is a small-sample artefact.",
+    "acceptable_alternative": {
+      "short_name": "R. Nelson",
+      "note": "Only acceptable if answer explicitly flags small sample (minutes below cutoff)."
+    }
   },
   {
     "id": "RQ_07",
     "author": "Ricardo",
-    "question": "How many goals has Chris Wood scored this season?"
+    "category": "factual_answerable",
+    "question": "How many goals has Chris Wood scored this season?",
+    "answer": {
+      "short_name": "C. Wood",
+      "team_name": "Nottingham Forest",
+      "total_goals": 20
+    }
   },
   {
     "id": "RQ_08",
     "author": "Alvaro",
-    "question": "Who has more goals: Salah or Haaland?"
+    "category": "factual_comparison",
+    "question": "Who has more goals: Salah or Haaland?",
+    "answer": {
+      "winner_short_name": "Mohamed Salah",
+      "winner_team_name": "Liverpool",
+      "salah_goals": 29,
+      "haaland_goals": 22
+    }
   },
   {
     "id": "RQ_09",
     "author": "Alvaro",
-    "question": "Which Nottingham Forest player has the most assists?"
+    "category": "factual_team_filter",
+    "question": "Which Nottingham Forest player has the most assists?",
+    "answer": {
+      "short_name": "A. Elanga",
+      "team_name": "Nottingham Forest",
+      "total_assists": 10
+    },
+    "expected_behavior": "Requires fuzzy-resolve on team filter in ranking. Previous run returned Salah (Liverpool) — regression sentinel."
   },
   {
     "id": "RQ_10",
     "author": "Alvaro",
-    "question": "How many goals has Spurs conceded this season?"
+    "category": "factual_answerable",
+    "question": "How many goals has Spurs conceded this season?",
+    "answer": {
+      "team_name": "Tottenham Hotspur",
+      "total_goals_against": 65
+    }
   },
   {
     "id": "RQ_11",
     "author": "Alvaro",
-    "question": "Which keeper has the most saves this season?"
+    "category": "factual_answerable",
+    "question": "Which keeper has the most saves this season?",
+    "answer": {
+      "short_name": "M. Flekken",
+      "team_name": "Brentford",
+      "saves": 154
+    }
   },
   {
     "id": "RQ_12",
     "author": "Alvaro",
-    "question": "How many yellow cards has Wolves received this season?"
+    "category": "factual_answerable",
+    "question": "How many yellow cards has Wolves received this season?",
+    "answer": {
+      "team_name": "Wolverhampton Wanderers",
+      "total_yellow_cards": 75
+    },
+    "expected_behavior": "teams_summary.total_yellow_cards exists. Previous run returned fouls_committed (478) — regression sentinel for tool/stat selection."
   },
   {
     "id": "RQ_13",
     "author": "Alvaro",
-    "question": "Which center back has the most clearances per 90?"
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which center back has the most clearances per 90?",
+    "answer": {
+      "short_name": "Dean Huijsen",
+      "team_name": "Bournemouth",
+      "clearances_p90": 1.83
+    },
+    "expected_behavior": "Apply min_minutes>=600. Without it Jorge Cuenca (377 min, 3.10) leads — small-sample artefact.",
+    "acceptable_alternative": {
+      "short_name": "Jorge Cuenca",
+      "note": "Only acceptable if answer explicitly flags small sample (377 minutes)."
+    }
   },
   {
     "id": "RQ_14",
     "author": "Alvaro",
-    "question": "How many goals has Villa scored away from home?"
+    "category": "factual_answerable",
+    "question": "How many goals has Villa scored away from home?",
+    "answer": {
+      "team_name": "Aston Villa",
+      "goals_away": 24
+    }
   },
   {
     "id": "RQ_15",
     "author": "Jorge",
-    "question": "Which player has the most shots on target this season?"
+    "category": "factual_answerable",
+    "question": "Which player has the most shots on target this season?",
+    "answer": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "shots_on_target": 55
+    }
   },
   {
     "id": "RQ_16",
     "author": "Jorge",
-    "question": "How many goals has Bruno scored this season?"
+    "category": "factual_ambiguous_name",
+    "question": "How many goals has Bruno scored this season?",
+    "answer": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "total_goals": 8
+    },
+    "expected_behavior": "'Bruno' is ambiguous (Bruno Fernandes 8, Bruno Guimarães 5). Top fuzzy match is Fernandes. Ideal answer mentions ambiguity."
   },
   {
     "id": "RQ_17",
     "author": "Jorge",
-    "question": "Which team from London has scored the most goals?"
+    "category": "factual_needs_domain_knowledge",
+    "question": "Which team from London has scored the most goals?",
+    "answer": {
+      "team_name": "Arsenal",
+      "total_goals": 69
+    },
+    "expected_behavior": "Requires LLM to know London clubs: Arsenal, Chelsea, Tottenham, West Ham, Crystal Palace, Fulham, Brentford. Arsenal (69) > Brentford (66) > Chelsea (64)."
   },
   {
     "id": "RQ_18",
     "author": "Jorge",
-    "question": "How many assists has Trent made this season?"
+    "category": "factual_answerable",
+    "question": "How many assists has Trent made this season?",
+    "answer": {
+      "short_name": "T. Alexander-Arnold",
+      "team_name": "Liverpool",
+      "total_assists": 5
+    }
   },
   {
     "id": "RQ_19",
     "author": "Jorge",
-    "question": "Which Man City player has the most progressive passes?"
+    "category": "factual_answerable",
+    "question": "Which Man City player has the most progressive passes?",
+    "answer": {
+      "short_name": "J. Gvardiol",
+      "team_name": "Manchester City",
+      "progressive_passes": 339
+    }
   },
   {
     "id": "RQ_20",
     "author": "Jorge",
-    "question": "How many goals has Mbeumo scored this season?"
+    "category": "factual_answerable",
+    "question": "How many goals has Mbeumo scored this season?",
+    "answer": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_goals": 20
+    }
   },
   {
     "id": "RQ_21",
     "author": "Jorge",
-    "question": "Which striker under 25 has the most goals per 90?"
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which striker under 25 has the most goals per 90?",
+    "answer": {
+      "short_name": "J. Durán",
+      "team_name": "Aston Villa",
+      "total_goals_p90": 0.85
+    },
+    "expected_behavior": "J. Durán leads with 738 min >= 600 cutoff, so even with min_minutes he stays #1. No alternative answer needed."
   }
 ]

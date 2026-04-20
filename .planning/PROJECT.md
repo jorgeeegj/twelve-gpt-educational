@@ -1,5 +1,11 @@
 # Basic Stats Analyst — Brownfield Operating Baseline
 
+## Primary Goal
+
+**Answer any factual question about the Premier League 2024-25 season using available data.**
+
+This is the north star from Agust (course instructor). Every architectural decision, prompt change, and tool improvement should be evaluated against this: does it help the agent answer more questions correctly?
+
 ## Current Milestone: v2.0 — Function Calling Architecture + Feature Completeness
 
 **Goal:** Replace regex-based canonicalization with typed function calling tools, add conversation memory for follow-up questions, and polish the analyst to production quality for the course final weeks.

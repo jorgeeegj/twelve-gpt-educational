@@ -869,20 +869,34 @@ class DuckDBManager:
         """
         Resolve a fuzzy/abbreviated name to the canonical DB name via cosine similarity.
 
-        entity_type: 'player' | 'team'
-        client + model: OpenAI client and embeddings deployment name.
-                        Falls back to instance attributes set via set_embedding_client().
-                        If neither is available, returns user_input unchanged.
-        Returns the best-matching canonical name, or user_input if similarity < threshold.
+        Thin wrapper over fuzzy_resolve_entity_verbose that returns just the canonical name.
+        """
+        return self.fuzzy_resolve_entity_verbose(user_input, entity_type, client, model)[
+            "canonical"
+        ]
+
+    def fuzzy_resolve_entity_verbose(
+        self, user_input: str, entity_type: str, client=None, model: str | None = None
+    ) -> dict:
+        """
+        Like fuzzy_resolve_entity but returns resolution metadata.
+
+        Returns {"input": <raw>, "canonical": <resolved or raw>, "similarity": float | None,
+                 "resolved": bool}. similarity is None when the embedding path is disabled
+        (no client/model) — in that case canonical == input.
         """
         client = client or self._embedding_client
         model = model or self._embedding_model
         if client is None or model is None:
-            return user_input
+            return {
+                "input": user_input,
+                "canonical": user_input,
+                "similarity": None,
+                "resolved": False,
+            }
 
         _SIMILARITY_THRESHOLD = 0.55
 
-        # Embed the user input
         response = client.embeddings.create(model=model, input=[user_input])
         query_vec = response.data[0].embedding
 
@@ -898,10 +912,26 @@ class DuckDBManager:
         """)
 
         if not rows:
-            return user_input
+            return {
+                "input": user_input,
+                "canonical": user_input,
+                "similarity": None,
+                "resolved": False,
+            }
 
         best = rows[0]
-        if best["similarity"] < _SIMILARITY_THRESHOLD:
-            return user_input
+        sim = float(best["similarity"])
+        if sim < _SIMILARITY_THRESHOLD:
+            return {
+                "input": user_input,
+                "canonical": user_input,
+                "similarity": sim,
+                "resolved": False,
+            }
 
-        return best["canonical_name"]
+        return {
+            "input": user_input,
+            "canonical": best["canonical_name"],
+            "similarity": sim,
+            "resolved": best["canonical_name"] != user_input,
+        }

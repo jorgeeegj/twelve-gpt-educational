@@ -23,10 +23,10 @@ def build_system_prompt(duck: DuckDBManager) -> str:
     template_text = (_PROMPTS_DIR / "agent_system.yaml").read_text(encoding="utf-8")
     template: str = yaml.safe_load(template_text)["system"]
 
-    player_rows = duck.query_dicts(
-        "SELECT DISTINCT short_name FROM players_summary ORDER BY short_name"
+    player_count_row = duck.query_dicts(
+        "SELECT COUNT(DISTINCT short_name) AS c FROM players_summary"
     )
-    player_names = [r["short_name"] for r in player_rows]
+    player_count = player_count_row[0]["c"] if player_count_row else 0
 
     team_rows = duck.query_dicts(
         "SELECT DISTINCT team_name FROM players_summary ORDER BY team_name"
@@ -46,6 +46,5 @@ def build_system_prompt(duck: DuckDBManager) -> str:
         team_count=len(team_names),
         team_names=", ".join(team_names),
         positions=", ".join(positions),
-        player_count=len(player_names),
-        player_names=", ".join(player_names),
+        player_count=player_count,
     )

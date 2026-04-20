@@ -60,20 +60,24 @@ _MAX_RETRIES = 4
 _RETRY_BASE_DELAY = 5.0  # seconds
 
 
-def _ask_with_retry(agent: "BasicStatsAgent", question: str) -> str:
-    """Call agent.ask with exponential backoff on OpenAI 429 rate-limit errors."""
+def _ask_with_retry(agent: "BasicStatsAgent", question: str) -> tuple[str, dict]:
+    """Call agent.ask with exponential backoff on OpenAI 429 rate-limit errors.
+
+    Returns (answer, telemetry) — telemetry captured from agent.last_telemetry.
+    """
     delay = _RETRY_BASE_DELAY
     for attempt in range(_MAX_RETRIES):
         try:
-            return agent.ask(question)
+            answer = agent.ask(question)
+            return answer, dict(agent.last_telemetry)
         except openai.RateLimitError:
             if attempt == _MAX_RETRIES - 1:
-                return f"ERROR: rate_limit after {_MAX_RETRIES} retries"
+                return f"ERROR: rate_limit after {_MAX_RETRIES} retries", {}
             time.sleep(delay)
             delay *= 2
         except Exception as exc:
-            return f"ERROR: {exc}"
-    return f"ERROR: rate_limit after {_MAX_RETRIES} retries"  # unreachable but satisfies mypy
+            return f"ERROR: {exc}", {}
+    return f"ERROR: rate_limit after {_MAX_RETRIES} retries", {}  # unreachable
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +87,6 @@ def _ask_with_retry(agent: "BasicStatsAgent", question: str) -> str:
 
 async def evaluate_one(
     entry: dict,
-    agent: BasicStatsAgent,
     executor: ThreadPoolExecutor,
     loop: asyncio.AbstractEventLoop,
     judge_client,
@@ -93,8 +96,13 @@ async def evaluate_one(
     """Run one question through the agent and both judges."""
     question = entry["question"]
 
-    # Agent call (sync wrapped in executor) with exponential backoff on 429
-    answer = await loop.run_in_executor(executor, _ask_with_retry, agent, question)
+    # Each question gets its own agent instance — sharing one instance across
+    # parallel workers corrupts _last_response_id and causes 400 errors.
+    def _run() -> tuple[str, dict]:
+        agent = BasicStatsAgent()
+        return _ask_with_retry(agent, question)
+
+    answer, telemetry = await loop.run_in_executor(executor, _run)
 
     # Faithfulness (deterministic, no LLM)
     faith = judge_faithfulness(answer, entry)
@@ -142,6 +150,11 @@ async def evaluate_one(
         "is_complete": is_complete,
         "completeness_rationale": completeness_rationale,
         "judge_error": nat_error,
+        # Telemetry
+        "iterations_used": telemetry.get("iterations_used"),
+        "tool_calls_count": len(telemetry.get("tool_calls", [])),
+        "tool_calls": telemetry.get("tool_calls"),
+        "hit_max_iterations": telemetry.get("hit_max_iterations"),
     }
 
 
@@ -164,7 +177,6 @@ async def run_benchmark_async(
     )
     print(f"\nRunning {total} questions — {mode} — {max_workers} workers\n")
 
-    agent = BasicStatsAgent()
     judge_client = get_llm_client()
     judge_model = get_model()
     loop = asyncio.get_event_loop()
@@ -175,7 +187,6 @@ async def run_benchmark_async(
         tasks = [
             evaluate_one(
                 entry=q,
-                agent=agent,
                 executor=executor,
                 loop=loop,
                 judge_client=judge_client,

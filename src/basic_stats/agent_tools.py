@@ -28,6 +28,12 @@ class ToolError(Exception):
     """Raised when a tool call fails with a user-readable message the LLM can act on."""
 
 
+# Default minutes cutoff applied to p90 rankings when the LLM omits min_minutes.
+# 600 min ≈ 6.7 full matches — the floor below which per-90 rates are small-sample
+# artefacts. Users who want to include cameos must pass min_minutes=0 explicitly.
+_P90_MIN_MINUTES_DEFAULT = 600
+
+
 def _r(result: list[dict], note: str | None = None) -> dict[str, Any]:
     """Wrap DuckDB rows into the standard tool response format."""
     return {"rows": result, "note": note}
@@ -38,6 +44,40 @@ def _f(filters: dict | None, key: str):
     if not filters:
         return None
     return filters.get(key)
+
+
+def _resolve_team_filters(
+    duck: DuckDBManager, filters: dict | None
+) -> tuple[dict | None, list[dict]]:
+    """Apply fuzzy_resolve_entity to team-valued filter fields when present.
+
+    Mirrors the resolution already done for primary entity names (player_name,
+    team_name) so that team filters inside rankings don't silently bypass the
+    DB canonical name — e.g. "Nottingham Forest" inside rank_players(filters).
+    Returns (resolved_filters, resolution_log). Original filters dict is not mutated.
+    resolution_log is a list of {field, input, canonical, similarity, resolved} dicts
+    for every filter field that went through fuzzy resolution.
+    """
+    if not filters:
+        return filters, []
+    resolved = dict(filters)
+    log: list[dict] = []
+    for key in ("player_team", "opponent_team"):
+        val = resolved.get(key)
+        if isinstance(val, str) and val:
+            meta = duck.fuzzy_resolve_entity_verbose(val, "team")
+            resolved[key] = meta["canonical"]
+            log.append({"field": key, **meta})
+    return resolved, log
+
+
+def _fuzzy_primary(
+    duck: DuckDBManager, name: str, entity_type: str, field: str
+) -> tuple[str, dict]:
+    """Fuzzy-resolve a primary entity name and return (canonical, resolution_entry)."""
+    meta = duck.fuzzy_resolve_entity_verbose(name, entity_type)
+    entry = {"field": field, **meta}
+    return meta["canonical"], entry
 
 
 def _has_match_context(filters: dict | None) -> bool:
@@ -238,17 +278,27 @@ def rank_players(
         )
         return _r(rows)
 
+    min_minutes = _f(filters, "min_minutes")
+    note: str | None = None
+    if stat.endswith("_p90") and min_minutes is None:
+        min_minutes = _P90_MIN_MINUTES_DEFAULT
+        note = (
+            f"Applied default min_minutes={_P90_MIN_MINUTES_DEFAULT} to avoid small-sample "
+            "artefacts in per-90 ranking. Pass min_minutes=0 to include all players."
+        )
+
     rows = duck.query_summary_context(
         scope="players_summary",
         metric=stat,
         descending=descending,
         position=_f(filters, "position"),
-        min_minutes=_f(filters, "min_minutes"),
+        team_name=_f(filters, "player_team"),
+        min_minutes=min_minutes,
         min_matches=_f(filters, "min_matches"),
         age_lt=_f(filters, "age_max"),
         top_n=limit,
     )
-    return _r(rows)
+    return _r(rows, note=note)
 
 
 # ---------------------------------------------------------------------------
@@ -517,21 +567,26 @@ def query_player_stats(
     opponent_teams: list[str] | None = None,
 ) -> dict:
     """Mother tool: look up, count, or aggregate a stat for a single named player."""
+    resolved_log: list[dict] = []
+    player_name, entry = _fuzzy_primary(duck, player_name, "player", "player_name")
+    resolved_log.append(entry)
+    filters, team_log = _resolve_team_filters(duck, filters)
+    resolved_log.extend(team_log)
+
     if opponent_teams:
         if stat is None:
             raise ToolError("query_player_stats with opponent_teams requires stat")
-        return get_stat_vs_opponent_group(
+        result = get_stat_vs_opponent_group(
             duck,
             entity_type="player",
             entity_name=player_name,
             stat=stat,
             opponent_teams=opponent_teams,
         )
-
-    if last_n_gameweeks is not None:
+    elif last_n_gameweeks is not None:
         if stat is None:
             raise ToolError("query_player_stats with last_n_gameweeks requires stat")
-        return get_stat_over_window(
+        result = get_stat_over_window(
             duck,
             entity_type="player",
             entity_name=player_name,
@@ -539,21 +594,23 @@ def query_player_stats(
             last_n_gameweeks=last_n_gameweeks,
             filters=filters,
         )
-
-    if match_conditions:
-        return count_matches_where(
+    elif match_conditions:
+        result = count_matches_where(
             duck,
             entity_type="player",
             entity_name=player_name,
             conditions=match_conditions,
             filters=filters,
         )
-
-    if stat is None:
+    elif stat is None:
         raise ToolError(
             "query_player_stats requires stat when match_conditions and opponent_teams are both null"
         )
-    return get_player_stat(duck, player_name=player_name, stat=stat, filters=filters)
+    else:
+        result = get_player_stat(duck, player_name=player_name, stat=stat, filters=filters)
+
+    result["resolved_entities"] = resolved_log
+    return result
 
 
 def query_team_stats(
@@ -567,13 +624,20 @@ def query_team_stats(
     last_n_gameweeks: int | None = None,
 ) -> dict:
     """Mother tool: look up or rank a stat for one or all teams."""
+    resolved_log: list[dict] = []
+    if team_name is not None:
+        team_name, entry = _fuzzy_primary(duck, team_name, "team", "team_name")
+        resolved_log.append(entry)
+    filters, team_log = _resolve_team_filters(duck, filters)
+    resolved_log.extend(team_log)
+
     if last_n_gameweeks is not None and rank_mode:
         raise ToolError("query_team_stats cannot combine rank_mode=true with last_n_gameweeks")
 
     if last_n_gameweeks is not None:
         if team_name is None:
             raise ToolError("query_team_stats with last_n_gameweeks requires team_name")
-        return get_stat_over_window(
+        result = get_stat_over_window(
             duck,
             entity_type="team",
             entity_name=team_name,
@@ -581,13 +645,15 @@ def query_team_stats(
             last_n_gameweeks=last_n_gameweeks,
             filters=filters,
         )
+    elif rank_mode:
+        result = rank_teams(duck, stat=stat, filters=filters, limit=limit, descending=descending)
+    else:
+        if team_name is None:
+            raise ToolError("query_team_stats with rank_mode=false requires team_name")
+        result = get_team_stat(duck, team_name=team_name, stat=stat, filters=filters)
 
-    if rank_mode:
-        return rank_teams(duck, stat=stat, filters=filters, limit=limit, descending=descending)
-
-    if team_name is None:
-        raise ToolError("query_team_stats with rank_mode=false requires team_name")
-    return get_team_stat(duck, team_name=team_name, stat=stat, filters=filters)
+    result["resolved_entities"] = resolved_log
+    return result
 
 
 def query_ranking(
@@ -602,21 +668,31 @@ def query_ranking(
     match_conditions: list[dict] | None = None,
 ) -> dict:
     """Mother tool: rank players/teams by a stat, or compare named entities side-by-side."""
+    resolved_log: list[dict] = []
+    if entities:
+        resolved_entities: list[str] = []
+        for name in entities:
+            canonical, entry = _fuzzy_primary(duck, name, entity_type, "entities[]")
+            resolved_entities.append(canonical)
+            resolved_log.append(entry)
+        entities = resolved_entities
+    filters, team_log = _resolve_team_filters(duck, filters)
+    resolved_log.extend(team_log)
+
     if not rank_mode:
         if not entities:
             raise ToolError("query_ranking with rank_mode=false requires entities list")
         if stat is None:
             raise ToolError("query_ranking with rank_mode=false requires stat")
-        return compare_entities(
+        result = compare_entities(
             duck,
             entity_type=entity_type,
             entities=entities,
             stat=stat,
             filters=filters,
         )
-
-    if entity_type == "player":
-        return rank_players(
+    elif entity_type == "player":
+        result = rank_players(
             duck,
             stat=stat,
             filters=filters,
@@ -624,10 +700,12 @@ def query_ranking(
             descending=descending,
             match_conditions=match_conditions,
         )
-
-    if entity_type == "team":
+    elif entity_type == "team":
         if stat is None:
             raise ToolError("query_ranking for teams requires stat")
-        return rank_teams(duck, stat=stat, filters=filters, limit=limit, descending=descending)
+        result = rank_teams(duck, stat=stat, filters=filters, limit=limit, descending=descending)
+    else:
+        raise ToolError(f"entity_type must be 'player' or 'team', got '{entity_type}'")
 
-    raise ToolError(f"entity_type must be 'player' or 'team', got '{entity_type}'")
+    result["resolved_entities"] = resolved_log
+    return result

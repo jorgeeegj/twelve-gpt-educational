@@ -14,8 +14,9 @@ python evals/agent_benchmark.py --workers 1 --label my_fix && git add ... && git
 ## ¿Dónde estamos?
 
 **Milestone:** v2.0 — Function Calling Architecture
-**Fase actual:** Phase 7 — Conversation Memory (Phases 5 y 6 completas)
-**Benchmark random questions:** 21/21 (100%) faithfulness — 2026-04-16
+**Fase actual:** Phase 8 — League Context (Phases 5, 6 y 7 completas)
+**Benchmark random questions:** 19/21 faithfulness — run `phase6_postfix` (2026-04-20)
+**Multi-turn:** Cadena de 4 turnos de Agust validada (2026-04-21)
 
 Para ver el estado completo: [STATE.md](./STATE.md)
 Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
@@ -62,9 +63,6 @@ con 4 herramientas madre (`query_player_stats`, `query_team_stats`, `query_ranki
 `get_league_standings`). El LLM recibe la pregunta, elige la herramienta, Python
 ejecuta la query, el LLM recibe el resultado y escribe la respuesta final.
 
-Las conversaciones multi-turno funcionan con `previous_response_id` — no reconstruimos
-el historial de mensajes en cada turno, el servidor de OpenAI lo lleva.
-
 **Phase 6 — Random Question Robustness**
 
 El LLM extrae nombres de entidades tal como los escribe el usuario: "Salah", "Spurs",
@@ -77,8 +75,33 @@ calcula la similitud coseno contra todos los nombres embeddingeados y devuelve e
 nombre canónico más cercano antes de tocar la DB. Esto maneja alias, abreviaturas y
 nombres parciales sin una sola regla hardcodeada.
 
-El benchmark de 21 preguntas inéditas (escritas por Ricardo, Álvaro y Jorge) pasó
-al 100% — incluyendo preguntas con "Isak", "Trent", "keeper", "centre back", "Villa".
+Benchmark: 19/21 preguntas inéditas — los 2 fallos son RQ_12 (yellow cards, ya corregido
+en postfix) y RQ_17 (London clubs, deferido a Phase 8).
+
+**Phase 7 — Conversation Memory**
+
+El agente mantiene historial de conversación entre turnos. El mecanismo anterior usaba
+`previous_response_id` del servidor de OpenAI, pero petaba con error 400 cuando un turno
+anterior había incluido tool calls intermedias — el servidor las rastrea por `call_id` y
+exige que aparezcan completas en el historial.
+
+Solución: historial explícito en el cliente (`self._history`). Al final de cada turno
+guardamos el historial completo incluyendo todos los tool call/output pairs, no solo el
+mensaje final del asistente. El siguiente turno manda ese historial entero y OpenAI
+encuentra todo consistente.
+
+Validado con la cadena de 4 turnos de Agust:
+```
+"How many goals has Haaland scored?" → 22 ✅
+"But against top 6 teams?" → 5 ✅
+"Is that more than the rest of his goals?" → No, 17 vs 5 ✅
+"What about per 90?" → ~0.72 ✅
+```
+
+Para probar multi-turn manualmente:
+```bash
+python3 scripts/verify_multiturn.py
+```
 
 ### La regla de oro que aprendimos
 
@@ -96,6 +119,24 @@ directamente, sin intermediarios. El código hace menos, el sistema es más clar
 La regla: **no meter heurística en Python si la arquitectura agentica (tool
 descriptions, system prompt) puede soportarlo. Solo heurística cuando es
 estrictamente necesario.**
+
+---
+
+### Lo que queda para cerrar v2.0
+
+**Phase 8 — League Context** *(siguiente)*
+
+Inyectar clasificaciones dinámicas de equipos en el system prompt desde DuckDB — top 4,
+top 6, zona de descenso — calculadas a partir de la tabla `league_standings`. Eliminar
+cualquier lista hardcodeada de equipos en el código. Esto también resuelve RQ_17
+(London clubs): el agente conocerá qué equipos son de Londres porque el contexto lo
+especifica, no por una regla Python.
+
+**Phase 9 — Natural Language Polish** *(última)*
+
+Respuestas más fluidas: sin claves de métricas crudas, con reglas de insight
+("finishing above xG expectation"), templates de verbalización para comparaciones
+y ventanas temporales.
 
 ### Cómo probar lo que tenemos ahora
 
@@ -222,4 +263,5 @@ python evals/benchmark_runner.py --workers 5
 python evals/smoke_test.py
 ```
 
-**Última ejecución (random):** `evals/runs/2026-04-16_22-53-57__agent` → 21/21 = 100% faithfulness
+**Última ejecución (random):** `evals/runs/2026-04-20_00-15-16__phase6_postfix` → 19/21 faithfulness
+(RQ_12 corregido en postfix, RQ_17 deferido a Phase 8)

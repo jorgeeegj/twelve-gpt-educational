@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 7 — Conversation Memory (Phase 6 complete)
+**Current focus:** Phase 8 — League Context (Phases 6 and 7 complete)
 
 ---
 
@@ -129,11 +129,25 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Step 7: `pages/basic_stats.py` wraps `BasicStatsAgent` in `@st.cache_resource`; calls `agent.reset()` on clear-chat; drops `history=` kwarg — state carried server-side (commit `492073d7`)
 - ✓ `TestFilters` removed from test suite (Filters dataclass eliminated in Step 4); 31 tests passing
 
-**Phase 6 — Random Question Robustness** ✓ Complete (2026-04-16)
+**Phase 6 — Random Question Robustness** ✓ Complete (2026-04-20)
+- ✓ Embeddings (text-embedding-3-large) for all players + teams stored in DuckDB VSS table
+- ✓ `fuzzy_resolve_entity()` resolves "Salah" → "M. Salah", "Man City" → "Manchester City"
+- ✓ Fuzzy resolution wired symmetrically into team filters (RQ_09 fix: Nottingham Forest)
+- ✓ `resolved_entities` attached to every tool response for transparency
+- ✓ Per-turn telemetry: iterations_used, tool_calls, hit_max_iterations
+- ✓ System prompt trimmed: 442-player list removed, fuzzy resolve handles raw names
+- ✓ `min_minutes=600` default for p90 rankings to avoid small-sample noise
+- ✓ Benchmark (random_questions.json): 19/21 faithfulness (phase6_postfix run)
+- Known gap: RQ_12 (yellow cards → fouls routing) fixed in postfix; RQ_17 (London clubs) deferred to Phase 8
 
-**Phase 7 — Conversation Memory** ○ Pending (blocked by Phase 6 — now unblocked) ⬆️ *was Phase 6*
+**Phase 7 — Conversation Memory** ✓ Complete (2026-04-21)
+- ✓ Replaced `previous_response_id` with explicit client-side `_history` list
+- ✓ Full turn history (including tool call/output pairs) persisted so Responses API never sees unresolved function_calls between turns
+- ✓ Agust's 4-turn chain validated: Haaland goals → vs Big Six → comparison → per 90 all pass
+- ✓ `scripts/verify_multiturn.py` added for manual re-validation
+- ✓ `reset()` clears `_history` correctly
 
-**Phase 8 — League Context** ○ Pending (blocked by Phase 7) ⬆️ *was Phase 7*
+**Phase 8 — League Context** ○ Pending ⬆️ *was Phase 7*
 
 **Phase 9 — Natural Language Polish** ○ Pending (blocked by Phase 8)
 
@@ -190,8 +204,8 @@ Saved outputs:
 | 3 | Verbalization | ✓ Complete | 50/50 benchmark |
 | 4 | Extract & Clean | ✓ Complete | 61/61 benchmark |
 | 5 | Function Calling Core | ✓ Complete | Responses API + 4 mother tools + follow-up history wired |
-| 6 | Robustness ⬆️ | ○ Pending | ≥80% on 20+ unprepared questions |
-| 7 | Memory ⬆️ | ○ Pending | Agust's follow-up chain works in UI |
+| 6 | Robustness ⬆️ | ✓ Complete | 19/21 faithfulness on random questions |
+| 7 | Memory ⬆️ | ✓ Complete | Agust's 4-turn chain passes end-to-end |
 | 8 | League Context ⬆️ | ○ Pending | 5+ context questions + no hardcoded labels |
 | 9 | NLP Polish | ○ Pending | No raw metric keys in any answer |
 
@@ -211,4 +225,4 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-17 — Phase 5 complete; Responses API live, 4 mother tools, previous_response_id wired, @st.cache_resource on agent*
+*Last updated: 2026-04-21 — Phases 6 + 7 complete; multi-turn history fixed, Agust chain validated, RQ_12 fixed. Next: Phase 8 League Context.*

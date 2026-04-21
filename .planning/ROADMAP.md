@@ -214,8 +214,8 @@
 | 3 | Verbalization & UI Quality | 0/2 | Complete | 2026-03-27 |
 | 4 | Extract & Clean | 6/6 | Complete | 2026-04-12 |
 | 5 | Function Calling Core | 7/7 | Complete | 2026-04-17 |
-| 6 | Random Question Robustness | 0/5 | Not started | — |
-| 7 | Conversation Memory | 0/4 | Not started | — |
+| 6 | Random Question Robustness | 0/5 | Complete | 2026-04-20 |
+| 7 | Conversation Memory | 0/4 | Complete | 2026-04-21 |
 | 8 | League Context | 0/5 | Not started | — |
 | 9 | Natural Language Polish | 0/5 | Not started | — |
 

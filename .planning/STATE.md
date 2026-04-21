@@ -147,9 +147,16 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `scripts/verify_multiturn.py` added for manual re-validation
 - ✓ `reset()` clears `_history` correctly
 
-**Phase 8 — League Context** ○ Pending ⬆️ *was Phase 7*
+**Phase 8 — League Context** ✓ Complete (2026-04-21)
+- ✓ `docs/premier_league_2024_25_context.md` added — static standings, categories, narrative, LLM notes
+- ✓ `{league_context}` placeholder injected into system prompt via `agent_prompt.py`
+- ✓ Hardcoded intro paragraph + LEAGUE TIER CONVENTIONS block removed from `agent_system.yaml`
+- ✓ `opponent_is_big6=true` routing rule preserved in HOW TO USE TOOLS
+- ✓ 6/6 league-context questions passed (verify_league_context.py)
+- ✓ Multilingüe validado manualmente: responde en español correctamente
+- ✓ 95 unit tests passing (test_agent_prompt.py added to permanent suite)
 
-**Phase 9 — Natural Language Polish** ○ Pending (blocked by Phase 8)
+**Phase 9 — Natural Language Polish** ○ Pending ⬆️ *next*
 
 ---
 
@@ -225,4 +232,4 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-21 — Phases 6 + 7 complete; multi-turn history fixed, Agust chain validated, RQ_12 fixed. Next: Phase 8 League Context.*
+*Last updated: 2026-04-21 — Phase 8 complete; league context injected, hardcoded tier lists removed, 6/6 verification questions pass, multilingüe validado. Next: Phase 9 Natural Language Polish.*

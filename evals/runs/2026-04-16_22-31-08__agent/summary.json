@@ -1,0 +1,23 @@
+{
+  "benchmark_path": "/Users/ricardoheredia/Twelve-GPT-Educational/evals/random_questions.json",
+  "total_questions": 21,
+  "elapsed_seconds": 13.0,
+  "max_workers": 10,
+  "error_count": 21,
+  "gates": {
+    "faithfulness": {
+      "value": 1.0,
+      "threshold": 0.95,
+      "passed": true,
+      "score": "21/21"
+    }
+  },
+  "all_gates_pass": true,
+  "by_category": {
+    "uncategorized": {
+      "total": 21,
+      "faithfulness": "21/21",
+      "naturalness_avg": null
+    }
+  }
+}

@@ -1,0 +1,843 @@
+[
+  {
+    "id": "RQ_01",
+    "category": "factual_answerable",
+    "question": "How many goals has Isak scored this season?",
+    "answer": "Isak has 23 goals this season (Newcastle United, 34 appearances).",
+    "expected": {
+      "short_name": "A. Isak",
+      "team_name": "Newcastle United",
+      "total_goals": 23
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      23.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Isak\",\"stat\":\"total_goals\",\"filters\":{ \"opponent_team\": null, \"is_home\": null, \"opponent_rank_max\": null, \"opponent_rank_min\": null, \"matchday_start\": null, \"matchday_end\": null, \"min_minutes\": null, \"min_matches\": null, \"age_max\": null, \"position\": null, \"player_team\": null, \"opponent_is_big6\": null}, \"match_conditions\": null, \"last_n_gameweeks\": null, \"opponent_teams\": null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Isak",
+            "canonical": "A. Isak",
+            "similarity": 1.0,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_02",
+    "category": "factual_answerable",
+    "question": "Which Brentford player has scored the most goals?",
+    "answer": "Bryan Mbeumo — 20 goals (Brentford's top scorer this season).",
+    "expected": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_goals": 20
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "no_numeric_expectation",
+    "faithfulness_expected": [],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"total_goals\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":\"Brentford\",\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_team",
+            "input": "Brentford",
+            "canonical": "Brentford",
+            "similarity": 0.9999992251396179,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_03",
+    "category": "factual_answerable",
+    "question": "How many assists does Saka have this season?",
+    "answer": "Bukayo Saka has 10 assists this season.",
+    "expected": {
+      "short_name": "B. Saka",
+      "team_name": "Arsenal",
+      "total_assists": 10
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      10.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Bukayo Saka\",\"stat\":\"total_assists\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Bukayo Saka",
+            "canonical": "B. Saka",
+            "similarity": 0.9999998211860657,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_04",
+    "category": "factual_answerable",
+    "question": "Which team has the highest xG this season?",
+    "answer": "Liverpool has the highest xG (expected goals) this season in the Premier League, with an xG total of 78.53.",
+    "expected": {
+      "team_name": "Liverpool",
+      "xg_total": 78.53
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      78.53
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_team_stats",
+        "arguments": "{\"team_name\": null, \"stat\": \"xg_total\", \"filters\": {\"opponent_team\": null, \"is_home\": null, \"opponent_rank_max\": null, \"opponent_rank_min\": null, \"matchday_start\": null, \"matchday_end\": null, \"min_minutes\": null, \"min_matches\": null, \"age_max\": null, \"position\": null, \"player_team\": null, \"opponent_is_big6\": null}, \"rank_mode\": true, \"limit\": 1, \"descending\": true, \"last_n_gameweeks\": null}",
+        "resolved_entities": [],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_05",
+    "category": "factual_answerable",
+    "question": "How many goals has Watkins scored at home this season?",
+    "answer": "9 goals at home this season (O. Watkins, Aston Villa).",
+    "expected": {
+      "short_name": "O. Watkins",
+      "team_name": "Aston Villa",
+      "goals_home": 9
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      9.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Watkins\",\"stat\":\"goals\",\"filters\":{\"opponent_team\":null,\"is_home\":true,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Watkins",
+            "canonical": "O. Watkins",
+            "similarity": 0.9999985694885254,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_06",
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which winger has the most key passes per 90 this season?",
+    "answer": "Mohamed Salah (Liverpool) — about 1.23 key passes per 90 this season (38 matches, 3,376 minutes).",
+    "expected": {
+      "short_name": "Mohamed Salah",
+      "team_name": "Liverpool",
+      "key_passes_p90": 1.23
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      1.23
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"key_passes_p90\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":\"Winger\",\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [],
+        "note": "Applied default min_minutes=600 to avoid small-sample artefacts in per-90 ranking. Pass min_minutes=0 to include all players.",
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_07",
+    "category": "factual_answerable",
+    "question": "How many goals has Chris Wood scored this season?",
+    "answer": "Chris Wood has scored 20 goals this season (Nottingham Forest, 36 appearances, 2,970 minutes).",
+    "expected": {
+      "short_name": "C. Wood",
+      "team_name": "Nottingham Forest",
+      "total_goals": 20
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "no_numeric_expectation",
+    "faithfulness_expected": [],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Chris Wood\",\"stat\":\"total_goals\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Chris Wood",
+            "canonical": "C. Wood",
+            "similarity": 0.9999979138374329,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_08",
+    "category": "factual_comparison",
+    "question": "Who has more goals: Salah or Haaland?",
+    "answer": "Mohamed Salah has more goals in the current dataset: Salah 29 vs Haaland 22.",
+    "expected": {
+      "winner_short_name": "Mohamed Salah",
+      "winner_team_name": "Liverpool",
+      "salah_goals": 29,
+      "haaland_goals": 22
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      29.0,
+      22.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":false,\"entities\":[\"M. Salah\",\"E. Haaland\"],\"stat\":\"total_goals\",\"filters\":{ \"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [
+          {
+            "field": "entities[]",
+            "input": "M. Salah",
+            "canonical": "Mohamed Salah",
+            "similarity": 0.7847087383270264,
+            "resolved": true
+          },
+          {
+            "field": "entities[]",
+            "input": "E. Haaland",
+            "canonical": "E. Haaland",
+            "similarity": 0.9999991655349731,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_09",
+    "category": "factual_team_filter",
+    "question": "Which Nottingham Forest player has the most assists?",
+    "answer": "Anthony Elanga (A. Elanga) has the most assists for Nottingham Forest this season, with 10 assists (38 appearances).",
+    "expected": {
+      "short_name": "A. Elanga",
+      "team_name": "Nottingham Forest",
+      "total_assists": 10
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      10.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"total_assists\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":\"Nottingham Forest\",\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_team",
+            "input": "Nottingham Forest",
+            "canonical": "Nottingham Forest",
+            "similarity": 1.0,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_10",
+    "category": "factual_answerable",
+    "question": "How many goals has Spurs conceded this season?",
+    "answer": "Tottenham have conceded 65 goals this season.",
+    "expected": {
+      "team_name": "Tottenham Hotspur",
+      "total_goals_against": 65
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      65.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_team_stats",
+        "arguments": "{\"team_name\":\"Tottenham Hotspur\",\"stat\":\"total_goals_against\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"rank_mode\":false,\"limit\":1,\"descending\":true,\"last_n_gameweeks\":null}",
+        "resolved_entities": [
+          {
+            "field": "team_name",
+            "input": "Tottenham Hotspur",
+            "canonical": "Tottenham Hotspur",
+            "similarity": 1.0,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_11",
+    "category": "factual_answerable",
+    "question": "Which keeper has the most saves this season?",
+    "answer": "Manuel Flekken (Brentford) – 154 saves.",
+    "expected": {
+      "short_name": "M. Flekken",
+      "team_name": "Brentford",
+      "saves": 154
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      154.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"saves\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":\"Goalkeeper\",\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_12",
+    "category": "factual_answerable",
+    "question": "How many yellow cards has Wolves received this season?",
+    "answer": "Yellow cards data isn’t available as a team-level stat in this dataset. The closest available metric for Wolves is fouls committed, which is 478 this season.\n\nIf you’d like, I can try to estimate the yellow cards by summing the yellow cards for all Wolves players this season (this would require a bit more querying). Would you like me to proceed with that, or is there another related stat you want?",
+    "expected": {
+      "team_name": "Wolverhampton Wanderers",
+      "total_yellow_cards": 75
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [75.0]",
+    "faithfulness_expected": [
+      75.0
+    ],
+    "faithfulness_missing": [
+      75.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_team_stats",
+        "arguments": "{\"team_name\":\"Wolverhampton Wanderers\",\"stat\":\"fouls_committed\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"rank_mode\":false,\"limit\":1,\"descending\":true,\"last_n_gameweeks\":null}",
+        "resolved_entities": [
+          {
+            "field": "team_name",
+            "input": "Wolverhampton Wanderers",
+            "canonical": "Wolverhampton Wanderers",
+            "similarity": 0.9999997615814209,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_13",
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which center back has the most clearances per 90?",
+    "answer": "Dean Huijsen (Bournemouth) - about 1.83 clearances per 90 minutes (clearances_p90). He appeared 32 times with 2,464 minutes total this season.",
+    "expected": {
+      "short_name": "Dean Huijsen",
+      "team_name": "Bournemouth",
+      "clearances_p90": 1.83
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      1.83
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"clearances_p90\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":\"Central Defender\",\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [],
+        "note": "Applied default min_minutes=600 to avoid small-sample artefacts in per-90 ranking. Pass min_minutes=0 to include all players.",
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_14",
+    "category": "factual_answerable",
+    "question": "How many goals has Villa scored away from home?",
+    "answer": "Aston Villa have scored 24 away goals this season.",
+    "expected": {
+      "team_name": "Aston Villa",
+      "goals_away": 24
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      24.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_team_stats",
+        "arguments": "{\"team_name\":\"Aston Villa\",\"stat\":\"team_score\",\"filters\":{\"opponent_team\":null,\"is_home\":false,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"rank_mode\":false,\"limit\":1,\"descending\":true,\"last_n_gameweeks\":null}",
+        "resolved_entities": [
+          {
+            "field": "team_name",
+            "input": "Aston Villa",
+            "canonical": "Aston Villa",
+            "similarity": 0.9999984502792358,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_15",
+    "category": "factual_answerable",
+    "question": "Which player has the most shots on target this season?",
+    "answer": "Erling Haaland (Manchester City) has the most shots on target this season, with 55.",
+    "expected": {
+      "short_name": "E. Haaland",
+      "team_name": "Manchester City",
+      "shots_on_target": 55
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      55.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"shots_on_target\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_16",
+    "category": "factual_ambiguous_name",
+    "question": "How many goals has Bruno scored this season?",
+    "answer": "Bruno Fernandes has scored 8 goals this season (Manchester United).",
+    "expected": {
+      "short_name": "Bruno Fernandes",
+      "team_name": "Manchester United",
+      "total_goals": 8
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      8.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Bruno\",\"stat\":\"total_goals\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Bruno",
+            "canonical": "Bruno Fernandes",
+            "similarity": 0.6794556379318237,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_17",
+    "category": "factual_needs_domain_knowledge",
+    "question": "Which team from London has scored the most goals?",
+    "answer": "ERROR: Error code: 400 - {'error': {'message': 'No tool output found for function call call_AVNCk4i5LO86xRd6TNdfnyc4.', 'type': 'invalid_request_error', 'param': 'input', 'code': None}}",
+    "expected": {
+      "team_name": "Arsenal",
+      "total_goals": 69
+    },
+    "debug_expected": null,
+    "faithfulness_passed": false,
+    "faithfulness_reason": "missing_values: [69.0]",
+    "faithfulness_expected": [
+      69.0
+    ],
+    "faithfulness_missing": [
+      69.0
+    ],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": null,
+    "tool_calls_count": 0,
+    "tool_calls": null,
+    "hit_max_iterations": null
+  },
+  {
+    "id": "RQ_18",
+    "category": "factual_answerable",
+    "question": "How many assists has Trent made this season?",
+    "answer": "Trent Alexander-Arnold has 5 assists this season.",
+    "expected": {
+      "short_name": "T. Alexander-Arnold",
+      "team_name": "Liverpool",
+      "total_assists": 5
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      5.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Trent\",\"stat\":\"total_assists\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Trent",
+            "canonical": "T. Alexander-Arnold",
+            "similarity": 0.5916809439659119,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_19",
+    "category": "factual_answerable",
+    "question": "Which Man City player has the most progressive passes?",
+    "answer": "Joško Gvardiol – 339 progressive passes (Manchester City).",
+    "expected": {
+      "short_name": "J. Gvardiol",
+      "team_name": "Manchester City",
+      "progressive_passes": 339
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      339.0
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"progressive_passes\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":\"Manchester City\",\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_team",
+            "input": "Manchester City",
+            "canonical": "Manchester City",
+            "similarity": 0.9999989867210388,
+            "resolved": false
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_20",
+    "category": "factual_answerable",
+    "question": "How many goals has Mbeumo scored this season?",
+    "answer": "Bryan Mbeumo has scored 20 goals this season.",
+    "expected": {
+      "short_name": "B. Mbeumo",
+      "team_name": "Brentford",
+      "total_goals": 20
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "no_numeric_expectation",
+    "faithfulness_expected": [],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_player_stats",
+        "arguments": "{\"player_name\":\"Mbeumo\",\"stat\":\"total_goals\",\"filters\":{ \"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":null,\"position\":null,\"player_team\":null,\"opponent_is_big6\":null},\"match_conditions\":null,\"last_n_gameweeks\":null,\"opponent_teams\":null}",
+        "resolved_entities": [
+          {
+            "field": "player_name",
+            "input": "Mbeumo",
+            "canonical": "B. Mbeumo",
+            "similarity": 0.9999997019767761,
+            "resolved": true
+          }
+        ],
+        "note": null,
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  },
+  {
+    "id": "RQ_21",
+    "category": "factual_p90_needs_min_minutes",
+    "question": "Which striker under 25 has the most goals per 90?",
+    "answer": "J. Durán (Aston Villa) — 0.854 goals per 90 minutes.",
+    "expected": {
+      "short_name": "J. Durán",
+      "team_name": "Aston Villa",
+      "total_goals_p90": 0.85
+    },
+    "debug_expected": null,
+    "faithfulness_passed": true,
+    "faithfulness_reason": "all_values_present",
+    "faithfulness_expected": [
+      0.85
+    ],
+    "faithfulness_missing": [],
+    "naturalness_score": null,
+    "naturalness_rationale": "skipped",
+    "is_complete": null,
+    "completeness_rationale": "skipped",
+    "judge_error": null,
+    "iterations_used": 2,
+    "tool_calls_count": 1,
+    "tool_calls": [
+      {
+        "name": "query_ranking",
+        "arguments": "{\"entity_type\":\"player\",\"rank_mode\":true,\"entities\":null,\"stat\":\"total_goals_p90\",\"filters\":{\"opponent_team\":null,\"is_home\":null,\"opponent_rank_max\":null,\"opponent_rank_min\":null,\"matchday_start\":null,\"matchday_end\":null,\"min_minutes\":null,\"min_matches\":null,\"age_max\":25,\"position\":\"Striker\",\"player_team\":null,\"opponent_is_big6\":null},\"limit\":1,\"descending\":true,\"match_conditions\":null}",
+        "resolved_entities": [],
+        "note": "Applied default min_minutes=600 to avoid small-sample artefacts in per-90 ranking. Pass min_minutes=0 to include all players.",
+        "error": null
+      }
+    ],
+    "hit_max_iterations": false
+  }
+]

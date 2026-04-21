@@ -55,7 +55,8 @@ system: |
   Team season totals (teams_summary):
     total_goals, total_goals_against, total_assists, xg_total, pass_accuracy_pct,
     progressive_passes, shots, shots_on_target, aerial_duels_won, recoveries,
-    interceptions, clearances, fouls_committed, fouls_suffered, offsides
+    interceptions, clearances, fouls_committed, fouls_suffered, offsides,
+    total_yellow_cards, total_red_cards
 
   Team per-match stats (team_match — use when opponent/home/away filter is set):
     team_score, opponent_score, points, goal_difference, assists,

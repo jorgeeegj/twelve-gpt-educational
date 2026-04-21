@@ -1,0 +1,48 @@
+{
+  "benchmark_path": "/Users/ricardoheredia/Twelve-GPT-Educational/evals/random_questions.json",
+  "total_questions": 21,
+  "elapsed_seconds": 214.2,
+  "max_workers": 1,
+  "error_count": 1,
+  "gates": {
+    "faithfulness": {
+      "value": 0.905,
+      "threshold": 0.95,
+      "passed": false,
+      "score": "19/21"
+    }
+  },
+  "all_gates_pass": false,
+  "by_category": {
+    "factual_ambiguous_name": {
+      "total": 1,
+      "faithfulness": "1/1",
+      "naturalness_avg": null
+    },
+    "factual_answerable": {
+      "total": 14,
+      "faithfulness": "13/14",
+      "naturalness_avg": null
+    },
+    "factual_comparison": {
+      "total": 1,
+      "faithfulness": "1/1",
+      "naturalness_avg": null
+    },
+    "factual_needs_domain_knowledge": {
+      "total": 1,
+      "faithfulness": "0/1",
+      "naturalness_avg": null
+    },
+    "factual_p90_needs_min_minutes": {
+      "total": 3,
+      "faithfulness": "3/3",
+      "naturalness_avg": null
+    },
+    "factual_team_filter": {
+      "total": 1,
+      "faithfulness": "1/1",
+      "naturalness_avg": null
+    }
+  }
+}

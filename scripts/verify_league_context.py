@@ -32,10 +32,10 @@ QUESTIONS = [
 ]
 
 if __name__ == "__main__":
-    agent = BasicStatsAgent()
     passed = 0
 
     for question, keywords in QUESTIONS:
+        agent = BasicStatsAgent()
         answer = agent.ask(question)
         answer_lower = answer.lower()
         all_found = all(kw.lower() in answer_lower for kw in keywords)

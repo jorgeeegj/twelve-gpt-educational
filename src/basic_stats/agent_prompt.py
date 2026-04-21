@@ -16,6 +16,7 @@ import yaml
 from src.basic_stats.duckdb_manager import DuckDBManager
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
+_DOCS_DIR = Path(__file__).parent.parent.parent / "docs"
 
 
 def build_system_prompt(duck: DuckDBManager) -> str:
@@ -41,10 +42,13 @@ def build_system_prompt(duck: DuckDBManager) -> str:
     gw_rows = duck.query_dicts("SELECT MAX(gameweek) AS max_gw FROM player_match_stats")
     max_gw = gw_rows[0]["max_gw"] if gw_rows else 38
 
+    league_context = (_DOCS_DIR / "premier_league_2024_25_context.md").read_text(encoding="utf-8")
+
     return template.format(
         max_gw=max_gw,
         team_count=len(team_names),
         team_names=", ".join(team_names),
         positions=", ".join(positions),
         player_count=player_count,
+        league_context=league_context,
     )

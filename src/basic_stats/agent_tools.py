@@ -33,6 +33,14 @@ class ToolError(Exception):
 # artefacts. Users who want to include cameos must pass min_minutes=0 explicitly.
 _P90_MIN_MINUTES_DEFAULT = 600
 
+# Maps summary *_p90 stat names → their base column in player_match_stats.
+# Only covers metrics whose base is in PLAYER_MATCH_ALLOWED_METRICS.
+# Event-table p90s (xg_p90, shots_p90, …) are handled separately.
+_PLAYER_MATCH_P90_MAP: dict[str, str] = {
+    "total_goals_p90": "goals",
+    "assists_p90": "assists",
+}
+
 
 def _r(result: list[dict], note: str | None = None) -> dict[str, Any]:
     """Wrap DuckDB rows into the standard tool response format."""
@@ -44,6 +52,46 @@ def _f(filters: dict | None, key: str):
     if not filters:
         return None
     return filters.get(key)
+
+
+def _lookup_player_teams(duck: DuckDBManager, player_name: str) -> set[str]:
+    """Return all team names the player appears for in player_match_stats.
+
+    Tries an exact match on short_name first. If that yields nothing (e.g. input
+    is an abbreviated form like "M. Salah" while the DB stores "Mohamed Salah"),
+    falls back to resolving via the last-name token against entity_embeddings —
+    this path works without an embedding client, so it covers the test environment.
+    """
+    rows = duck.query_dicts(
+        "SELECT DISTINCT team_name FROM player_match_stats WHERE lower(short_name) = lower(?)",
+        [player_name],
+    )
+    if rows:
+        return {r["team_name"] for r in rows}
+
+    # Abbreviated-name fallback: extract last-name token and find the unique
+    # canonical_name in entity_embeddings that contains it, then re-query.
+    parts = player_name.replace(".", " ").split()
+    if len(parts) < 2:
+        return set()
+    last_name = parts[-1]
+    canonical_rows = duck.query_dicts(
+        "SELECT DISTINCT canonical_name FROM entity_embeddings "
+        "WHERE entity_type = 'player' AND lower(canonical_name) LIKE '%' || lower(?) || '%'",
+        [last_name],
+    )
+    if len(canonical_rows) != 1:
+        return set()  # ambiguous or not found — conservative, no false exclusions
+    canonical = canonical_rows[0]["canonical_name"]
+    rows = duck.query_dicts(
+        "SELECT DISTINCT team_name FROM player_match_stats WHERE lower(short_name) = lower(?)",
+        [canonical],
+    )
+    return {r["team_name"] for r in rows}
+
+
+def _same_team(a: str, b: str) -> bool:
+    return (a or "").strip().lower() == (b or "").strip().lower()
 
 
 def _resolve_team_filters(
@@ -124,10 +172,34 @@ def get_player_stat(
 ) -> dict:
     """Return the aggregated stat for a single named player."""
     player_name = duck.fuzzy_resolve_entity(player_name, "player")
+    if filters and filters.get("opponent_team"):
+        own_teams = _lookup_player_teams(duck, player_name)
+        if any(_same_team(filters["opponent_team"], t) for t in own_teams):
+            own_label = next(t for t in own_teams if _same_team(filters["opponent_team"], t))
+            return _r(
+                [],
+                note=f"{player_name} plays for {own_label}; no matches exist against their own club.",
+            )
     if _is_player_match_event_metric(stat):
         rows = duck.query_player_match_event_context(
             metric=stat,
             agg="sum",
+            player_name=player_name,
+            is_home=_f(filters, "is_home"),
+            opponent_team_name=_f(filters, "opponent_team"),
+            opponent_rank_lte=_f(filters, "opponent_rank_max"),
+            opponent_rank_gte=_f(filters, "opponent_rank_min"),
+            opponent_is_big6=_f(filters, "opponent_is_big6"),
+            matchday_start=_f(filters, "matchday_start"),
+            matchday_end=_f(filters, "matchday_end"),
+            limit=1,
+        )
+        return _r(rows)
+
+    if stat in _PLAYER_MATCH_P90_MAP and _has_match_context(filters):
+        rows = duck.query_player_match_context(
+            metric=_PLAYER_MATCH_P90_MAP[stat],
+            agg="p90",
             player_name=player_name,
             is_home=_f(filters, "is_home"),
             opponent_team_name=_f(filters, "opponent_team"),
@@ -261,6 +333,30 @@ def rank_players(
             limit=limit,
         )
         return _r(rows)
+
+    if stat in _PLAYER_MATCH_P90_MAP and _has_match_context(filters):
+        min_minutes = _f(filters, "min_minutes")
+        note: str | None = None
+        if min_minutes is None:
+            min_minutes = _P90_MIN_MINUTES_DEFAULT
+            note = (
+                f"Applied default min_minutes={_P90_MIN_MINUTES_DEFAULT} for per-90 ranking. "
+                "Pass min_minutes=0 to include all players."
+            )
+        rows = duck.query_player_match_context(
+            metric=_PLAYER_MATCH_P90_MAP[stat],
+            agg="p90",
+            team_name=_f(filters, "player_team"),
+            is_home=_f(filters, "is_home"),
+            opponent_team_name=_f(filters, "opponent_team"),
+            opponent_rank_lte=_f(filters, "opponent_rank_max"),
+            opponent_rank_gte=_f(filters, "opponent_rank_min"),
+            opponent_is_big6=_f(filters, "opponent_is_big6"),
+            matchday_start=_f(filters, "matchday_start"),
+            matchday_end=_f(filters, "matchday_end"),
+            limit=limit,
+        )
+        return _r(rows, note=note)
 
     if stat in PLAYER_MATCH_ALLOWED_METRICS or _has_match_context(filters):
         rows = duck.query_player_match_context(
@@ -485,6 +581,22 @@ def get_stat_vs_opponent_group(
     entity_name = duck.fuzzy_resolve_entity(entity_name, entity_type)
     opponent_teams = [duck.fuzzy_resolve_entity(t, "team") for t in opponent_teams]
 
+    excluded_note = None
+    if entity_type == "player":
+        own_teams = _lookup_player_teams(duck, entity_name)
+        if own_teams:
+            filtered = [t for t in opponent_teams if not any(_same_team(t, ot) for ot in own_teams)]
+            if len(filtered) != len(opponent_teams):
+                excluded = [t for t in opponent_teams if t not in filtered]
+                excluded_note = (
+                    f"Excluded {', '.join(excluded)} from opponent group: "
+                    f"{entity_name} plays for {', '.join(own_teams)}."
+                )
+                opponent_teams = filtered
+
+    if not opponent_teams:
+        return _r([], note=excluded_note or "opponent_teams list is empty after subject exclusion.")
+
     placeholders = ", ".join("?" for _ in opponent_teams)
     params_lower = [t.lower() for t in opponent_teams]
 
@@ -522,7 +634,9 @@ def get_stat_vs_opponent_group(
         """
         rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
 
-    return _r(rows, note=f"Aggregated {stat} vs opponents: {', '.join(opponent_teams)}")
+    agg_note = f"Aggregated {stat} vs opponents: {', '.join(opponent_teams)}"
+    final_note = " | ".join(n for n in [excluded_note, agg_note] if n)
+    return _r(rows, note=final_note)
 
 
 # ---------------------------------------------------------------------------

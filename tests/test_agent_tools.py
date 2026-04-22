@@ -10,6 +10,7 @@ from src.basic_stats.agent_tools import (
     get_league_standings,
     get_player_stat,
     get_stat_over_window,
+    get_stat_vs_opponent_group,
     get_team_stat,
     rank_players,
     rank_teams,
@@ -59,6 +60,41 @@ class TestGetPlayerStat:
     def test_away_goals(self, duck):
         result = get_player_stat(duck, "M. Salah", "goals", {"is_home": False})
         assert "rows" in result
+
+    def test_p90_with_big6_filter_is_not_raw_count(self, duck):
+        """total_goals_p90 vs Big6 should be a ratio, not the raw goals sum."""
+        result_p90 = get_player_stat(
+            duck, "E. Haaland", "total_goals_p90", {"opponent_is_big6": True}
+        )
+        result_raw = get_player_stat(
+            duck, "E. Haaland", "goals", {"opponent_is_big6": True}
+        )
+        assert result_p90["rows"], "Expected p90 result for Haaland vs Big6"
+        p90_val = result_p90["rows"][0]["metric_value"]
+        raw_val = result_raw["rows"][0]["metric_value"]
+        assert p90_val != raw_val, (
+            f"p90={p90_val} equals raw count={raw_val} — likely falling back to goals sum"
+        )
+        assert 0 < p90_val < 5.0
+
+    def test_p90_without_match_context_uses_summary(self, duck):
+        """total_goals_p90 without filters routes to summary (season total)."""
+        result = get_player_stat(duck, "E. Haaland", "total_goals_p90")
+        assert len(result["rows"]) == 1
+        assert result["rows"][0]["metric_value"] > 0
+
+    def test_p90_with_matchday_filter(self, duck):
+        """total_goals_p90 with matchday window computes a ratio, not raw count."""
+        result_p90 = get_player_stat(
+            duck, "E. Haaland", "total_goals_p90", {"matchday_start": 1, "matchday_end": 20}
+        )
+        result_raw = get_player_stat(
+            duck, "E. Haaland", "goals", {"matchday_start": 1, "matchday_end": 20}
+        )
+        if result_p90["rows"] and result_raw["rows"]:
+            p90_val = result_p90["rows"][0]["metric_value"]
+            raw_val = result_raw["rows"][0]["metric_value"]
+            assert p90_val != raw_val
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +157,20 @@ class TestRankPlayers:
             limit=3,
         )
         assert "rows" in result
+
+    def test_rank_by_p90_with_big6_filter(self, duck):
+        """Ranking by total_goals_p90 vs Big6 should return ratio values, not raw goals."""
+        result_p90 = rank_players(
+            duck, "total_goals_p90", filters={"opponent_is_big6": True}, limit=3
+        )
+        result_raw = rank_players(
+            duck, "goals", filters={"opponent_is_big6": True}, limit=3
+        )
+        assert result_p90["rows"], "Expected at least one player with Big6 goals"
+        top_p90 = result_p90["rows"][0]["metric_value"]
+        top_raw = result_raw["rows"][0]["metric_value"]
+        assert top_p90 != top_raw
+        assert 0 < top_p90 < 5.0
 
 
 # ---------------------------------------------------------------------------
@@ -290,3 +340,61 @@ class TestGetLeagueStandings:
         assert "Arsenal" in big6_teams
         assert "Liverpool" in big6_teams
         assert len(big6_teams) == 6
+
+
+# ---------------------------------------------------------------------------
+# Truthfulness — match-context responses must include appearances + total_minutes
+# ---------------------------------------------------------------------------
+
+
+class TestMatchContextGrounding:
+    """Verify that query_player_match_context returns appearances and total_minutes
+    so the LLM cannot invent those values when answering contextual questions."""
+
+    def test_haaland_vs_big6_appearances_and_minutes(self, duck):
+        """Ground truth: Haaland vs Big Six = 8 appearances, 720 minutes, 5 goals."""
+        result = get_player_stat(
+            duck, "E. Haaland", "goals", {"opponent_is_big6": True}
+        )
+        assert result["rows"], "Expected at least one row for Haaland vs Big Six"
+        row = result["rows"][0]
+        assert row["metric_value"] == 5, f"Expected 5 goals, got {row['metric_value']}"
+        assert row["appearances"] == 8, f"Expected 8 appearances, got {row['appearances']}"
+        assert row["total_minutes"] == 720, f"Expected 720 minutes, got {row['total_minutes']}"
+
+
+# ---------------------------------------------------------------------------
+# Subject Exclusion — WI-1
+# ---------------------------------------------------------------------------
+
+
+class TestSubjectExclusion:
+    def test_get_stat_vs_opponent_group_excludes_own_team(self, duck):
+        """Salah (Liverpool) queried vs ["Arsenal", "Liverpool", "Chelsea"]:
+        Liverpool must be excluded from the IN clause and the note must say so."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="M. Salah",
+            stat="goals",
+            opponent_teams=["Arsenal", "Liverpool", "Chelsea"],
+        )
+        note = (result.get("note") or "").lower()
+        assert "liverpool" in note, f"Note should mention Liverpool: {note!r}"
+        assert "exclud" in note, f"Note should signal exclusion: {note!r}"
+
+    def test_get_player_stat_own_team_as_opponent_returns_semantic_note(self, duck):
+        """Salah (Liverpool) queried with opponent_team=Liverpool:
+        rows must be empty and note must explain the player plays for that club."""
+        result = get_player_stat(
+            duck,
+            "M. Salah",
+            "total_goals",
+            filters={"opponent_team": "Liverpool"},
+        )
+        assert result["rows"] == [], f"Expected empty rows, got: {result['rows']}"
+        note = (result.get("note") or "").lower()
+        assert "liverpool" in note, f"Note should mention Liverpool: {note!r}"
+        assert any(
+            phrase in note for phrase in ("plays for", "own club", "own team")
+        ), f"Note should semantically explain why: {note!r}"

@@ -156,6 +156,29 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Multilingüe validado manualmente: responde en español correctamente
 - ✓ 95 unit tests passing (test_agent_prompt.py added to permanent suite)
 
+**Hotfix BUG-P90-CONTEXT** ✓ Complete (2026-04-22)
+- ✓ `_PLAYER_MATCH_P90_MAP` added to `agent_tools.py` (`total_goals_p90 → goals`, `assists_p90 → assists`)
+- ✓ `agg="p90"` case added to `duckdb_manager._match_value_expr` → `SUM(metric)/NULLIF(SUM(minutes_played),0)*90`
+- ✓ p90-contextual branch added in `get_player_stat` and `rank_players` (before existing match-context branch)
+- ✓ 5 new tests added (4 in `test_agent_tools.py`, 1 in `test_duckdb_vss_stubs.py`)
+- ✓ 79/79 tests passing (`uv run pytest tests/ -q -k "not fuzzy_resolve"`)
+- ✓ Bug case verified: `total_goals_p90 + opponent_is_big6` → was `5.0` (raw sum), now `0.625` (correct ratio)
+- Residual risk: `xg_p90`, `shots_p90` and other event-stat `*_p90` still silently degrade (intentional scope exclusion)
+
+**Hotfix BUG-PARALLEL-TOOLS** ✓ Complete (2026-04-22)
+- ✓ `ask()` loop in `agent.py` now collects all `function_call` items per iteration (was: only the first)
+- ✓ One `function_call_output` generated per `call_id` → API never sees unmatched function calls
+- ✓ `tests/test_agent_parallel_tools.py` added: 2 tests (parallel 2-tool case + single-tool regression)
+- ✓ 81/81 tests passing (`uv run pytest tests/ -q -k "not fuzzy_resolve"`)
+- ✓ `verify_multiturn.py` all 4 turns pass: Haaland goals → vs Big Six → comparison → per 90
+
+**Hotfix BUG-TRUTHFULNESS-APPEARANCES** ✓ Complete (2026-04-22)
+- ✓ `query_player_match_context()` enriched: added `COUNT(*) AS appearances` and `SUM(pms.minutes_played) AS total_minutes` to SELECT
+- ✓ LLM now receives grounded data instead of inventing appearances/minutes from training priors
+- ✓ Ground-truth case verified: Haaland vs Big Six → "5 goals in 8 appearances" (was "5 goals in 5 appearances")
+- ✓ 1 new test in `test_agent_tools.py` (`TestMatchContextGrounding.test_haaland_vs_big6_appearances_and_minutes`)
+- ✓ 82/82 tests passing
+
 **Phase 9 — Natural Language Polish** ○ Pending ⬆️ *next*
 
 ---
@@ -232,4 +255,15 @@ Saved outputs:
 
 ---
 
-*Last updated: 2026-04-21 — Phase 8 complete; league context injected, hardcoded tier lists removed, 6/6 verification questions pass, multilingüe validado. Next: Phase 9 Natural Language Polish.*
+**Pre-Phase-9 Robustness Closeout** (minifase, branch `feature/refactor-v2`)
+
+- ✓ WI-1 Subject Exclusion — 2026-04-23
+  - `get_stat_vs_opponent_group`: filtra el equipo propio del jugador de `opponent_teams` antes de SQL; añade `excluded_note` al resultado
+  - `get_player_stat`: early return semántico si `opponent_team == equipo propio`
+  - Helpers: `_lookup_player_teams(duck, player_name) -> set[str]` (exact match + fallback por last-name token via `entity_embeddings`)
+  - 2 tests nuevos: `TestSubjectExclusion` — 84/84 ✓ (82 baseline + 2 nuevos)
+  - UAT D9 ("Salah vs 3 equipos que menos conceden"): Liverpool ya no aparece como rival legítimo
+  - Multi-turn chain 4/4 ✓
+- WI-2, WI-3, WI-4, WI-5 — pendientes
+
+*Last updated: 2026-04-23 — WI-1 Subject Exclusion complete. Next: WI-2 (p90 event stats coverage).*

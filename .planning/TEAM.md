@@ -13,12 +13,13 @@ python evals/agent_benchmark.py --workers 1 --label my_fix && git add ... && git
 
 ## ¿Dónde estamos?
 
-**Milestone:** v2.0 — Function Calling Architecture
-**Fase actual:** Phase 8 — League Context (Phases 5, 6 y 7 completas)
-**Benchmark random questions:** 19/21 faithfulness — run `phase6_postfix` (2026-04-20)
-**Multi-turn:** Cadena de 4 turnos de Agust validada (2026-04-21)
+**Milestone:** v2.0 — Function Calling Architecture  
+**Estado actual:** Pre-Phase-9 closeout completado; siguiente fase = **Phase 9 — Natural Language Polish**  
+**Benchmark 61 preguntas:** **59/61 faithfulness — gate PASS** — run `post_residual_closeout_final` (2026-04-23)  
+**Benchmark random questions:** 19/21 faithfulness — run `phase6_postfix` (2026-04-20)  
+**Multi-turn:** Cadena de 4 turnos de Agust validada y preservada tras hotfixes / WI-1 / WI-2
 
-Para ver el estado completo: [STATE.md](./STATE.md)
+Para ver el estado completo: [STATE.md](./STATE.md)  
 Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
 
 ---
@@ -98,7 +99,7 @@ Validado con la cadena de 4 turnos de Agust:
 "What about per 90?" → ~0.72 ✅
 ```
 
-Para probar multi-turn manualmente:
+Validado con la cadena de 4 turnos de Agust y revalidado tras los hotfixes / closeout:
 ```bash
 python3 scripts/verify_multiturn.py
 ```
@@ -124,19 +125,31 @@ estrictamente necesario.**
 
 ### Lo que queda para cerrar v2.0
 
-**Phase 8 — League Context** *(siguiente)*
+### Lo que queda para cerrar v2.0
 
-Inyectar clasificaciones dinámicas de equipos en el system prompt desde DuckDB — top 4,
-top 6, zona de descenso — calculadas a partir de la tabla `league_standings`. Eliminar
-cualquier lista hardcodeada de equipos en el código. Esto también resuelve RQ_17
-(London clubs): el agente conocerá qué equipos son de Londres porque el contexto lo
-especifica, no por una regla Python.
+**Phase 8 — League Context** ✓ completada a nivel de milestone
 
-**Phase 9 — Natural Language Polish** *(última)*
+La fase quedó cerrada funcionalmente, con contexto de liga integrado y benchmark gate superado tras el closeout previo a Phase 9.  
+Aun así, persisten algunos gaps no bloqueantes de consistencia semántica en definiciones de grupos
+(por ejemplo, ciertos usos de “Champions League teams” o follow-ups conversacionales donde un desglose puede no mantenerse perfectamente estable entre turnos).  
+Eso no bloquea el milestone, pero debe tenerse en cuenta para polish y hardening posterior.
 
-Respuestas más fluidas: sin claves de métricas crudas, con reglas de insight
-("finishing above xG expectation"), templates de verbalización para comparaciones
-y ventanas temporales.
+**Pre-Phase-9 Robustness Closeout** ✓ completado
+
+Trabajo cerrado antes de entrar en Phase 9:
+- hotfix de truthfulness para appearances/minutes
+- WI-1 subject exclusion + postfix semántico
+- WI-2 event-stat `*_p90` con match context
+- residual closeout para los últimos casos benchmark críticos previos a polish
+
+**Phase 9 — Natural Language Polish** *(siguiente)*
+
+Objetivo:
+- respuestas más fluidas
+- menos claves crudas en surface text
+- mejor consistencia verbal en comparaciones y buckets
+- mejor continuidad semántica en follow-ups
+
 
 ### Cómo probar lo que tenemos ahora
 

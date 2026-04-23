@@ -384,6 +384,8 @@ class DuckDBManager:
             return f"SUM(CASE WHEN {alias}.is_win THEN 1 ELSE 0 END)"
         if agg == "goal_difference":
             return f"SUM({alias}.goal_difference)"
+        if agg == "p90":
+            return f"SUM({alias}.{metric}) / NULLIF(SUM({alias}.minutes_played), 0) * 90"
         raise ValueError(f"Unsupported agg '{agg}'")
 
     def query_summary_context(
@@ -400,6 +402,7 @@ class DuckDBManager:
         min_matches: int | None = None,
         rank_position: int | None = None,
         top_n: int = 1,
+        exclude_teams: list[str] | None = None,
     ) -> list[dict]:
         if scope not in {"players_summary", "teams_summary"}:
             raise ValueError(f"Unsupported summary scope: {scope}")
@@ -483,6 +486,11 @@ class DuckDBManager:
             if team_name is not None:
                 where.append("lower(ts.team_name) = lower(?)")
                 params.append(team_name)
+
+            if exclude_teams:
+                placeholders = ", ".join("?" for _ in exclude_teams)
+                where.append(f"lower(ts.team_name) NOT IN ({placeholders})")
+                params.extend(t.lower() for t in exclude_teams)
 
             where_sql = ""
             if where:
@@ -593,6 +601,8 @@ class DuckDBManager:
         SELECT
             pms.short_name,
             pms.team_name,
+            COUNT(*) AS appearances,
+            SUM(pms.minutes_played) AS total_minutes,
             {value_expr} AS metric_value
         FROM player_match_stats pms
         LEFT JOIN league_table opp

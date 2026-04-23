@@ -41,6 +41,13 @@ _PLAYER_MATCH_P90_MAP: dict[str, str] = {
     "assists_p90": "assists",
 }
 
+# Summary-level "goals against" stat names → the match-level column for goals conceded.
+# When the LLM uses these with a match-context filter (e.g. opponent_team),
+# the effective metric must be opponent_score, not the team_score fallback.
+_TEAM_CONCEDED_ALIASES: frozenset[str] = frozenset({
+    "total_goals_against", "goals_against", "goals_conceded", "conceded",
+})
+
 
 def _r(result: list[dict], note: str | None = None) -> dict[str, Any]:
     """Wrap DuckDB rows into the standard tool response format."""
@@ -254,8 +261,22 @@ def get_team_stat(
 ) -> dict:
     """Return the aggregated stat for a single named team."""
     team_name = duck.fuzzy_resolve_entity(team_name, "team")
+    # Fix B: own-team opponent is structurally impossible — return semantic note.
+    if filters and filters.get("opponent_team"):
+        opp = duck.fuzzy_resolve_entity(filters["opponent_team"], "team")
+        if _same_team(team_name, opp):
+            return _r(
+                [],
+                note=f"{team_name} cannot be their own opponent; no matches exist against themselves.",
+            )
     if _is_team_match_metric(stat) or _has_match_context(filters):
-        effective_stat = stat if _is_team_match_metric(stat) else "team_score"
+        # Resolve summary-level conceded-goals aliases to the match-level column.
+        if _is_team_match_metric(stat):
+            effective_stat = stat
+        elif stat in _TEAM_CONCEDED_ALIASES:
+            effective_stat = "opponent_score"
+        else:
+            effective_stat = "team_score"
         rows = duck.query_team_match_context(
             metric=effective_stat,
             agg="sum",
@@ -408,6 +429,7 @@ def rank_teams(
     filters: dict | None = None,
     limit: int = 1,
     descending: bool = True,
+    exclude_teams: list[str] | None = None,
 ) -> dict:
     """Return top/bottom N teams ranked by a stat."""
     limit = max(1, min(limit, 20))
@@ -438,6 +460,7 @@ def rank_teams(
         metric=stat,
         descending=descending,
         top_n=limit,
+        exclude_teams=exclude_teams,
     )
     return _r(rows)
 
@@ -573,8 +596,16 @@ def get_stat_vs_opponent_group(
     entity_name: str,
     stat: str,
     opponent_teams: list[str],
+    fill_stat: str | None = None,
+    fill_descending: bool = True,
 ) -> dict:
-    """Return aggregated stat across a specific list of opponents."""
+    """Return aggregated stat across a specific list of opponents.
+
+    fill_stat / fill_descending: when the subject's own team is excluded from
+    opponent_teams, the tool will re-query teams_summary by fill_stat to find
+    replacement teams so the returned list still has the originally-requested N.
+    Pass the same stat and descending value used to build the opponent_teams list.
+    """
     if not opponent_teams:
         raise ToolError("opponent_teams list cannot be empty")
 
@@ -582,8 +613,12 @@ def get_stat_vs_opponent_group(
     opponent_teams = [duck.fuzzy_resolve_entity(t, "team") for t in opponent_teams]
 
     excluded_note = None
-    if entity_type == "player":
-        own_teams = _lookup_player_teams(duck, entity_name)
+    if entity_type in ("player", "team"):
+        own_teams = (
+            _lookup_player_teams(duck, entity_name)
+            if entity_type == "player"
+            else {entity_name}
+        )
         if own_teams:
             filtered = [t for t in opponent_teams if not any(_same_team(t, ot) for ot in own_teams)]
             if len(filtered) != len(opponent_teams):
@@ -593,6 +628,25 @@ def get_stat_vs_opponent_group(
                     f"{entity_name} plays for {', '.join(own_teams)}."
                 )
                 opponent_teams = filtered
+
+                # Auto-backfill: fetch replacement teams from teams_summary when
+                # fill_stat is provided and is a valid column.
+                if fill_stat and duck.column_exists("teams_summary", fill_stat):
+                    needed = len(excluded)
+                    all_skip = [t.lower() for t in list(own_teams) + opponent_teams]
+                    placeholders = ", ".join("?" for _ in all_skip)
+                    order_dir = "DESC" if fill_descending else "ASC"
+                    fill_rows = duck.query_dicts(
+                        f'SELECT team_name FROM teams_summary '
+                        f'WHERE lower(team_name) NOT IN ({placeholders}) '
+                        f'ORDER BY "{fill_stat}" {order_dir}, team_name ASC '
+                        f'LIMIT {needed}',
+                        all_skip,
+                    )
+                    added = [r["team_name"] for r in fill_rows]
+                    if added:
+                        opponent_teams = opponent_teams + added
+                        excluded_note += f" Replaced with {', '.join(added)}."
 
     if not opponent_teams:
         return _r([], note=excluded_note or "opponent_teams list is empty after subject exclusion.")
@@ -679,6 +733,8 @@ def query_player_stats(
     match_conditions: list[dict] | None = None,
     last_n_gameweeks: int | None = None,
     opponent_teams: list[str] | None = None,
+    opponent_teams_fill_stat: str | None = None,
+    opponent_teams_fill_descending: bool = True,
 ) -> dict:
     """Mother tool: look up, count, or aggregate a stat for a single named player."""
     resolved_log: list[dict] = []
@@ -696,6 +752,8 @@ def query_player_stats(
             entity_name=player_name,
             stat=stat,
             opponent_teams=opponent_teams,
+            fill_stat=opponent_teams_fill_stat,
+            fill_descending=opponent_teams_fill_descending,
         )
     elif last_n_gameweeks is not None:
         if stat is None:
@@ -736,6 +794,7 @@ def query_team_stats(
     limit: int = 1,
     descending: bool = True,
     last_n_gameweeks: int | None = None,
+    exclude_teams: list[str] | None = None,
 ) -> dict:
     """Mother tool: look up or rank a stat for one or all teams."""
     resolved_log: list[dict] = []
@@ -760,7 +819,10 @@ def query_team_stats(
             filters=filters,
         )
     elif rank_mode:
-        result = rank_teams(duck, stat=stat, filters=filters, limit=limit, descending=descending)
+        result = rank_teams(
+            duck, stat=stat, filters=filters, limit=limit, descending=descending,
+            exclude_teams=exclude_teams,
+        )
     else:
         if team_name is None:
             raise ToolError("query_team_stats with rank_mode=false requires team_name")

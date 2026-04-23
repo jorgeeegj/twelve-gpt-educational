@@ -257,13 +257,18 @@ Saved outputs:
 
 **Pre-Phase-9 Robustness Closeout** (minifase, branch `feature/refactor-v2`)
 
-- ✓ WI-1 Subject Exclusion — 2026-04-23
-  - `get_stat_vs_opponent_group`: filtra el equipo propio del jugador de `opponent_teams` antes de SQL; añade `excluded_note` al resultado
-  - `get_player_stat`: early return semántico si `opponent_team == equipo propio`
-  - Helpers: `_lookup_player_teams(duck, player_name) -> set[str]` (exact match + fallback por last-name token via `entity_embeddings`)
-  - 2 tests nuevos: `TestSubjectExclusion` — 84/84 ✓ (82 baseline + 2 nuevos)
-  - UAT D9 ("Salah vs 3 equipos que menos conceden"): Liverpool ya no aparece como rival legítimo
+- ✓ WI-1 Subject Exclusion + Postfix — 2026-04-23
+  - `get_stat_vs_opponent_group`: filtra el equipo propio del jugador/equipo antes de SQL; añade `excluded_note`; extiende a entity_type="team"; auto-backfill via `fill_stat`/`fill_descending` (reemplaza los N equipos excluidos con los siguientes válidos del ranking)
+  - `get_player_stat`: early return semántico si `opponent_team == equipo propio` (player)
+  - `get_team_stat`: early return semántico si `opponent_team == team_name` (Fix B para teams); alias routing `total_goals_against` → `opponent_score` en match context (fix QV6_57)
+  - `rank_teams` + `query_summary_context`: parámetro `exclude_teams` para excluir proactivamente el equipo del sujeto del pool de candidatos
+  - `query_player_stats`: parámetros `opponent_teams_fill_stat` / `opponent_teams_fill_descending` expuestos al LLM vía schema
+  - `query_team_stats`: parámetro `exclude_teams` expuesto al LLM vía schema
+  - Helpers: `_lookup_player_teams` (sin cambio); `_TEAM_CONCEDED_ALIASES` frozenset nuevo
+  - 5 tests nuevos adicionales en `TestSubjectExclusion` — 89/89 ✓ (84 baseline + 5 nuevos)
+  - QV6_56 validado: Salah 3 goles (Arsenal+Chelsea+Everton, Liverpool excluido + backfill Everton)
+  - QV6_57 validado: Brentford 13 goles concedidos (alias total_goals_against → opponent_score)
   - Multi-turn chain 4/4 ✓
 - WI-2, WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-23 — WI-1 Subject Exclusion complete. Next: WI-2 (p90 event stats coverage).*
+*Last updated: 2026-04-23 — WI-1 postfix complete. QV6_56=3 ✓ QV6_57=13 ✓. Next: WI-2 (p90 event stats coverage).*

@@ -398,3 +398,84 @@ class TestSubjectExclusion:
         assert any(
             phrase in note for phrase in ("plays for", "own club", "own team")
         ), f"Note should semantically explain why: {note!r}"
+
+    # ------------------------------------------------------------------
+    # WI-1 postfix: backfill + metric routing (QV6_56, QV6_57)
+    # ------------------------------------------------------------------
+
+    def test_get_stat_vs_opponent_group_backfills_everton(self, duck):
+        """QV6_56 proxy: Salah vs ['Arsenal','Liverpool','Chelsea'] with fill_stat.
+        Liverpool is excluded; Everton (next fewest GA, tied with Man City but E < M) fills in.
+        Uses canonical name 'Mohamed Salah' so the DB SQL resolves correctly in test env."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="Mohamed Salah",
+            stat="goals",
+            opponent_teams=["Arsenal", "Liverpool", "Chelsea"],
+            fill_stat="total_goals_against",
+            fill_descending=False,
+        )
+        rows = result.get("rows", [])
+        note = (result.get("note") or "").lower()
+        assert rows, f"Expected at least one row: {result!r}"
+        assert rows[0]["metric_value"] == 3, (
+            f"Expected 3 goals (Arsenal+Chelsea+Everton), got {rows[0]['metric_value']!r}. "
+            f"Note: {note!r}"
+        )
+        assert "everton" in note, f"Everton must appear in note as replacement: {note!r}"
+
+    def test_get_team_stat_total_goals_against_routes_to_conceded(self, duck):
+        """QV6_57 proxy: get_team_stat with stat='total_goals_against' + opponent filter
+        must return goals CONCEDED (opponent_score), not goals scored (team_score)."""
+        result = get_team_stat(
+            duck, "Brentford", "total_goals_against",
+            filters={"opponent_team": "Liverpool"},
+        )
+        rows = result.get("rows", [])
+        assert rows, f"Expected at least one row"
+        assert rows[0]["metric_value"] == 4, (
+            f"Expected 4 (Brentford conceded 4 vs Liverpool), got {rows[0]['metric_value']!r}. "
+            f"If got 0, team_score (goals scored) is being returned instead of opponent_score."
+        )
+
+    def test_get_team_stat_own_team_opponent_returns_semantic_note(self, duck):
+        """Fix B for teams: Brentford with opponent_team=Brentford must return
+        empty rows and a semantic note — never a fake zero."""
+        result = get_team_stat(
+            duck, "Brentford", "total_goals_against",
+            filters={"opponent_team": "Brentford"},
+        )
+        assert result["rows"] == [], f"Expected empty rows, got: {result['rows']}"
+        note = (result.get("note") or "").lower()
+        assert "brentford" in note, f"Note should mention Brentford: {note!r}"
+        assert any(
+            phrase in note for phrase in ("cannot", "own opponent", "themselves", "own team")
+        ), f"Note should semantically explain why: {note!r}"
+
+    def test_get_stat_vs_opponent_group_excludes_team_entity(self, duck):
+        """Defense-in-depth: entity_type='team' exclusion.
+        Brentford queried vs ['Liverpool','Manchester City','Brentford','Chelsea']:
+        Brentford must be excluded and note must signal it."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="team",
+            entity_name="Brentford",
+            stat="opponent_score",
+            opponent_teams=["Liverpool", "Manchester City", "Brentford", "Chelsea"],
+        )
+        note = (result.get("note") or "").lower()
+        assert "brentford" in note, f"Note should mention Brentford: {note!r}"
+        assert "exclud" in note, f"Note should signal exclusion: {note!r}"
+
+    def test_rank_teams_exclude_returns_everton_as_third(self, duck):
+        """rank_teams with exclude_teams=['Liverpool'] must return 3 valid teams
+        where Everton fills in as the 3rd fewest-GA rival (Arsenal=34, Chelsea=43, Everton=44)."""
+        result = rank_teams(
+            duck, stat="total_goals_against", descending=False, limit=3,
+            exclude_teams=["Liverpool"],
+        )
+        team_names = [r["team_name"] for r in result["rows"]]
+        assert len(team_names) == 3, f"Expected 3 teams, got {team_names!r}"
+        assert "Liverpool" not in team_names, f"Liverpool must be excluded: {team_names!r}"
+        assert "Everton" in team_names, f"Everton must fill in: {team_names!r}"

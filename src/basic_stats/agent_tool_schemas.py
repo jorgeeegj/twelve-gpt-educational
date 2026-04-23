@@ -175,7 +175,9 @@ QUERY_PLAYER_STATS_SCHEMA: dict[str, Any] = {
         "- Gameweek window: 'How many goals in the last 5 gameweeks?' "
         "→ set last_n_gameweeks=5\n"
         "- Against opponent list: 'Goals vs the 3 teams with fewest goals conceded?' "
-        "→ first call query_ranking to get team names, then set opponent_teams"
+        "→ call query_team_stats with rank_mode=true AND exclude_teams=[player_team] "
+        "to get N valid rivals; then set opponent_teams + opponent_teams_fill_stat "
+        "so the tool can auto-replace any remaining exclusions"
     ),
     "parameters": {
         "type": "object",
@@ -205,10 +207,30 @@ QUERY_PLAYER_STATS_SCHEMA: dict[str, Any] = {
                 "type": ["array", "null"],
                 "description": (
                     "When set, aggregates the stat only across matches against these specific "
-                    "opponent teams. Use after query_ranking to form the list. "
+                    "opponent teams. Use after query_team_stats with exclude_teams to form the list. "
                     "null = no opponent-list filter."
                 ),
                 "items": {"type": "string"},
+            },
+            "opponent_teams_fill_stat": {
+                "type": ["string", "null"],
+                "description": (
+                    "When opponent_teams is set and might include the player's own team, "
+                    "pass the stat used to rank the opponent_teams list "
+                    "(e.g. 'total_goals_against' if you called query_team_stats with "
+                    "stat='total_goals_against'). The tool automatically replaces any "
+                    "excluded teams with the next valid ones from that ranking. "
+                    "null = no auto-replacement."
+                ),
+            },
+            "opponent_teams_fill_descending": {
+                "type": "boolean",
+                "description": (
+                    "Sort direction for auto-replacement teams. Must match the descending "
+                    "value used in the original ranking call. "
+                    "Set false for ascending rankings (fewest goals conceded, fewest shots). "
+                    "Default true (highest first)."
+                ),
             },
         },
         "required": [
@@ -218,6 +240,8 @@ QUERY_PLAYER_STATS_SCHEMA: dict[str, Any] = {
             "match_conditions",
             "last_n_gameweeks",
             "opponent_teams",
+            "opponent_teams_fill_stat",
+            "opponent_teams_fill_descending",
         ],
         "additionalProperties": False,
     },
@@ -241,7 +265,10 @@ QUERY_TEAM_STATS_SCHEMA: dict[str, Any] = {
         "- Top N teams: 'Top 5 teams by progressive passes' "
         "→ rank_mode=true, limit=5\n"
         "- Gameweek window: 'Liverpool goals in the last 5 gameweeks' "
-        "→ set team_name, last_n_gameweeks=5"
+        "→ set team_name, last_n_gameweeks=5\n"
+        "- Metric-derived bucket for a subject: when building a rival group for a player/team, "
+        "use exclude_teams=[subject_team] to ensure the result contains N valid rival teams "
+        "(e.g. exclude_teams=['Liverpool'] when the bucket is for Salah)"
     ),
     "parameters": {
         "type": "object",
@@ -280,6 +307,17 @@ QUERY_TEAM_STATS_SCHEMA: dict[str, Any] = {
                     "Cannot be combined with rank_mode=true. null = no window filter."
                 ),
             },
+            "exclude_teams": {
+                "type": ["array", "null"],
+                "description": (
+                    "When rank_mode=true, exclude these teams from the ranking pool so the "
+                    "result contains N teams that are valid rivals for the subject entity. "
+                    "Example: exclude_teams=['Liverpool'] when the bucket is for Salah, "
+                    "exclude_teams=['Brentford'] when the bucket is for Brentford's rivals. "
+                    "null = no exclusion."
+                ),
+                "items": {"type": "string"},
+            },
         },
         "required": [
             "team_name",
@@ -289,6 +327,7 @@ QUERY_TEAM_STATS_SCHEMA: dict[str, Any] = {
             "limit",
             "descending",
             "last_n_gameweeks",
+            "exclude_teams",
         ],
         "additionalProperties": False,
     },

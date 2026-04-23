@@ -73,8 +73,11 @@ _FILTERS_SCHEMA: dict = {
                 "'Striker', 'Winger', 'Midfielder', 'Central Defender', 'Full Back', 'Goalkeeper'. "
                 "Map user aliases: 'CB'/'centre-back' → 'Central Defender', "
                 "'LB'/'RB'/'full-back' → 'Full Back', 'GK'/'keeper' → 'Goalkeeper', "
-                "'CM'/'DM'/'AM' → 'Midfielder', 'CF'/'forward' → 'Striker', "
-                "'winger'/'LW'/'RW' → 'Winger'. Null = no filter."
+                "'CM'/'DM'/'AM' → 'Midfielder', 'CF'/'center-forward'/'striker' → 'Striker', "
+                "'winger'/'LW'/'RW' → 'Winger'. "
+                "'forward'/'attacker': set position=null — 'forward' is a broad category covering "
+                "both Striker and Winger; do not set a position filter when the question uses 'forward' "
+                "or 'attacker' generically. Null = no filter."
             ),
         },
         "player_team": {

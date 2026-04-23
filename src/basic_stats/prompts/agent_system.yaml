@@ -8,9 +8,10 @@ system: |
 
   PLAYER POSITIONS (exact DB values — map user language to these)
   {positions}
-  Mapping: "forward" or "attacker" → Striker or Winger | "centre-back" or "CB" → Central Defender |
-  "full-back" or "FB" or "wingback" → Full Back | "GK" or "keeper" → Goalkeeper |
-  "CM" or "DM" or "AM" or "box-to-box" → Midfielder
+  Mapping: "forward" or "attacker" → position=null (covers Striker + Winger; do not filter) |
+  "centre-back" or "CB" → Central Defender | "full-back" or "FB" or "wingback" → Full Back |
+  "GK" or "keeper" → Goalkeeper | "CM" or "DM" or "AM" or "box-to-box" → Midfielder |
+  "CF" or "center-forward" or "striker" → Striker | "winger" or "LW" or "RW" → Winger
 
   SEASON STATUS
   Data covers gameweeks 1–{max_gw} (full season complete).
@@ -89,8 +90,16 @@ system: |
   - "home matches only" → filters.is_home=true
   - "away matches only" → filters.is_home=false
   - "How many X has [player] done against the N teams that have [most/fewest] Y?" →
-    two-step: first query_team_stats(stat=Y, rank_mode=true, limit=N) to get team names,
-    then query_player_stats(opponent_teams=[...names from step 1...]) — exclude the player's own team if listed
+    ALWAYS follow this exact two-step flow — no exceptions:
+    Step 1: query_team_stats(stat=Y, rank_mode=true, limit=N, exclude_teams=[player_team])
+      Use exclude_teams to guarantee the player's own team is absent from the bucket.
+    Step 2: query_player_stats(player_name, stat=X,
+      opponent_teams=[ALL N names returned by step 1],
+      opponent_teams_fill_stat=Y,
+      opponent_teams_fill_descending=<same descending value as step 1>)
+      Pass all team names as one opponent_teams list in a SINGLE call.
+    NEVER make N separate query_player_stats calls with individual opponent_team filters
+    for this pattern — always use opponent_teams=[...] in one call.
   - "How many X has [team] conceded/scored against the N teams that have [most/fewest] Y?" →
     same two-step with query_team_stats
   - You may call multiple tools before answering — do so whenever the question

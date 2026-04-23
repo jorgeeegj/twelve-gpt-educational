@@ -28,10 +28,14 @@ class ToolError(Exception):
     """Raised when a tool call fails with a user-readable message the LLM can act on."""
 
 
-# Default minutes cutoff applied to p90 rankings when the LLM omits min_minutes.
-# 600 min ≈ 6.7 full matches — the floor below which per-90 rates are small-sample
-# artefacts. Users who want to include cameos must pass min_minutes=0 explicitly.
+# Default minutes cutoff for match-context p90 branches (rank_players with a match filter).
 _P90_MIN_MINUTES_DEFAULT = 600
+
+# Default match-count floor for summary-table p90 rankings (no match context).
+# Applied when neither min_minutes nor min_matches is explicitly set.
+# 5 matches is enough to make a per-90 rate meaningful; a single-match wonder at 90 min
+# would otherwise dominate. Only 4 players in the 2024-25 dataset have <5 appearances.
+_P90_MIN_MATCHES_DEFAULT = 5
 
 # Maps summary *_p90 stat names → their base column in player_match_stats.
 # Only covers metrics whose base is in PLAYER_MATCH_ALLOWED_METRICS.
@@ -457,12 +461,13 @@ def rank_players(
         return _r(rows)
 
     min_minutes = _f(filters, "min_minutes")
+    min_matches = _f(filters, "min_matches")
     note: str | None = None
-    if stat.endswith("_p90") and min_minutes is None:
-        min_minutes = _P90_MIN_MINUTES_DEFAULT
+    if stat.endswith("_p90") and min_minutes is None and min_matches is None:
+        min_matches = _P90_MIN_MATCHES_DEFAULT
         note = (
-            f"Applied default min_minutes={_P90_MIN_MINUTES_DEFAULT} to avoid small-sample "
-            "artefacts in per-90 ranking. Pass min_minutes=0 to include all players."
+            f"Applied default min_matches={_P90_MIN_MATCHES_DEFAULT} to avoid small-sample "
+            "artefacts in per-90 ranking. Pass min_matches=0 to include all players."
         )
 
     rows = duck.query_summary_context(
@@ -472,7 +477,7 @@ def rank_players(
         position=_f(filters, "position"),
         team_name=_f(filters, "player_team"),
         min_minutes=min_minutes,
-        min_matches=_f(filters, "min_matches"),
+        min_matches=min_matches,
         age_lt=_f(filters, "age_max"),
         top_n=limit,
     )
@@ -715,7 +720,11 @@ def get_stat_vs_opponent_group(
     placeholders = ", ".join("?" for _ in opponent_teams)
     params_lower = [t.lower() for t in opponent_teams]
 
+    # Normalize summary-level stat aliases to their match-level equivalents
+    # so the LLM can pass "total_assists"/"total_goals" and still get the right column.
+    _MATCH_STAT_ALIASES: dict[str, str] = {"total_goals": "goals", "total_assists": "assists"}
     if entity_type == "player":
+        stat = _MATCH_STAT_ALIASES.get(stat, stat)
         if stat in PLAYER_MATCH_EVENT_ALLOWED_METRICS:
             sql = f"""
             SELECT pmes.short_name, pmes.team_name,

@@ -279,6 +279,16 @@ Saved outputs:
   - Verified: shots_p90=2.875 (23 shots / 720min * 90), xg_total_p90=0.473 (3.78 / 8 games); raw would have been 23 and 3.78
   - Multi-turn chain 4/4 ✓
   - Resolved residual risk from BUG-P90-CONTEXT: "xg_p90, shots_p90 and other event-stat *_p90 silently degrade" — **closed**
+- ✓ Post-WI2 Residuals Closeout — 2026-04-23
+  - **Fix A (QV4_13 schema)**: `agent_tool_schemas.py` position description — `'CF'/'forward' → 'Striker'` replaced with `'CF' → 'Striker'; 'forward'/'attacker' → null` (Wingers now included in forward queries)
+  - **Fix B (QV4_13 code)**: `agent_tools.py` rank_players summary fallback — `min_minutes=600` default replaced with `min_matches=5` when neither filter is set; `_P90_MIN_MATCHES_DEFAULT = 5` constant added; D. Malen (381 min, 14 matches, 1.89 shots_on_target_p90) now appears at top
+  - **Fix C (QV6_56/61 system prompt)**: `agent_system.yaml` HOW TO USE TOOLS — derived-bucket two-step rule made imperative with explicit NEVER clause forbidding N individual `query_player_stats` calls
+  - **Fix D (QV6_61 alias)**: `agent_tools.py` `get_stat_vs_opponent_group` — `_MATCH_STAT_ALIASES = {"total_goals": "goals", "total_assists": "assists"}` applied before routing so LLM's `total_assists` no longer silently falls to `goals` fallback
+  - `agent_system.yaml` PLAYER POSITIONS mapping updated: `"forward" or "attacker" → position=null (covers Striker + Winger; do not filter)`
+  - 5 new tests: `TestQV4_13Residual` (3) + `TestQV6_61Residual` (2) — 98/98 ✓
+  - Benchmark `post_residual_closeout_final`: **59/61 faithfulness (0.967) — ALL GATES PASS** (threshold 0.95)
+  - QV4_13 ✓ (D. Malen 1.89 shots_on_target_p90), QV6_56 ✓ (Salah 3 goals), QV6_61 ✓ (Salah 2 assists)
+  - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-23 — WI-2 complete. Event stat p90+context now returns ratios. 93/93 ✓. Next: WI-3 (arithmetic consistency).*
+*Last updated: 2026-04-23 — Post-WI2 residuals closed. 59/61 faithfulness gate PASS. 98/98 unit tests ✓. Next: Phase 9 NLP Polish or WI-3.*

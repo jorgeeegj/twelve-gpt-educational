@@ -527,3 +527,109 @@ class TestEventStatP90:
             f"shots_p90 top={top_p90} equals raw shots top={top_raw} — not a ratio"
         )
         assert 0 < top_p90 < 20.0
+
+
+# ---------------------------------------------------------------------------
+# QV4_13 residual — forward position + min_minutes default
+# D. Malen: Winger, 381 min, 14 matches, shots_on_target_p90=1.89 (global #1)
+# ---------------------------------------------------------------------------
+
+
+class TestQV4_13Residual:
+    """Fix: 'forward' must not filter by position; min_minutes=600 must not block Malen."""
+
+    def test_shots_on_target_p90_no_position_filter_returns_malen(self, duck):
+        """rank_players(shots_on_target_p90) without explicit filters returns D. Malen."""
+        result = rank_players(duck, "shots_on_target_p90", filters={}, limit=1)
+        assert result["rows"], "Expected at least one row"
+        top = result["rows"][0]
+        assert top["short_name"] == "D. Malen", (
+            f"Expected D. Malen at top but got {top['short_name']} "
+            f"(value={top['metric_value']:.4f})"
+        )
+        assert abs(top["metric_value"] - 1.8898) < 0.001
+
+    def test_shots_on_target_p90_with_min_matches_returns_malen(self, duck):
+        """rank_players with min_matches=10 set: min_minutes default must NOT be applied."""
+        result = rank_players(
+            duck, "shots_on_target_p90", filters={"min_matches": 10}, limit=1
+        )
+        assert result["rows"], "Expected at least one row"
+        top = result["rows"][0]
+        assert top["short_name"] == "D. Malen", (
+            f"Expected D. Malen at top but got {top['short_name']} — "
+            "min_minutes=600 default likely applied on top of min_matches"
+        )
+        # Malen has 381 minutes — any min_minutes=600 would have excluded him
+        assert top["metric_value"] > 1.88
+
+    def test_shots_on_target_p90_default_applies_min_matches_not_min_minutes(self, duck):
+        """The per-90 default applies min_matches (not min_minutes) when neither is set."""
+        result = rank_players(duck, "shots_on_target_p90", filters={}, limit=5)
+        top_names = [r["short_name"] for r in result["rows"]]
+        # Haaland has 2741 min — he passes either filter; Malen has 381 min, 14 matches
+        # If min_minutes=600 were applied Malen would be excluded; with min_matches=5 he's in
+        assert "D. Malen" in top_names, (
+            f"D. Malen missing from top-5 — min_minutes=600 default may still be applied. "
+            f"Got: {top_names}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# QV6_61 residual — stat alias normalization in get_stat_vs_opponent_group
+# LLM passes "total_assists" (summary name) → must map to "assists" (match column)
+# ---------------------------------------------------------------------------
+
+
+class TestQV6_61Residual:
+    """Fix: total_assists/total_goals passed to get_stat_vs_opponent_group must resolve correctly."""
+
+    def test_total_assists_alias_returns_same_as_assists(self, duck):
+        """get_stat_vs_opponent_group with 'total_assists' must return the same value as 'assists'."""
+        opponents = ["Arsenal", "Chelsea", "Everton"]
+        result_alias = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="Mohamed Salah",
+            stat="total_assists",
+            opponent_teams=opponents,
+        )
+        result_canonical = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="Mohamed Salah",
+            stat="assists",
+            opponent_teams=opponents,
+        )
+        assert result_alias["rows"], "Expected rows for total_assists alias"
+        assert result_canonical["rows"], "Expected rows for assists canonical"
+        alias_val = result_alias["rows"][0]["metric_value"]
+        canonical_val = result_canonical["rows"][0]["metric_value"]
+        assert alias_val == canonical_val, (
+            f"total_assists ({alias_val}) != assists ({canonical_val}) — alias not normalized"
+        )
+
+    def test_total_goals_alias_returns_same_as_goals(self, duck):
+        """get_stat_vs_opponent_group with 'total_goals' must return the same value as 'goals'."""
+        opponents = ["Arsenal", "Chelsea", "Everton"]
+        result_alias = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="Mohamed Salah",
+            stat="total_goals",
+            opponent_teams=opponents,
+        )
+        result_canonical = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="Mohamed Salah",
+            stat="goals",
+            opponent_teams=opponents,
+        )
+        assert result_alias["rows"], "Expected rows for total_goals alias"
+        assert result_canonical["rows"], "Expected rows for goals canonical"
+        alias_val = result_alias["rows"][0]["metric_value"]
+        canonical_val = result_canonical["rows"][0]["metric_value"]
+        assert alias_val == canonical_val, (
+            f"total_goals ({alias_val}) != goals ({canonical_val}) — alias not normalized"
+        )

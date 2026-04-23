@@ -104,13 +104,12 @@ class BasicStatsAgent:
 
             response = self.client.responses.create(**kwargs)
 
-            # Check for a function call in output items
-            fc_item = next(
-                (item for item in response.output if item.type == "function_call"),
-                None,
-            )
+            # Collect all function calls — the model may request multiple tools in
+            # parallel. Every call_id must have a matching function_call_output in
+            # the next request or the API raises "No tool output found".
+            fc_items = [item for item in response.output if item.type == "function_call"]
 
-            if fc_item is None:
+            if not fc_items:
                 # No tool call — final answer; persist full turn (including any
                 # tool call/output pairs) to history so the next turn's input
                 # remains consistent with Responses-API call_id tracking.
@@ -126,30 +125,29 @@ class BasicStatsAgent:
                 }
                 return answer
 
-            # Execute the tool and chain explicitly via input for next iteration
-            tool_result = self._execute_tool(fc_item.name, fc_item.arguments)
-            tool_calls.append(
-                {
-                    "name": fc_item.name,
-                    "arguments": fc_item.arguments,
-                    "resolved_entities": tool_result.get("resolved_entities")
-                    if isinstance(tool_result, dict)
-                    else None,
-                    "note": tool_result.get("note") if isinstance(tool_result, dict) else None,
-                    "error": tool_result.get("error") if isinstance(tool_result, dict) else None,
-                }
-            )
-            input_messages = (
-                input_messages
-                + list(response.output)
-                + [
+            # Execute every tool call and build one output entry per call_id.
+            fco_entries: list[dict] = []
+            for fc_item in fc_items:
+                tool_result = self._execute_tool(fc_item.name, fc_item.arguments)
+                tool_calls.append(
+                    {
+                        "name": fc_item.name,
+                        "arguments": fc_item.arguments,
+                        "resolved_entities": tool_result.get("resolved_entities")
+                        if isinstance(tool_result, dict)
+                        else None,
+                        "note": tool_result.get("note") if isinstance(tool_result, dict) else None,
+                        "error": tool_result.get("error") if isinstance(tool_result, dict) else None,
+                    }
+                )
+                fco_entries.append(
                     {
                         "type": "function_call_output",
                         "call_id": fc_item.call_id,
                         "output": json.dumps(tool_result, ensure_ascii=False, default=str),
                     }
-                ]
-            )
+                )
+            input_messages = input_messages + list(response.output) + fco_entries
 
         logger.warning(
             "Agent loop exhausted after %d iterations for: %r", _MAX_ITERATIONS, question

@@ -44,3 +44,11 @@ def test_existing_table_counts_still_works(duck):
     counts = duck.table_counts()
     assert "players_summary" in counts
     assert counts["players_summary"] > 0
+
+
+def test_p90_agg_produces_correct_sql(duck):
+    """_match_value_expr with agg='p90' should produce a ratio expression."""
+    expr = duck._match_value_expr("goals", "p90", "pms")
+    assert "minutes_played" in expr
+    assert "NULLIF" in expr
+    assert "90" in expr

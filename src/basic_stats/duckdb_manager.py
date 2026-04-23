@@ -635,6 +635,7 @@ class DuckDBManager:
         opponent_is_big6: bool | None = None,
         matchday_start: int | None = None,
         matchday_end: int | None = None,
+        min_minutes: int | None = None,
         limit: int = 1,
     ) -> list[dict]:
         self._validate_metric(metric, PLAYER_MATCH_EVENT_ALLOWED_METRICS)
@@ -653,6 +654,10 @@ class DuckDBManager:
         if position is not None:
             where.append("lower(ps.main_position) LIKE lower(?)")
             params.append(f"%{position}%")
+
+        if min_minutes is not None:
+            where.append("ps.total_minutes >= ?")
+            params.append(min_minutes)
 
         if is_home is not None:
             where.append("pmes.is_home = ?")
@@ -683,7 +688,18 @@ class DuckDBManager:
         if where:
             where_sql = "WHERE " + " AND ".join(where)
 
-        value_expr = self._match_value_expr(metric=metric, agg=agg, alias="pmes")
+        # p90 requires minutes from player_match_stats; add join and override expr.
+        if agg == "p90":
+            value_expr = (
+                f"SUM(pmes.{metric}) / NULLIF(SUM(pms_mins.minutes_played), 0) * 90"
+            )
+            minutes_join = """
+        LEFT JOIN player_match_stats pms_mins
+            ON pmes.player_id = pms_mins.player_id
+           AND pmes.gameweek = pms_mins.gameweek"""
+        else:
+            value_expr = self._match_value_expr(metric=metric, agg=agg, alias="pmes")
+            minutes_join = ""
 
         sql = f"""
         SELECT
@@ -695,7 +711,7 @@ class DuckDBManager:
             ON pmes.opponent_team_id = opp.team_id
         LEFT JOIN players_summary ps
             ON pmes.short_name = ps.short_name
-           AND pmes.team_name = ps.team_name
+           AND pmes.team_name = ps.team_name{minutes_join}
         {where_sql}
         GROUP BY
             pmes.player_id,

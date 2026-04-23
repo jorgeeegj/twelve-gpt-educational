@@ -479,3 +479,51 @@ class TestSubjectExclusion:
         assert len(team_names) == 3, f"Expected 3 teams, got {team_names!r}"
         assert "Liverpool" not in team_names, f"Liverpool must be excluded: {team_names!r}"
         assert "Everton" in team_names, f"Everton must fill in: {team_names!r}"
+
+
+# ---------------------------------------------------------------------------
+# Event Stat p90 in Match Context — WI-2
+# ---------------------------------------------------------------------------
+
+
+class TestEventStatP90:
+    """WI-2: event stat *_p90 with a match-context filter must return a per-90
+    ratio, not the raw sum. Tests use Haaland vs Big Six as the probe case."""
+
+    @pytest.mark.parametrize("stat_p90,base_stat", [
+        ("shots_p90", "shots"),
+        ("xg_total_p90", "xg_total"),
+        ("key_passes_p90", "key_passes"),
+    ])
+    def test_event_stat_p90_vs_big6_is_ratio(self, duck, stat_p90, base_stat):
+        """p90 event stat with Big Six context must differ from the raw sum."""
+        result_p90 = get_player_stat(
+            duck, "E. Haaland", stat_p90, {"opponent_is_big6": True}
+        )
+        result_raw = get_player_stat(
+            duck, "E. Haaland", base_stat, {"opponent_is_big6": True}
+        )
+        assert result_p90["rows"], f"Expected p90 rows for {stat_p90} vs Big6"
+        p90_val = result_p90["rows"][0]["metric_value"]
+        raw_val = result_raw["rows"][0]["metric_value"] if result_raw["rows"] else 0
+        assert p90_val != raw_val, (
+            f"{stat_p90}={p90_val} equals raw {base_stat}={raw_val} — "
+            "likely returning raw sum instead of per-90 ratio"
+        )
+        assert 0 < p90_val < 20.0, f"{stat_p90} value {p90_val} is outside plausible p90 range"
+
+    def test_event_stat_p90_ranking_vs_big6(self, duck):
+        """rank_players with shots_p90 + Big6 context must return ratio values."""
+        result_p90 = rank_players(
+            duck, "shots_p90", filters={"opponent_is_big6": True}, limit=3
+        )
+        result_raw = rank_players(
+            duck, "shots", filters={"opponent_is_big6": True}, limit=3
+        )
+        assert result_p90["rows"], "Expected p90 ranking rows"
+        top_p90 = result_p90["rows"][0]["metric_value"]
+        top_raw = result_raw["rows"][0]["metric_value"] if result_raw["rows"] else 0
+        assert top_p90 != top_raw, (
+            f"shots_p90 top={top_p90} equals raw shots top={top_raw} — not a ratio"
+        )
+        assert 0 < top_p90 < 20.0

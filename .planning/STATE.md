@@ -163,7 +163,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ 5 new tests added (4 in `test_agent_tools.py`, 1 in `test_duckdb_vss_stubs.py`)
 - ✓ 79/79 tests passing (`uv run pytest tests/ -q -k "not fuzzy_resolve"`)
 - ✓ Bug case verified: `total_goals_p90 + opponent_is_big6` → was `5.0` (raw sum), now `0.625` (correct ratio)
-- Residual risk: `xg_p90`, `shots_p90` and other event-stat `*_p90` still silently degrade (intentional scope exclusion)
+- Residual risk (closed by WI-2, 2026-04-23): `xg_p90`, `shots_p90` and other event-stat `*_p90` now correctly return ratios via `_PLAYER_MATCH_EVENT_P90_MAP`
 
 **Hotfix BUG-PARALLEL-TOOLS** ✓ Complete (2026-04-22)
 - ✓ `ask()` loop in `agent.py` now collects all `function_call` items per iteration (was: only the first)
@@ -269,6 +269,16 @@ Saved outputs:
   - QV6_56 validado: Salah 3 goles (Arsenal+Chelsea+Everton, Liverpool excluido + backfill Everton)
   - QV6_57 validado: Brentford 13 goles concedidos (alias total_goals_against → opponent_score)
   - Multi-turn chain 4/4 ✓
-- WI-2, WI-3, WI-4, WI-5 — pendientes
+- ✓ WI-2 p90 Event Stats Coverage — 2026-04-23
+  - `_PLAYER_MATCH_EVENT_P90_MAP` added to `agent_tools.py`: 12 entries mapping event-stat `*_p90` names → base event-stat columns (shots, xg_total, key_passes, progressive_passes, touches_in_box, shot_assists, recoveries, interceptions, dribbles_won, aerial_duels_won; plus xg_p90/shots_on_target_p90 aliases)
+  - `total_assists_p90` alias added to `_PLAYER_MATCH_P90_MAP`
+  - `get_player_stat`: new branch — if stat in `_PLAYER_MATCH_EVENT_P90_MAP` and match context present → routes to `query_player_match_event_context(agg="p90")` instead of falling to raw-sum match branch
+  - `rank_players`: same branch with `min_minutes=600` default to avoid small-sample artefacts
+  - `query_player_match_event_context` in `duckdb_manager.py`: added `min_minutes` param (filters via `ps.total_minutes`); added `agg="p90"` support via `LEFT JOIN player_match_stats pms_mins ON player_id + gameweek` → `SUM(event_metric)/NULLIF(SUM(pms_mins.minutes_played),0)*90`
+  - 4 new tests in `TestEventStatP90`: parametrized shots/xg/key_passes × Big6 context → ratio (not raw sum); ranking test — 93/93 ✓
+  - Verified: shots_p90=2.875 (23 shots / 720min * 90), xg_total_p90=0.473 (3.78 / 8 games); raw would have been 23 and 3.78
+  - Multi-turn chain 4/4 ✓
+  - Resolved residual risk from BUG-P90-CONTEXT: "xg_p90, shots_p90 and other event-stat *_p90 silently degrade" — **closed**
+- WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-23 — WI-1 postfix complete. QV6_56=3 ✓ QV6_57=13 ✓. Next: WI-2 (p90 event stats coverage).*
+*Last updated: 2026-04-23 — WI-2 complete. Event stat p90+context now returns ratios. 93/93 ✓. Next: WI-3 (arithmetic consistency).*

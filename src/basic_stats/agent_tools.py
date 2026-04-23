@@ -35,10 +35,29 @@ _P90_MIN_MINUTES_DEFAULT = 600
 
 # Maps summary *_p90 stat names → their base column in player_match_stats.
 # Only covers metrics whose base is in PLAYER_MATCH_ALLOWED_METRICS.
-# Event-table p90s (xg_p90, shots_p90, …) are handled separately.
 _PLAYER_MATCH_P90_MAP: dict[str, str] = {
     "total_goals_p90": "goals",
     "assists_p90": "assists",
+    "total_assists_p90": "assists",
+}
+
+# Maps event-stat *_p90 names → their base column in player_match_event_stats.
+# When combined with a match-context filter, routes to query_player_match_event_context
+# with agg="p90" (joined with player_match_stats for minutes). Without match context
+# these stats fall through to players_summary where they exist as precomputed columns.
+_PLAYER_MATCH_EVENT_P90_MAP: dict[str, str] = {
+    "shots_p90": "shots",
+    "shots_on_target_p90": "shots_on_target",
+    "xg_p90": "xg_total",
+    "xg_total_p90": "xg_total",
+    "key_passes_p90": "key_passes",
+    "progressive_passes_p90": "progressive_passes",
+    "touches_in_box_p90": "touches_in_box",
+    "shot_assists_p90": "shot_assists",
+    "recoveries_p90": "recoveries",
+    "interceptions_p90": "interceptions",
+    "dribbles_won_p90": "dribbles_won",
+    "aerial_duels_won_p90": "aerial_duels_won",
 }
 
 # Summary-level "goals against" stat names → the match-level column for goals conceded.
@@ -187,6 +206,22 @@ def get_player_stat(
                 [],
                 note=f"{player_name} plays for {own_label}; no matches exist against their own club.",
             )
+    if stat in _PLAYER_MATCH_EVENT_P90_MAP and _has_match_context(filters):
+        rows = duck.query_player_match_event_context(
+            metric=_PLAYER_MATCH_EVENT_P90_MAP[stat],
+            agg="p90",
+            player_name=player_name,
+            is_home=_f(filters, "is_home"),
+            opponent_team_name=_f(filters, "opponent_team"),
+            opponent_rank_lte=_f(filters, "opponent_rank_max"),
+            opponent_rank_gte=_f(filters, "opponent_rank_min"),
+            opponent_is_big6=_f(filters, "opponent_is_big6"),
+            matchday_start=_f(filters, "matchday_start"),
+            matchday_end=_f(filters, "matchday_end"),
+            limit=1,
+        )
+        return _r(rows)
+
     if _is_player_match_event_metric(stat):
         rows = duck.query_player_match_event_context(
             metric=stat,
@@ -337,6 +372,32 @@ def rank_players(
 
     if stat is None:
         raise ToolError("rank_players requires either stat or match_conditions")
+
+    if stat in _PLAYER_MATCH_EVENT_P90_MAP and _has_match_context(filters):
+        min_minutes = _f(filters, "min_minutes")
+        note: str | None = None
+        if min_minutes is None:
+            min_minutes = _P90_MIN_MINUTES_DEFAULT
+            note = (
+                f"Applied default min_minutes={_P90_MIN_MINUTES_DEFAULT} for per-90 ranking. "
+                "Pass min_minutes=0 to include all players."
+            )
+        rows = duck.query_player_match_event_context(
+            metric=_PLAYER_MATCH_EVENT_P90_MAP[stat],
+            agg="p90",
+            position=_f(filters, "position"),
+            team_name=_f(filters, "player_team"),
+            is_home=_f(filters, "is_home"),
+            opponent_team_name=_f(filters, "opponent_team"),
+            opponent_rank_lte=_f(filters, "opponent_rank_max"),
+            opponent_rank_gte=_f(filters, "opponent_rank_min"),
+            opponent_is_big6=_f(filters, "opponent_is_big6"),
+            matchday_start=_f(filters, "matchday_start"),
+            matchday_end=_f(filters, "matchday_end"),
+            min_minutes=min_minutes,
+            limit=limit,
+        )
+        return _r(rows, note=note)
 
     if _is_player_match_event_metric(stat):
         rows = duck.query_player_match_event_context(

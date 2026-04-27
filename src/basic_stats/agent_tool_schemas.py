@@ -209,8 +209,11 @@ QUERY_PLAYER_STATS_SCHEMA: dict[str, Any] = {
             "opponent_teams": {
                 "type": ["array", "null"],
                 "description": (
-                    "When set, aggregates the stat only across matches against these specific "
-                    "opponent teams. Use after query_team_stats with exclude_teams to form the list. "
+                    "When set, returns per-opponent breakdown rows (one row per opponent team) "
+                    "plus a total_metric_value field equal to the sum of those rows. "
+                    "Use after query_team_stats with exclude_teams to form the list. "
+                    "IMPORTANT: when reporting totals, use the returned total_metric_value — "
+                    "never compute a total in your head. List only teams present in the rows. "
                     "null = no opponent-list filter."
                 ),
                 "items": {"type": "string"},

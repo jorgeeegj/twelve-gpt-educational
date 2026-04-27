@@ -308,6 +308,21 @@ def get_team_stat(
                 [],
                 note=f"{team_name} cannot be their own opponent; no matches exist against themselves.",
             )
+    if stat == "clean_sheets":
+        rows = duck.query_team_match_context(
+            metric="opponent_score",
+            agg="clean_sheets",
+            team_name=team_name,
+            is_home=_f(filters, "is_home"),
+            opponent_team_name=_f(filters, "opponent_team"),
+            opponent_rank_lte=_f(filters, "opponent_rank_max"),
+            opponent_rank_gte=_f(filters, "opponent_rank_min"),
+            opponent_is_big6=_f(filters, "opponent_is_big6"),
+            matchday_start=_f(filters, "matchday_start"),
+            matchday_end=_f(filters, "matchday_end"),
+            limit=1,
+        )
+        return _r(rows)
     if _is_team_match_metric(stat) or _has_match_context(filters):
         # Resolve summary-level conceded-goals aliases to the match-level column.
         if _is_team_match_metric(stat):
@@ -505,8 +520,11 @@ def rank_teams(
     in_summary = duck.column_exists("teams_summary", stat)
     needs_match = _has_match_context(filters) or not in_summary
     if needs_match:
-        effective_stat = stat if _is_team_match_metric(stat) else "team_score"
-        agg = stat if stat in {"points", "wins", "goal_difference"} else "sum"
+        if stat == "clean_sheets":
+            effective_stat = "opponent_score"
+        else:
+            effective_stat = stat if _is_team_match_metric(stat) else "team_score"
+        agg = stat if stat in {"points", "wins", "goal_difference", "clean_sheets"} else "sum"
         rows = duck.query_team_match_context(
             metric=effective_stat,
             agg=agg,
@@ -728,21 +746,25 @@ def get_stat_vs_opponent_group(
         if stat in PLAYER_MATCH_EVENT_ALLOWED_METRICS:
             sql = f"""
             SELECT pmes.short_name, pmes.team_name,
+                   pmes.opponent_team_name,
                    SUM(pmes.{stat}) AS metric_value
             FROM player_match_event_stats pmes
             WHERE lower(pmes.short_name) = lower(?)
               AND lower(pmes.opponent_team_name) IN ({placeholders})
-            GROUP BY pmes.short_name, pmes.team_name
+            GROUP BY pmes.short_name, pmes.team_name, pmes.opponent_team_name
+            ORDER BY pmes.opponent_team_name ASC
             """
         else:
             effective = stat if stat in PLAYER_MATCH_ALLOWED_METRICS else "goals"
             sql = f"""
             SELECT pms.short_name, pms.team_name,
+                   pms.opponent_team_name,
                    SUM(pms.{effective}) AS metric_value
             FROM player_match_stats pms
             WHERE lower(pms.short_name) = lower(?)
               AND lower(pms.opponent_team_name) IN ({placeholders})
-            GROUP BY pms.short_name, pms.team_name
+            GROUP BY pms.short_name, pms.team_name, pms.opponent_team_name
+            ORDER BY pms.opponent_team_name ASC
             """
         rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
     else:
@@ -750,17 +772,25 @@ def get_stat_vs_opponent_group(
             raise ToolError(f"stat '{stat}' is not available in team match data")
         sql = f"""
         SELECT tms.team_name,
+               tms.opponent_team_name,
                SUM(tms.{stat}) AS metric_value
         FROM team_match_stats tms
         WHERE lower(tms.team_name) = lower(?)
           AND lower(tms.opponent_team_name) IN ({placeholders})
-        GROUP BY tms.team_name
+        GROUP BY tms.team_name, tms.opponent_team_name
+        ORDER BY tms.opponent_team_name ASC
         """
         rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
 
+    # Compute total from the same rows so total == sum(breakdown) by construction.
+    total_metric_value = sum(
+        r["metric_value"] for r in rows if r.get("metric_value") is not None
+    )
     agg_note = f"Aggregated {stat} vs opponents: {', '.join(opponent_teams)}"
     final_note = " | ".join(n for n in [excluded_note, agg_note] if n)
-    return _r(rows, note=final_note)
+    result = _r(rows, note=final_note)
+    result["total_metric_value"] = total_metric_value
+    return result
 
 
 # ---------------------------------------------------------------------------

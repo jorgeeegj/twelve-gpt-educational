@@ -382,6 +382,8 @@ class DuckDBManager:
             return f"SUM({alias}.points)"
         if agg == "wins":
             return f"SUM(CASE WHEN {alias}.is_win THEN 1 ELSE 0 END)"
+        if agg == "clean_sheets":
+            return f"SUM(CASE WHEN {alias}.opponent_score = 0 THEN 1 ELSE 0 END)"
         if agg == "goal_difference":
             return f"SUM({alias}.goal_difference)"
         if agg == "p90":
@@ -454,6 +456,8 @@ class DuckDBManager:
             sql = f"""
             SELECT
                 ps.short_name,
+                ps.first_name,
+                ps.last_name,
                 ps.team_name,
                 ps.main_position,
                 CAST(((20240801 - CAST(replace(ps.birth_date, '-', '') AS BIGINT)) / 10000) AS BIGINT) AS age,
@@ -465,6 +469,8 @@ class DuckDBManager:
             GROUP BY
                 ps.player_id,
                 ps.short_name,
+                ps.first_name,
+                ps.last_name,
                 ps.team_name,
                 ps.main_position,
                 age,
@@ -600,17 +606,22 @@ class DuckDBManager:
         sql = f"""
         SELECT
             pms.short_name,
+            ps.first_name,
+            ps.last_name,
             pms.team_name,
             COUNT(*) AS appearances,
             SUM(pms.minutes_played) AS total_minutes,
             {value_expr} AS metric_value
         FROM player_match_stats pms
+        LEFT JOIN players_summary ps ON pms.player_id = ps.player_id
         LEFT JOIN league_table opp
             ON pms.opponent_team_id = opp.team_id
         {where_sql}
         GROUP BY
             pms.player_id,
             pms.short_name,
+            ps.first_name,
+            ps.last_name,
             pms.team_name
         ORDER BY
             metric_value DESC,

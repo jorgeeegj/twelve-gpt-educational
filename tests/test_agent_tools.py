@@ -419,8 +419,9 @@ class TestSubjectExclusion:
         rows = result.get("rows", [])
         note = (result.get("note") or "").lower()
         assert rows, f"Expected at least one row: {result!r}"
-        assert rows[0]["metric_value"] == 3, (
-            f"Expected 3 goals (Arsenal+Chelsea+Everton), got {rows[0]['metric_value']!r}. "
+        total = result.get("total_metric_value")
+        assert total == 3, (
+            f"Expected total_metric_value=3 (Arsenal+Chelsea+Everton), got {total!r}. "
             f"Note: {note!r}"
         )
         assert "everton" in note, f"Everton must appear in note as replacement: {note!r}"
@@ -632,4 +633,161 @@ class TestQV6_61Residual:
         canonical_val = result_canonical["rows"][0]["metric_value"]
         assert alias_val == canonical_val, (
             f"total_goals ({alias_val}) != goals ({canonical_val}) — alias not normalized"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Clean sheets — UAT T12 fix
+# clean_sheets is a derived stat computed from opponent_score = 0 per match.
+# ---------------------------------------------------------------------------
+
+
+class TestCleanSheets:
+    def test_man_city_clean_sheets_total_is_positive(self, duck):
+        """Manchester City must have kept at least 1 clean sheet in the 2024-25 season."""
+        result = get_team_stat(duck, "Manchester City", "clean_sheets")
+        rows = result.get("rows", [])
+        assert rows, f"Expected rows for clean_sheets, got empty: {result!r}"
+        value = rows[0]["metric_value"]
+        assert isinstance(value, (int, float)), f"metric_value must be numeric: {value!r}"
+        assert value >= 1, f"Man City must have at least 1 clean sheet, got {value}"
+
+    def test_clean_sheets_home_lte_total(self, duck):
+        """Home clean sheets must be <= total clean sheets."""
+        total = get_team_stat(duck, "Manchester City", "clean_sheets")
+        home = get_team_stat(duck, "Manchester City", "clean_sheets", {"is_home": True})
+        total_val = total["rows"][0]["metric_value"]
+        home_val = home["rows"][0]["metric_value"]
+        assert home_val <= total_val, (
+            f"Home clean sheets ({home_val}) > total ({total_val}) — impossible"
+        )
+
+    def test_rank_teams_by_clean_sheets(self, duck):
+        """rank_teams by clean_sheets must return a ranked list of all 20 teams."""
+        result = rank_teams(duck, "clean_sheets", limit=20, descending=True)
+        rows = result.get("rows", [])
+        assert len(rows) == 20, f"Expected 20 teams, got {len(rows)}"
+        assert rows[0]["metric_value"] >= rows[-1]["metric_value"], (
+            "First team must have >= clean sheets than last team"
+        )
+
+
+# ---------------------------------------------------------------------------
+# get_stat_vs_opponent_group — breakdown consistency
+# ---------------------------------------------------------------------------
+
+# Opponents for Haaland (Man City) — a group of teams he played against.
+# Deliberately excludes Man City (his own team) so baseline tests get real rows.
+_HAALAND_OPPONENTS = [
+    "Arsenal", "Chelsea", "Liverpool", "Newcastle United",
+    "Aston Villa", "Nottingham Forest", "Crystal Palace", "Tottenham Hotspur",
+]
+
+
+class TestOpponentGroupBreakdownConsistency:
+    def test_breakdown_total_equals_sum_of_rows(self, duck):
+        """total_metric_value must equal the sum of per-opponent metric_value rows."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="E. Haaland",
+            stat="goals",
+            opponent_teams=_HAALAND_OPPONENTS,
+        )
+        rows = result.get("rows", [])
+        total = result.get("total_metric_value")
+        assert total is not None, "total_metric_value must be present in result"
+        row_sum = sum(r["metric_value"] for r in rows if r.get("metric_value") is not None)
+        assert total == row_sum, (
+            f"total_metric_value ({total}) must equal sum of rows ({row_sum})"
+        )
+
+    def test_breakdown_returns_per_opponent_rows(self, duck):
+        """Each row must include opponent_team_name so the LLM can list per-team values."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="E. Haaland",
+            stat="goals",
+            opponent_teams=_HAALAND_OPPONENTS,
+        )
+        rows = result.get("rows", [])
+        assert rows, "Expected at least one row from opponent group query"
+        for row in rows:
+            assert "opponent_team_name" in row, (
+                f"Every row must have opponent_team_name, got keys: {list(row.keys())}"
+            )
+
+    def test_breakdown_subject_team_exclusion_keeps_total_consistent(self, duck):
+        """Including Man City (Haaland's team) must not inflate total beyond row sum."""
+        opponents_with_own_team = _HAALAND_OPPONENTS + ["Manchester City"]
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="E. Haaland",
+            stat="goals",
+            opponent_teams=opponents_with_own_team,
+        )
+        rows = result.get("rows", [])
+        total = result.get("total_metric_value")
+        assert total is not None, "total_metric_value must be present"
+        row_sum = sum(r["metric_value"] for r in rows if r.get("metric_value") is not None)
+        assert total == row_sum, (
+            f"After subject exclusion, total ({total}) must still equal row sum ({row_sum})"
+        )
+        # Man City rows must not appear in the breakdown
+        opp_names = {r.get("opponent_team_name", "").lower() for r in rows}
+        assert "manchester city" not in opp_names, "Man City must be excluded from opponent rows"
+
+    def test_breakdown_total_nonnegative(self, duck):
+        """Total goals vs opponent group must be >= 0."""
+        result = get_stat_vs_opponent_group(
+            duck,
+            entity_type="player",
+            entity_name="E. Haaland",
+            stat="goals",
+            opponent_teams=_HAALAND_OPPONENTS,
+        )
+        assert result["total_metric_value"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# Canonical player names
+# ---------------------------------------------------------------------------
+
+
+class TestCanonicalPlayerNames:
+    def test_rank_players_returns_first_and_last_name(self, duck):
+        """Ranking by total_assists must expose first_name and last_name per row."""
+        result = rank_players(duck, stat="total_assists", limit=10, descending=True)
+        rows = result.get("rows", [])
+        assert rows, "Expected rows from assists ranking"
+        for row in rows:
+            assert "first_name" in row, f"Row missing first_name: {row}"
+            assert "last_name" in row, f"Row missing last_name: {row}"
+
+    def test_murphy_row_has_correct_canonical_name(self, duck):
+        """Jacob Murphy must appear with correct first_name='Jacob', last_name='Murphy'."""
+        result = rank_players(duck, stat="total_assists", limit=20, descending=True)
+        rows = result.get("rows", [])
+        murphy_rows = [r for r in rows if r.get("last_name", "").lower() == "murphy"]
+        assert murphy_rows, "Murphy must appear in top-20 assists ranking"
+        row = murphy_rows[0]
+        assert row["first_name"] == "Jacob", (
+            f"Expected first_name='Jacob', got {row['first_name']!r}"
+        )
+        assert row["last_name"] == "Murphy", (
+            f"Expected last_name='Murphy', got {row['last_name']!r}"
+        )
+
+    def test_get_player_stat_summary_includes_names(self, duck):
+        """Single-player summary stat lookup must also return first_name/last_name."""
+        result = get_player_stat(duck, "E. Haaland", "total_goals")
+        rows = result.get("rows", [])
+        assert rows, "Expected rows for Haaland total_goals"
+        row = rows[0]
+        assert "first_name" in row, f"Row missing first_name: {row}"
+        assert "last_name" in row, f"Row missing last_name: {row}"
+        assert "haaland" in row["last_name"].lower(), (
+            f"Expected last_name containing 'Haaland', got {row['last_name']!r}"
         )

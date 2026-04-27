@@ -54,7 +54,12 @@ Tiebreakers are resolved in the following order:
 
 To help contextualise questions and answers about this league, teams can be broadly grouped as follows. These are not official categories — they reflect competitive standing and historical status, and can be used to answer questions like "top team", "mid-table side", or "struggling team".
 
-### Champions League Qualifiers (Top 5)
+### Champions League-qualified teams (all routes)
+Liverpool, Arsenal, Manchester City, Chelsea, Newcastle United, Tottenham Hotspur
+
+> Tottenham qualified via Europa League win (finished 17th in the league).
+
+### League-position Champions League Qualifiers (Top 5)
 Liverpool, Arsenal, Manchester City, Chelsea, Newcastle United
 
 ### Europa League Qualifiers (6th–7th)
@@ -93,6 +98,9 @@ At the bottom, **Southampton** endured a historically poor season, winning just 
 ## Notes for LLM Usage
 
 - When a user asks about "top teams" or "big clubs", refer to the Champions League qualifiers as a baseline, but be aware of historical prestige: Manchester United and Tottenham are historically large clubs despite their poor 2024/25 league position.
-- "Top 6" in Premier League context traditionally refers to: Arsenal, Chelsea, Liverpool, Manchester City, Manchester United, and Tottenham — regardless of current season standings.
+- "Champions League teams" or "teams in the Champions League" means all Champions League-qualified teams (all routes): Liverpool, Arsenal, Manchester City, Chelsea, Newcastle United, Tottenham Hotspur. Always include Tottenham Hotspur in this group. Exclude Tottenham only when the user specifically asks for league-position qualifiers, "top 5 Champions League qualifiers", or "teams that qualified through the league".
+- "League-position Champions League qualifiers" or "top 5 Champions League qualifiers" means only the teams that qualified through their league position: Liverpool, Arsenal, Manchester City, Chelsea, Newcastle United (5 teams, not treat them interchangeably with the all-routes group).
+- "Big Six" is a historical club-identity grouping: Arsenal, Chelsea, Liverpool, Manchester City, Manchester United, and Tottenham — regardless of current season standings.
+- "Top six" means the six teams that finished highest in the 2024/25 Premier League table: Liverpool, Arsenal, Manchester City, Chelsea, Newcastle United, and Aston Villa. These are not the same group — do not treat them interchangeably.
 - Goals scored, goals conceded, and goal difference are available for all teams and can be used to answer comparative questions about attacking or defensive strength.
 - Points gaps between teams are meaningful: e.g., the gap between 1st (84 pts) and 5th (66 pts) is 18 points; the gap between 5th and 17th is 28 points.

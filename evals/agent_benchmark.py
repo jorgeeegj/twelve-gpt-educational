@@ -37,6 +37,7 @@ sys.path.insert(0, ".")
 
 from evals.judges.faithfulness_judge import judge_faithfulness
 from evals.judges.naturalness_judge import judge_naturalness
+from evals.raw_key_guard import find_violations, load_forbidden_tokens
 from src.basic_stats.agent import BasicStatsAgent
 from src.basic_stats.config import get_llm_client, get_model
 
@@ -50,6 +51,7 @@ RUNS_DIR = Path(__file__).parent / "runs"
 FAITHFULNESS_GATE = 0.95  # 95% of answers must be faithful
 NATURALNESS_GATE = 4.0  # average naturalness score
 COMPLETENESS_GATE = 0.90  # 90% of answers must be complete
+RAW_KEY_GATE = 0  # 0 violations — hard gate
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +109,9 @@ async def evaluate_one(
     # Faithfulness (deterministic, no LLM)
     faith = judge_faithfulness(answer, entry)
 
+    # NLP-01 raw-key guard (deterministic, measurement only — no retry)
+    raw_key_violations = find_violations(answer)
+
     # Naturalness + completeness (LLM judge)
     if skip_judges or answer.startswith("ERROR:"):
         nat_score = None
@@ -144,6 +149,9 @@ async def evaluate_one(
         "faithfulness_reason": faith.reason,
         "faithfulness_expected": faith.expected_values,
         "faithfulness_missing": faith.missing,
+        # NLP-01 raw-key guard
+        "raw_key_violations": raw_key_violations,
+        "raw_key_passed": len(raw_key_violations) == 0,
         # Naturalness + completeness
         "naturalness_score": nat_score,
         "naturalness_rationale": nat_rationale,
@@ -212,11 +220,12 @@ async def run_benchmark_async(
 
     # Aggregate
     by_category: dict = defaultdict(
-        lambda: {"total": 0, "faith_pass": 0, "nat_scores": [], "comp_pass": 0}
+        lambda: {"total": 0, "faith_pass": 0, "nat_scores": [], "comp_pass": 0, "raw_key_pass": 0}
     )
     faith_total = faith_pass = 0
     nat_scores: list[float] = []
     comp_total = comp_pass = 0
+    raw_key_total = raw_key_pass = 0
     error_count = 0
 
     for r in results:
@@ -230,6 +239,11 @@ async def run_benchmark_async(
 
         if r["answer"].startswith("ERROR:"):
             error_count += 1
+
+        raw_key_total += 1
+        if r.get("raw_key_passed", True):
+            raw_key_pass += 1
+            by_category[cat]["raw_key_pass"] += 1
 
         if r["naturalness_score"] is not None:
             nat_scores.append(r["naturalness_score"])
@@ -246,12 +260,19 @@ async def run_benchmark_async(
     comp_rate = comp_pass / comp_total if comp_total else None
 
     # Gate checks
+    raw_key_violations_count = raw_key_total - raw_key_pass
     gates = {
         "faithfulness": {
             "value": round(faith_rate, 3),
             "threshold": FAITHFULNESS_GATE,
             "passed": faith_rate >= FAITHFULNESS_GATE,
             "score": f"{faith_pass}/{faith_total}",
+        },
+        "raw_keys": {
+            "value": raw_key_violations_count,
+            "threshold": RAW_KEY_GATE,
+            "passed": raw_key_violations_count == RAW_KEY_GATE,
+            "score": f"{raw_key_pass}/{raw_key_total} clean",
         },
     }
     if nat_avg is not None:
@@ -283,6 +304,7 @@ async def run_benchmark_async(
             cat: {
                 "total": b["total"],
                 "faithfulness": f"{b['faith_pass']}/{b['total']}",
+                "raw_keys_clean": f"{b['raw_key_pass']}/{b['total']}",
                 "naturalness_avg": round(sum(b["nat_scores"]) / len(b["nat_scores"]), 2)
                 if b["nat_scores"]
                 else None,

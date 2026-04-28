@@ -218,7 +218,7 @@
 | 7 | Conversation Memory | 0/4 | Complete | 2026-04-21 |
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
-| 10 | Self-Generated Robustness / Synthetic UAT | 1/6 | In Progress | — |
+| 10 | Self-Generated Robustness / Synthetic UAT | 2/6 | In Progress|  |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -249,7 +249,7 @@
 6. Live synthetic run produces 4 output files; baseline tests preserved; STATE.md updated (SYNTH-06)
 7. `src/basic_stats/*` has zero diff (read-only constraint enforced throughout)
 
-**Plans:** 6 plans in 5 waves (10-01 SPEC + 10-02 fixture | 10-03 runner | 10-04 clusterer | 10-05 regression scaffold | 10-06 verification + STATE)
+**Plans:** 2/6 plans executed
 
 **UI hint:** no
 

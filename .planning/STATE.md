@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Milestones
 status: unknown
-last_updated: "2026-04-28T21:56:00Z"
+last_updated: "2026-04-28T21:55:11.783Z"
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # STATE.md
@@ -217,7 +217,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
 - ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
 
-**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plan 01 complete 2026-04-28)
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–02 complete 2026-04-28)
 
 - Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
 - Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
@@ -225,7 +225,11 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - Non-goals: visualizations, qualities integration, production agent refactor, auto-code self-modification.
 - ✓ Plan 01 (SPEC): `10-SPEC.md` authored — 12-category taxonomy, runner contract, cluster schema, regression workflow, 7 exit gates (SYNTH-01 complete, commit `88ecb4b`)
 - ✓ SYNTH-01..06 requirements added to REQUIREMENTS.md; ROADMAP.md Phase 10 entry finalized (commit `03e0872`)
-- Pending: Plan 02 (fixture), Plan 03 (runner), Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
+- ✓ Plan 02 (fixture): `evals/synthetic/` package created — `__init__.py` + 24-question `seed_questions.json` covering all 12 taxonomy categories + `README.md` (SYNTH-02 complete, commits `1a350c8`, `e596a00`)
+  - Edge cases locked in: Tottenham Europa League CL (SYN_011/SYN_012), Top6 vs Big Six (SYN_009/SYN_010), contextual p90 (SYN_014), Spanish away-wins (SYN_017)
+- Pending: Plan 03 (runner), Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
+
+*Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24q, 12 categories, SYNTH-02 satisfied).*
 
 ---
 
@@ -342,4 +346,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-28 — Phase 10 Plan 01 complete: 10-SPEC.md authored (12-category taxonomy, runner contract, cluster schema, exit gates); SYNTH-01..06 requirements added; ROADMAP.md Phase 10 finalized.*
+*Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24 questions, 12 taxonomy categories, SYNTH-02 satisfied); evals/synthetic/ package in place; Plan 03 (runner) is next.*

@@ -73,9 +73,9 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 
 ### NLP — Natural Language Polish
 
-- [ ] **NLP-01**: Verbalized answers use natural language — no raw metric keys, no robotic number dumps (e.g. "Haaland has scored 6 goals with an xG of 3.44" not "Haaland 6 goals 3.44 xG")
-- [ ] **NLP-02**: Contextual framing for comparison answers (home/away, bucket, temporal) using updated `verbalize.yaml` templates
-- [ ] **NLP-03**: At least one deterministic insight rule implemented (e.g., goals vs xG relationship expressed as natural language interpretation)
+- [x] **NLP-01**: Verbalized answers use natural language — no raw metric keys, no robotic number dumps ✓ (2026-04-27) — 61/61 clean on benchmark
+- [x] **NLP-02**: Contextual framing for comparison answers (home/away, bucket, temporal) via `agent_system.yaml` HOW TO WRITE YOUR ANSWER enrichment ✓ (2026-04-27)
+- [x] **NLP-03**: Deterministic goals vs xG insight rule implemented (±1.0 threshold → "finishing above expectation" / "underperforming xG") ✓ (2026-04-27)
 
 ---
 
@@ -93,6 +93,40 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | Qualities integration | Out of scope per Agust (course constraint) |
 | Visualization (shot maps, heatmaps) | Backlog — interesting but not next step |
 | PR to upstream Twelve-Educational/main | Not planned for v2; fork is source of truth |
+
+---
+
+## Phase 10 — Self-Generated Robustness / Synthetic UAT
+
+### SYNTH-01 — Phase 10 Specification
+
+**Phase:** 10
+**Asserts:** A `10-SPEC.md` document exists in `.planning/phases/10-self-generated-robustness-synthetic-uat/` that names the 12-category failure taxonomy, declares the `synthetic_runner.run()` contract (signature, CLI, output paths, exit codes), defines the per-question result schema (section 5), the failure-cluster schema (section 6), the regression-test workflow (section 7), and the 7 exit gates (section 8). SPEC is the single authoritative contract for Plans 02–06.
+
+### SYNTH-02 — Synthetic Question Fixture
+
+**Phase:** 10
+**Asserts:** `evals/synthetic/seed_questions.json` exists with at least 24 entries, every entry tagged with one of the 12 SPEC taxonomy categories. All 12 categories are represented at least twice. At least one Spanish entry. Tottenham Champions League edge case present. Top 6 vs Big Six distinction present (one of each).
+
+### SYNTH-03 — Synthetic Runner
+
+**Phase:** 10
+**Asserts:** `evals/synthetic_runner.py` exists. Exposes `run(fixture_path, label, max_workers=5, skip_judges=False, dry_run=False) -> Path`. Reuses `BasicStatsAgent`, `find_violations` from `evals.raw_key_guard`, `judge_faithfulness` from `evals.judges.faithfulness_judge`, and the `_ask_with_retry` retry pattern. Supports `--dry-run` (validates fixture only). Multi-turn entries (`|`-separated) are called sequentially without `reset()`.
+
+### SYNTH-04 — Failure Clusterer + Markdown Report
+
+**Phase:** 10
+**Asserts:** `evals/synthetic_clusterer.py` exists. `cluster_failures(results, run_id) -> dict` groups failing rows by `(category, failure_category)`. `write_report(cluster_dict, output_path, summary)` writes a Markdown report. `synthetic_runner.run()` invokes both on every live (non-dry-run) execution and writes `failure_clusters.json` + `REPORT.md` to the run directory. No LLM dependency in the clusterer.
+
+### SYNTH-05 — Regression-Test Scaffold
+
+**Phase:** 10
+**Asserts:** `tests/test_synthetic_regressions.py` exists with a module docstring reproducing the 5-step regression workflow from SPEC section 7, a documented (commented or active) `pytest.mark.xfail` example, and a placeholder test that keeps the file collectable. The file does NOT import `BasicStatsAgent`, DuckDB, or `openai` at module level. NO real regression tests are added pre-emptively — only when a failure is observed across two consecutive runs.
+
+### SYNTH-06 — Verification + STATE.md Evidence
+
+**Phase:** 10
+**Asserts:** A live synthetic run (or skip-judges variant) produces `summary.json` + `results.json` + `failure_clusters.json` + `REPORT.md`. The new Phase 10 unit tests pass and the existing baseline (>= 160 tests, excluding `test_fuzzy_resolve.py`) is preserved. `.planning/STATE.md` is updated with Phase 10 status, exit-gate evidence, and the live run-dir name. `src/basic_stats/*` shows zero diff throughout Phase 10.
 
 ---
 
@@ -128,14 +162,21 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | CTX-01 | Phase 8 ⬆️ | Pending |
 | CTX-02 | Phase 8 ⬆️ | Pending |
 | CTX-03 | Phase 8 ⬆️ | Pending |
-| NLP-01 | Phase 9 | Pending |
-| NLP-02 | Phase 9 | Pending |
-| NLP-03 | Phase 9 | Pending |
+| NLP-01 | Phase 9 | Complete ✓ (2026-04-27) |
+| NLP-02 | Phase 9 | Complete ✓ (2026-04-27) |
+| NLP-03 | Phase 9 | Complete ✓ (2026-04-27) |
+| SYNTH-01 | Phase 10 | Complete ✓ (2026-04-28) |
+| SYNTH-02 | Phase 10 | Pending |
+| SYNTH-03 | Phase 10 | Pending |
+| SYNTH-04 | Phase 10 | Pending |
+| SYNTH-05 | Phase 10 | Pending |
+| SYNTH-06 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
-- v2 requirements: 19 total — 8 complete, 1 in progress (FUNC-02), 10 pending
-- Mapped to phases: 30/30 ✓
+- v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
+- Phase 10 requirements: 6 total — 1 complete (SYNTH-01), 5 pending
+- Mapped to phases: 36/36 ✓
 
 ---
 
@@ -143,3 +184,5 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 *v2 requirements added: 2026-04-12 — function calling, conversation memory, league context, robustness, NLP polish*
 *Phase 4 (INFRA) marked complete: 2026-04-12*
 *FUNC-01/03/04 marked complete: 2026-04-13 — FUNC-02 in progress at 51/61*
+*NLP-01/02/03 marked complete: 2026-04-27 — 61/61 raw-key clean, contextual framing, goals vs xG insight rule; faithfulness 59/61 (0.967)*
+*SYNTH-01 marked complete: 2026-04-28 — 10-SPEC.md authored with 12-category taxonomy, runner contract, cluster schema, 7 exit gates*

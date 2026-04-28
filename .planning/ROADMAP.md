@@ -14,14 +14,14 @@
 - [x] **Phase 2: Planner & Execution Fixes** - Targeted benchmark case resolution (50/50 validated)
 - [x] **Phase 3: Verbalization & UI Quality** - Grounded answers + edge case handling
 
-### v2.0 Milestones (Pending)
+### v2.0 Milestones (Complete)
 
 - [x] **Phase 4: Extract & Clean** - Repo reorganization + quality tooling + dead code removal ✓ (2026-04-12)
 - [x] **Phase 5: Function Calling Core** - Responses API + 4 mother tools + follow-up memory via `previous_response_id` ✓ (2026-04-17)
-- [ ] **Phase 6: Random Question Robustness** - Embedding-based entity resolution (VSS)
-- [ ] **Phase 7: Conversation Memory** - Multi-turn follow-up support (already partially delivered in Phase 5)
-- [ ] **Phase 8: League Context** - Dynamic team classification + standings injection
-- [ ] **Phase 9: Natural Language Polish** - Verbalization templates + insight rules
+- [x] **Phase 6: Random Question Robustness** - Embedding-based entity resolution (VSS) ✓ (2026-04-20)
+- [x] **Phase 7: Conversation Memory** - Multi-turn follow-up support ✓ (2026-04-21)
+- [x] **Phase 8: League Context** - Dynamic team classification + standings injection ✓ (2026-04-21)
+- [x] **Phase 9: Natural Language Polish** - Natural answers, no raw metric keys, insight rules ✓ (2026-04-27)
 
 ---
 
@@ -185,7 +185,7 @@
 
 ---
 
-### Phase 9 — Natural Language Polish
+### Phase 9: Natural Language Polish
 **Goal:** Replace robotic metric output with natural language templates and implement deterministic insight rules.
 
 **Depends on:** Phase 8
@@ -216,8 +216,9 @@
 | 5 | Function Calling Core | 7/7 | Complete | 2026-04-17 |
 | 6 | Random Question Robustness | 0/5 | Complete | 2026-04-20 |
 | 7 | Conversation Memory | 0/4 | Complete | 2026-04-21 |
-| 8 | League Context | 0/5 | Not started | — |
-| 9 | Natural Language Polish | 0/5 | Not started | — |
+| 8 | League Context | 0/5 | Complete | 2026-04-21 |
+| 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
+| 10 | Self-Generated Robustness / Synthetic UAT | 0/6 | Planned | — |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -231,6 +232,27 @@
 - **No broad rewrites without explicit approved plan**
 - **Tool layer owns data access:** entity resolution, DB queries, and filters belong in `agent_tools.py` / `duckdb_manager.py`, not in the agent loop
 
+### Phase 10: Self-Generated Robustness / Synthetic UAT
+
+**Goal:** Build a small, verifiable robustness-discovery loop that generates synthetic NL football-stats questions, runs them through `BasicStatsAgent`, evaluates outputs with existing guards (raw_key_guard, faithfulness_judge), clusters failures, and creates a regression-test scaffold — without modifying production code under `src/basic_stats/*`.
+
+**Depends on:** Phase 9
+
+**Requirements:** SYNTH-01, SYNTH-02, SYNTH-03, SYNTH-04, SYNTH-05, SYNTH-06
+
+**Success Criteria:**
+1. `10-SPEC.md` authored with 12-category failure taxonomy + runner contract + cluster + regression-workflow + exit gates (SYNTH-01)
+2. `evals/synthetic/seed_questions.json` ships >=24 entries spanning all 12 categories (SYNTH-02)
+3. `evals/synthetic_runner.py` runs the fixture against `BasicStatsAgent` with `--dry-run` validation mode (SYNTH-03)
+4. `evals/synthetic_clusterer.py` produces `failure_clusters.json` + `REPORT.md` on every live run (SYNTH-04)
+5. `tests/test_synthetic_regressions.py` ships as scaffold; no pre-emptive regressions (SYNTH-05)
+6. Live synthetic run produces 4 output files; baseline tests preserved; STATE.md updated (SYNTH-06)
+7. `src/basic_stats/*` has zero diff (read-only constraint enforced throughout)
+
+**Plans:** 6 plans in 5 waves (10-01 SPEC + 10-02 fixture | 10-03 runner | 10-04 clusterer | 10-05 regression scaffold | 10-06 verification + STATE)
+
+**UI hint:** no
+
 ---
 
 *v1 roadmap created: 2026-03-26*
@@ -238,3 +260,7 @@
 *Phase 4 marked complete: 2026-04-12*
 *Phase 5 marked complete: 2026-04-17 — Responses API + 4 mother tools + previous_response_id*
 *Phase order revised 2026-04-16 per Agust feedback: Robustness → Phase 6, Memory → Phase 7, League Context → Phase 8*
+*Phase 6 marked complete: 2026-04-20 — VSS entity resolution, 19/21 random questions faithfulness*
+*Phase 7 marked complete: 2026-04-21 — Client-side history, Agust's 4-turn chain passes end-to-end*
+*Phase 8 marked complete: 2026-04-21 — Dynamic league context paragraph, 6/6 context questions, no hardcoded labels*
+*Phase 9 marked complete: 2026-04-27 — NLP polish: 61/61 raw-key clean, goals vs xG insight rule, contextual framing; faithfulness 59/61 (0.967 ≥ 0.95 gate)*

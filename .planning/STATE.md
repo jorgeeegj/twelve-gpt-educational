@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Milestones
+status: unknown
+last_updated: "2026-04-28T21:56:00Z"
+progress:
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 7
+  completed_plans: 1
+---
+
 # STATE.md
 
 ## Project Reference
@@ -6,17 +19,19 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 8 — League Context (Phases 6 and 7 complete)
+**Current focus:** Phase 10 — Self-Generated Robustness / Synthetic UAT
 
 ---
 
 ## Current Phase Status
 
 **Phase 1 — Project Baseline** ✓ Complete
+
 - ✓ GSD planning files written (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md, config.json)
 - ✓ eval_runner_v4 baseline run completed and documented (50/50, 2026-03-26)
 
 **Phase 2 — Planner Noise Reduction** ✓ Complete (2026-03-27)
+
 - ✓ Reduced non-fatal `[PLANNER ERROR]` noise in `query_planner.py` while preserving 50/50 benchmark
 - ✓ Changes made to `query_planner.py`:
   - Extended `METRIC_ALIASES` with 7 new scope-aware entries: `yellow_cards`, `yellow_card`, `goals_per_90`, `progressive_passes_per_90`, `passing_accuracy`, `offsides_drawn`, `team_score` (summary scopes)
@@ -28,12 +43,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark verified at 50/50 after all changes (2026-03-27)
 
 **Remaining noise (intentional legacy fallbacks):** ~8 `[PLANNER ERROR]` cases per run:
+
   - `dribble_success_rate`, `shots_on_target_per_90`: alias deliberately excluded — planner path gives wrong results for position=forward queries
   - `recoveries+per_90`, `aerial_duels_won+per_90`, `touches_in_box+per_90`, `key_passes_per_90`: `per_90` aggregation correctly falls to legacy
   - `pass_accuracy` (without `_pct`): minor LLM variant, handled by legacy
   - `total` aggregation: unsupported, handled by legacy
 
 **Phase 3 — Dynamic Buckets + Comparison Questions** ✓ Complete (2026-03-29)
+
 - ✓ Mid-table bucket detection added to `query_planner.py` (`_extract_mid_table_bucket`, `MID_TABLE_RANGE`, wired into `_canonicalize_raw_plan` in 2 locations + scope inference)
 - ✓ Canonicalize tests extended: C12, C13 (mid-table → `opponent_rank_between=[7,14]`) — 13/13 passing
 - ✓ Dual-bucket comparison detection added to `query_planner.py` (`_classify_all_buckets`, `_detect_dual_bucket_comparison`) — detection only, no execution yet
@@ -94,6 +111,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ eval_runner_v4 rerun confirmed 50/50 benchmark preserved after all Phase 3 changes (2026-04-12)
 
 **Phase 4 — Extract & Clean** ✓ Complete (2026-04-12)
+
 - ✓ Repo reorganized: `utils/basic_stats/core/` → `src/basic_stats/`
 - ✓ `pyproject.toml` + uv + ruff + pre-commit configured
 - ✓ Dead code removed (legacy eval runners, setup.py, requirements.txt)
@@ -106,17 +124,20 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 **Phase 5 — Function Calling Core** ✓ Complete (2026-04-17)
 
 **Scope revision (2026-04-16):**
+
 - 61/61 benchmark gate DROPPED — tests known questions, not robustness signal
 - New exit gate: Responses API working + 3 mother tools + follow-up history wired
 - Legacy code deleted (2026-04-16): `query_planner.py`, `llm_query_engine_v2.py`, `knowledge_base.py`, `function_tools.py`, `models.py`, 3 legacy YAML prompts, legacy test + eval files (3,975 LOC removed, commit `92689d9d`)
 
 **Work completed (session 2026-04-16):**
+
 - ✓ `BasicStatsAgent` implemented (`src/basic_stats/agent.py`) — tool-calling loop, 9 tools
 - ✓ `evals/agent_benchmark.py` + `faithfulness_judge.py` — eval harness
 - ✓ Responses API confirmed working on Azure endpoint (`client.responses.create` → OK)
 - ✓ Legacy architecture deleted (2026-04-16)
 
 **Work completed (session 2026-04-17 — checkpoint):**
+
 - ✓ Step 1: `config.py` — `get_embeddings_model()` added (commit `6ab846fe`)
 - ✓ Step 2: `duckdb_manager.py` — VSS stubs added: `store_entity_embeddings()`, `fuzzy_resolve_entity()` (commit `6ab846fe`)
 - ✓ Step 3: `agent_tool_schemas.py` — 9 schemas → 4, flat Responses API format, no `"function":{}` wrapper, no `"strict":True` (commit `6ab846fe`)
@@ -124,12 +145,14 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ 44 unit tests passing across 4 test files (no LLM calls)
 
 **Work completed (session 2026-04-17 — Phase 5 finish):**
+
 - ✓ Step 5: `agent.py` migrated to `client.responses.create`; `_last_response_id` / `reset()` added; `_build_tool_map` reduced to 4 mother tool entries; loop reads `response.output` items, appends `function_call_output` dicts (commit `492073d7`)
 - ✓ Step 6: `prompts/agent_system.yaml` HOW TO USE TOOLS rewritten for 4 mother tool names (commit `492073d7`)
 - ✓ Step 7: `pages/basic_stats.py` wraps `BasicStatsAgent` in `@st.cache_resource`; calls `agent.reset()` on clear-chat; drops `history=` kwarg — state carried server-side (commit `492073d7`)
 - ✓ `TestFilters` removed from test suite (Filters dataclass eliminated in Step 4); 31 tests passing
 
 **Phase 6 — Random Question Robustness** ✓ Complete (2026-04-20)
+
 - ✓ Embeddings (text-embedding-3-large) for all players + teams stored in DuckDB VSS table
 - ✓ `fuzzy_resolve_entity()` resolves "Salah" → "M. Salah", "Man City" → "Manchester City"
 - ✓ Fuzzy resolution wired symmetrically into team filters (RQ_09 fix: Nottingham Forest)
@@ -141,6 +164,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - Known gap: RQ_12 (yellow cards → fouls routing) fixed in postfix; RQ_17 (London clubs) deferred to Phase 8
 
 **Phase 7 — Conversation Memory** ✓ Complete (2026-04-21)
+
 - ✓ Replaced `previous_response_id` with explicit client-side `_history` list
 - ✓ Full turn history (including tool call/output pairs) persisted so Responses API never sees unresolved function_calls between turns
 - ✓ Agust's 4-turn chain validated: Haaland goals → vs Big Six → comparison → per 90 all pass
@@ -148,6 +172,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `reset()` clears `_history` correctly
 
 **Phase 8 — League Context** ✓ Complete (2026-04-21)
+
 - ✓ `docs/premier_league_2024_25_context.md` added — static standings, categories, narrative, LLM notes
 - ✓ `{league_context}` placeholder injected into system prompt via `agent_prompt.py`
 - ✓ Hardcoded intro paragraph + LEAGUE TIER CONVENTIONS block removed from `agent_system.yaml`
@@ -157,6 +182,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ 95 unit tests passing (test_agent_prompt.py added to permanent suite)
 
 **Hotfix BUG-P90-CONTEXT** ✓ Complete (2026-04-22)
+
 - ✓ `_PLAYER_MATCH_P90_MAP` added to `agent_tools.py` (`total_goals_p90 → goals`, `assists_p90 → assists`)
 - ✓ `agg="p90"` case added to `duckdb_manager._match_value_expr` → `SUM(metric)/NULLIF(SUM(minutes_played),0)*90`
 - ✓ p90-contextual branch added in `get_player_stat` and `rank_players` (before existing match-context branch)
@@ -166,6 +192,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - Residual risk (closed by WI-2, 2026-04-23): `xg_p90`, `shots_p90` and other event-stat `*_p90` now correctly return ratios via `_PLAYER_MATCH_EVENT_P90_MAP`
 
 **Hotfix BUG-PARALLEL-TOOLS** ✓ Complete (2026-04-22)
+
 - ✓ `ask()` loop in `agent.py` now collects all `function_call` items per iteration (was: only the first)
 - ✓ One `function_call_output` generated per `call_id` → API never sees unmatched function calls
 - ✓ `tests/test_agent_parallel_tools.py` added: 2 tests (parallel 2-tool case + single-tool regression)
@@ -173,31 +200,54 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ `verify_multiturn.py` all 4 turns pass: Haaland goals → vs Big Six → comparison → per 90
 
 **Hotfix BUG-TRUTHFULNESS-APPEARANCES** ✓ Complete (2026-04-22)
+
 - ✓ `query_player_match_context()` enriched: added `COUNT(*) AS appearances` and `SUM(pms.minutes_played) AS total_minutes` to SELECT
 - ✓ LLM now receives grounded data instead of inventing appearances/minutes from training priors
 - ✓ Ground-truth case verified: Haaland vs Big Six → "5 goals in 8 appearances" (was "5 goals in 5 appearances")
 - ✓ 1 new test in `test_agent_tools.py` (`TestMatchContextGrounding.test_haaland_vs_big6_appearances_and_minutes`)
 - ✓ 82/82 tests passing
 
-**Phase 9 — Natural Language Polish** ○ Pending ⬆️ *next*
+**Phase 9 — Natural Language Polish** ✓ Complete (2026-04-27)
+
+- ✓ NLP-01: `find_violations()` guard added to benchmark; 61/61 answers raw-key clean (v4 run)
+- ✓ NLP-02: Contextual framing rules added to `agent_system.yaml` HOW TO WRITE YOUR ANSWER — HOME/AWAY, BUCKET (canonical labels), TEMPORAL (matchday prose), no raw filter keys in clarification offers
+- ✓ NLP-03: Goals vs xG insight rule implemented — delta ≥+1.0 → "finishing above expectation", ≤−1.0 → "underperforming xG"; deterministic, no probabilistic language
+- ✓ Team per-90 `_p90` suffix rule added to AVAILABLE STATS; Spanish away-wins mapping added; team-vs-dynamic-bucket N-separate-calls pattern documented; player-vs-dynamic-bucket concrete example (Salah/Liverpool) added
+- ✓ `evals/raw_key_guard.py` + `tests/test_raw_key_guard.py` written — parse-from-prompt design, word-boundary regex, prose allowlist
+- ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
+- ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
+
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plan 01 complete 2026-04-28)
+
+- Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
+- Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
+- Scope: direct stats, rankings, comparisons, follow-ups, top 6 vs Big Six, Champions League routes, p90, home/away, ES/EN, unsupported/future, ambiguous phrasing, demo-style randoms.
+- Non-goals: visualizations, qualities integration, production agent refactor, auto-code self-modification.
+- ✓ Plan 01 (SPEC): `10-SPEC.md` authored — 12-category taxonomy, runner contract, cluster schema, regression workflow, 7 exit gates (SYNTH-01 complete, commit `88ecb4b`)
+- ✓ SYNTH-01..06 requirements added to REQUIREMENTS.md; ROADMAP.md Phase 10 entry finalized (commit `03e0872`)
+- Pending: Plan 02 (fixture), Plan 03 (runner), Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
 
 ---
 
 ## Benchmark Baseline
 
 ### 2026-03-27 — Post noise reduction
+
 Command: `PYTHONIOENCODING=utf-8 python eval_runner_v4.py`
 Pass rate: 50/50
 Failing cases: none
 Saved outputs:
+
   - docs/evals/latest_eval_results_v4.json
   - docs/evals/2026-03-27_13-22-06_eval_results_v4.json
 
 ### 2026-03-26 — Original baseline
+
 Command: `python eval_runner_v4.py --label "Sprint 6 - final fix - checking"`
 Pass rate: 50/50
 Failing cases: none
 Saved outputs:
+
   - docs/evals/2026-03-26_21-58-26_eval_results_v4.json
   - docs/evals/2026-03-26_21-58-26__sprint_6_-_final_fix_-_checking.json
 
@@ -211,10 +261,10 @@ Saved outputs:
 |-------|------|------------------|--------|
 | 4 | Extract & Clean | Repo reorg + pyproject.toml + pre-commit + dead code removal + `league_standings` view | ✓ Complete |
 | 5 | Function Calling Core | Responses API + 4 mother tools + follow-up history via `previous_response_id` | ✓ Complete |
-| 6 | Random Question Robustness ⬆️ | Embeddings (VSS) + entity resolution + 20+ unprepared questions ≥80% pass | ○ Pending |
-| 7 | Conversation Memory ⬆️ | `previous_response_id` wired in Streamlit + Agust's follow-up chain working | ○ Pending |
-| 8 | League Context ⬆️ | Dynamic league paragraph in system prompt + no hardcoded labels | ○ Pending |
-| 9 | Natural Language Polish | Natural answers + no raw metric keys + insight rules | ○ Pending |
+| 6 | Random Question Robustness ⬆️ | Embeddings (VSS) + entity resolution + 20+ unprepared questions ≥80% pass | ✓ Complete |
+| 7 | Conversation Memory ⬆️ | Client-side history + Agust's 4-turn chain passes end-to-end | ✓ Complete |
+| 8 | League Context ⬆️ | Dynamic league paragraph in system prompt + no hardcoded labels | ✓ Complete |
+| 9 | Natural Language Polish | Natural answers + no raw metric keys + insight rules | ✓ Complete |
 
 ---
 
@@ -236,8 +286,9 @@ Saved outputs:
 | 5 | Function Calling Core | ✓ Complete | Responses API + 4 mother tools + follow-up history wired |
 | 6 | Robustness ⬆️ | ✓ Complete | 19/21 faithfulness on random questions |
 | 7 | Memory ⬆️ | ✓ Complete | Agust's 4-turn chain passes end-to-end |
-| 8 | League Context ⬆️ | ○ Pending | 5+ context questions + no hardcoded labels |
-| 9 | NLP Polish | ○ Pending | No raw metric keys in any answer |
+| 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
+| 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
+| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (1/6 plans done) | 10-SPEC.md authored + SYNTH-01..06 requirements defined |
 
 ---
 
@@ -291,4 +342,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-23 — Post-WI2 residuals closed. 59/61 faithfulness gate PASS. 98/98 unit tests ✓. Next: Phase 9 NLP Polish or WI-3.*
+*Last updated: 2026-04-28 — Phase 10 Plan 01 complete: 10-SPEC.md authored (12-category taxonomy, runner contract, cluster schema, exit gates); SYNTH-01..06 requirements added; ROADMAP.md Phase 10 finalized.*

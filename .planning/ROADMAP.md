@@ -218,7 +218,7 @@
 | 7 | Conversation Memory | 0/4 | Complete | 2026-04-21 |
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
-| 10 | Self-Generated Robustness / Synthetic UAT | 0/6 | Planned | — |
+| 10 | Self-Generated Robustness / Synthetic UAT | 1/6 | In Progress | — |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 

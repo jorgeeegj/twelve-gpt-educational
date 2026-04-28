@@ -166,8 +166,8 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | NLP-02 | Phase 9 | Complete ✓ (2026-04-27) |
 | NLP-03 | Phase 9 | Complete ✓ (2026-04-27) |
 | SYNTH-01 | Phase 10 | Complete ✓ (2026-04-28) |
-| SYNTH-02 | Phase 10 | Complete |
-| SYNTH-03 | Phase 10 | Pending |
+| SYNTH-02 | Phase 10 | Complete ✓ (2026-04-28) |
+| SYNTH-03 | Phase 10 | Complete ✓ (2026-04-29) |
 | SYNTH-04 | Phase 10 | Pending |
 | SYNTH-05 | Phase 10 | Pending |
 | SYNTH-06 | Phase 10 | Pending |
@@ -175,7 +175,7 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
 - v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
-- Phase 10 requirements: 6 total — 1 complete (SYNTH-01), 5 pending
+- Phase 10 requirements: 6 total — 3 complete (SYNTH-01, SYNTH-02, SYNTH-03), 3 pending
 - Mapped to phases: 36/36 ✓
 
 ---

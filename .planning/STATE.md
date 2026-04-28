@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Milestones
 status: unknown
-last_updated: "2026-04-28T21:55:11.783Z"
+last_updated: "2026-04-29T00:05:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # STATE.md
@@ -217,7 +217,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
 - ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
 
-**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–02 complete 2026-04-28)
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–03 complete 2026-04-29)
 
 - Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
 - Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
@@ -227,7 +227,12 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ SYNTH-01..06 requirements added to REQUIREMENTS.md; ROADMAP.md Phase 10 entry finalized (commit `03e0872`)
 - ✓ Plan 02 (fixture): `evals/synthetic/` package created — `__init__.py` + 24-question `seed_questions.json` covering all 12 taxonomy categories + `README.md` (SYNTH-02 complete, commits `1a350c8`, `e596a00`)
   - Edge cases locked in: Tottenham Europa League CL (SYN_011/SYN_012), Top6 vs Big Six (SYN_009/SYN_010), contextual p90 (SYN_014), Spanish away-wins (SYN_017)
-- Pending: Plan 03 (runner), Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
+- ✓ Plan 03 (runner): `evals/synthetic_runner.py` implemented — `run()`, CLI, `--dry-run`, multi-turn `|` separator, `_classify_failure`, fixture validation (SYNTH-03 complete, commits `98edd3e`, `b79f00e`)
+  - 20 tests in `tests/test_synthetic_runner.py` — all passing, no live LLM
+  - 161/161 total test suite green (160 baseline + 1 net new)
+  - `evals/runs/` added to `.gitignore`
+  - `--dry-run --label dry_test_v1` verified: exits 0, writes `summary.json` with `"dry_run": true`
+- Pending: Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
 
 *Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24q, 12 categories, SYNTH-02 satisfied).*
 
@@ -292,7 +297,7 @@ Saved outputs:
 | 7 | Memory ⬆️ | ✓ Complete | Agust's 4-turn chain passes end-to-end |
 | 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
 | 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
-| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (1/6 plans done) | 10-SPEC.md authored + SYNTH-01..06 requirements defined |
+| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (3/6 plans done) | 10-SPEC.md + fixture + runner committed; 161 tests green |
 
 ---
 
@@ -346,4 +351,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24 questions, 12 taxonomy categories, SYNTH-02 satisfied); evals/synthetic/ package in place; Plan 03 (runner) is next.*
+*Last updated: 2026-04-29 — Phase 10 Plan 03 complete: synthetic runner committed; --dry-run verified; 161/161 tests green; SYNTH-03 satisfied. Plan 04 (clusterer) is next.*

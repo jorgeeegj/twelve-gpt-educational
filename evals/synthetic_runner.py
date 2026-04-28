@@ -265,6 +265,17 @@ def run(
     (run_dir / "results.json").write_text(
         json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+
+    # Cluster failures + write Markdown report (Plan 10-04). Lazy import to keep
+    # synthetic_runner.py importable when running Plan 03 tests in isolation
+    # before the clusterer module is on disk.
+    from evals.synthetic_clusterer import cluster_failures, write_report
+    cluster_dict = cluster_failures(results, run_id=run_dir.name)
+    (run_dir / "failure_clusters.json").write_text(
+        json.dumps(cluster_dict, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    write_report(cluster_dict, run_dir / "REPORT.md", summary=summary)
+
     print(f"Synthetic run complete: {failures} failures / {len(entries)} questions in {elapsed}s")
     print(f"Output: {run_dir}")
     return run_dir

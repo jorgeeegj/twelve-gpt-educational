@@ -1,0 +1,218 @@
+[
+  {
+    "id": "SYN_001",
+    "category": "DIRECT_STATS",
+    "language": "en",
+    "question": "How many goals has Salah scored this season?",
+    "expected_behavior": "answerable",
+    "expected_values": {"short_name": "Mohamed Salah", "team_name": "Liverpool", "total_goals": 29},
+    "notes": "Direct single-entity single-metric. short_name uses the canonical full form 'Mohamed Salah' matching evals/questions_benchmark.json — judge_faithfulness compares against this string."
+  },
+  {
+    "id": "SYN_002",
+    "category": "DIRECT_STATS",
+    "language": "en",
+    "question": "How many assists does Bruno Fernandes have?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Direct stat. expected_values is null because the actual assist count at fixture-time is not pinned here — judge_faithfulness is skipped per the Plan 03 contract (entry['expected_values'] is None branch). Runner still applies raw_key_guard + refusal-detection. To convert this to a hard regression with a numeric expectation, replace null with {short_name: 'B. Fernandes', team_name: 'Manchester United', total_assists: <N>} where <N> is verified from the source data."
+  },
+  {
+    "id": "SYN_003",
+    "category": "RANKINGS",
+    "language": "en",
+    "question": "Who has the most yellow cards this season?",
+    "expected_behavior": "answerable",
+    "expected_values": {"short_name": "S. Lukić", "team_name": "Fulham", "total_yellow_cards": 12},
+    "notes": "Top-1 ranking; matches QV4_04"
+  },
+  {
+    "id": "SYN_004",
+    "category": "RANKINGS",
+    "language": "en",
+    "question": "Top 5 teams by xG this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Top-N team ranking; expected_values null because list answer — runner relies on raw_key_guard + manual review"
+  },
+  {
+    "id": "SYN_005",
+    "category": "COMPARISONS",
+    "language": "en",
+    "question": "Has Haaland scored more goals than Salah this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Player-vs-player; binary comparison; runner checks raw_key_guard + 'more than'/'less than' presence (manual review for direction)"
+  },
+  {
+    "id": "SYN_006",
+    "category": "COMPARISONS",
+    "language": "en",
+    "question": "Which team has conceded fewer goals: Arsenal or Liverpool?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Team-vs-team; comparison direction must be reflected"
+  },
+  {
+    "id": "SYN_007",
+    "category": "FOLLOW_UPS",
+    "language": "en",
+    "question": "How many goals has Haaland scored?|But against top 6?|Is that more than the rest?|What about per 90?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Multi-turn chain — pipe-separated turns. Runner splits on '|' and calls agent.ask sequentially without reset()"
+  },
+  {
+    "id": "SYN_008",
+    "category": "FOLLOW_UPS",
+    "language": "en",
+    "question": "Top scorer for Arsenal this season?|And for Liverpool?|Per 90 instead?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Subject + filter switch across turns"
+  },
+  {
+    "id": "SYN_009",
+    "category": "TOP6_VS_BIG6",
+    "language": "en",
+    "question": "How many goals has Salah scored against the top 6 teams?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "TOP 6 = current standings rank 1–6 (dynamic). Must NOT be answered as Big Six set."
+  },
+  {
+    "id": "SYN_010",
+    "category": "TOP6_VS_BIG6",
+    "language": "en",
+    "question": "How many goals has Salah scored against the Big Six?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Big Six = canonical {Arsenal, Chelsea, Liverpool, Man City, Man Utd, Tottenham} (static). Must NOT be answered as top 6 standings."
+  },
+  {
+    "id": "SYN_011",
+    "category": "CHAMPIONS_LEAGUE",
+    "language": "en",
+    "question": "Which Premier League teams played in the Champions League this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "All-routes: must include Tottenham (Europa winner) — not strictly via league position"
+  },
+  {
+    "id": "SYN_012",
+    "category": "CHAMPIONS_LEAGUE",
+    "language": "en",
+    "question": "Which teams qualified for next season's Champions League via league position?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Strictly league-position-derived; should EXCLUDE Tottenham unless they qualify via top 4/5"
+  },
+  {
+    "id": "SYN_013",
+    "category": "P90_METRICS",
+    "language": "en",
+    "question": "Which player has the best goals per 90 this season (min 10 appearances)?",
+    "expected_behavior": "answerable",
+    "expected_values": {"short_name": "J. Durán", "team_name": "Aston Villa", "total_goals_p90": 0.85},
+    "notes": "Base p90 — matches QV4_05"
+  },
+  {
+    "id": "SYN_014",
+    "category": "P90_METRICS",
+    "language": "en",
+    "question": "What is Salah's xG per 90 against the Big Six?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Contextual event-stat p90 — must return ratio (not raw sum). Closed by WI-2 hotfix; regression-protect this case."
+  },
+  {
+    "id": "SYN_015",
+    "category": "HOME_AWAY",
+    "language": "en",
+    "question": "How many home goals has Mohamed Salah scored this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Single-side home filter"
+  },
+  {
+    "id": "SYN_016",
+    "category": "HOME_AWAY",
+    "language": "en",
+    "question": "Has Liverpool won more games at home or away this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Dual-side comparison"
+  },
+  {
+    "id": "SYN_017",
+    "category": "SPANISH_ENGLISH",
+    "language": "es",
+    "question": "¿Cuántos partidos ha ganado Liverpool fuera de casa esta temporada?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Spanish away-wins — known prior friction; tests language rule + away mapping"
+  },
+  {
+    "id": "SYN_018",
+    "category": "SPANISH_ENGLISH",
+    "language": "es",
+    "question": "¿Quiénes son los 5 jugadores con más goles esta temporada?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Spanish top-N phrasing"
+  },
+  {
+    "id": "SYN_019",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "How many goals will Haaland score next matchday?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Future-tense — agent must refuse rather than hallucinate"
+  },
+  {
+    "id": "SYN_020",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Who will win the Premier League next season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Future-tense, no data — must refuse"
+  },
+  {
+    "id": "SYN_021",
+    "category": "AMBIGUOUS",
+    "language": "en",
+    "question": "How is he doing?",
+    "expected_behavior": "ambiguous_clarify",
+    "expected_values": null,
+    "notes": "No subject; agent should ask for clarification, not invent one"
+  },
+  {
+    "id": "SYN_022",
+    "category": "AMBIGUOUS",
+    "language": "en",
+    "question": "What about the rest?",
+    "expected_behavior": "ambiguous_clarify",
+    "expected_values": null,
+    "notes": "Cold-start follow-up phrasing without prior turn — should clarify"
+  },
+  {
+    "id": "SYN_023",
+    "category": "DEMO_RANDOM",
+    "language": "en",
+    "question": "Which Brentford player has scored the most goals?",
+    "expected_behavior": "answerable",
+    "expected_values": {"short_name": "B. Mbeumo", "team_name": "Brentford", "total_goals": 20},
+    "notes": "Ricardo-style; matches RQ_02"
+  },
+  {
+    "id": "SYN_024",
+    "category": "DEMO_RANDOM",
+    "language": "en",
+    "question": "Has Isak scored more goals at home or away this season?",
+    "expected_behavior": "answerable",
+    "expected_values": null,
+    "notes": "Mixed home/away + demo-style; tests robustness on uncatalogued phrasings"
+  }
+]

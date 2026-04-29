@@ -69,6 +69,7 @@ tests/
       "id": "BACKLOG_001",
       "first_seen_run_id": "<run-dir-name>",
       "last_seen_run_id": "<run-dir-name>",
+      "seen_run_ids": ["<run-dir-name>"],
       "seen_count": 1,
       "category": "<one of the 12 taxonomy enum values from 10-SPEC.md §2>",
       "failure_signature": "<from synthetic_clusterer._signature() — '<category_lower>__<guard>'>",
@@ -90,7 +91,8 @@ tests/
 
 - `id`: monotonic `BACKLOG_<NNN>`. Never reused.
 - `first_seen_run_id` / `last_seen_run_id`: directory names under `evals/runs/`.
-- `seen_count`: **distinct-run** appearance counter. Incremented when `run_id` differs from the entry's current `last_seen_run_id`; NOT incremented when the same `run_id` is processed again. Eligibility for promotion (§8) is `seen_count >= 2` — the cluster must have appeared in at least two distinct runs.
+- `seen_run_ids`: durable list of every distinct `run_id` ever processed for this signature. The source of truth for distinct-run counting. Backfilled from `first_seen_run_id`/`last_seen_run_id` for entries created before this field existed.
+- `seen_count`: **distinct-run** appearance counter. Equals `len(seen_run_ids)`. Incremented only when `run_id` is not already in `seen_run_ids`. Re-processing any previously-seen run_id (including A→B→A replays) does NOT increment. Eligibility for promotion (§8) is `seen_count >= 2` — the cluster must have appeared in at least two distinct runs.
 - `category` / `failure_signature` / `guard_evidence` / `question_ids` / `sample_answers`: copied from the originating cluster in `failure_clusters.json`. Sample answers are truncated to ≤200 chars (matches `synthetic_clusterer._SAMPLE_TRUNC`).
 - `diagnosis`: free-text — set by humans during triage; default `""` on insert.
 - `status`: lifecycle — see §5 for transitions.
@@ -107,11 +109,12 @@ tests/
 2. If found:
    - Merge `question_ids` (set-union, sorted).
    - Append at most one new sample answer (truncated ≤200 chars; skip if it duplicates an existing one).
-   - **If `run_id != entry["last_seen_run_id"]`:** bump `seen_count` by 1 AND set `last_seen_run_id = run_id`.
-   - **If `run_id == entry["last_seen_run_id"]`:** do NOT bump `seen_count` and do NOT change `last_seen_run_id` (re-processing the same run is counter-idempotent).
-3. If not found: insert a new entry with monotonic `id` and `first_seen_run_id = last_seen_run_id = run_id`, `seen_count = 1`, `status = "open"`, `recommended_action = null`, `promoted_to = null`, `linked_campaign = null`, `diagnosis = ""`, `notes = null`.
+   - Backfill `seen_run_ids` if missing (from `first_seen_run_id`/`last_seen_run_id`).
+   - **If `run_id NOT in entry["seen_run_ids"]`:** append to `seen_run_ids`, bump `seen_count` by 1, set `last_seen_run_id = run_id`.
+   - **If `run_id IN entry["seen_run_ids"]`:** do NOT bump `seen_count` and do NOT change `last_seen_run_id` (any previously-seen run_id is counter-idempotent — including A→B→A replays).
+3. If not found: insert a new entry with monotonic `id`, `first_seen_run_id = last_seen_run_id = run_id`, `seen_run_ids = [run_id]`, `seen_count = 1`, `status = "open"`, `recommended_action = null`, `promoted_to = null`, `linked_campaign = null`, `diagnosis = ""`, `notes = null`.
 
-**Counter-idempotency invariant:** for any sequence of `append_or_update` calls, `seen_count` for a given signature equals the number of **distinct** `run_id` values processed for that signature, not the total number of calls.
+**Counter-idempotency invariant:** for any sequence of `append_or_update` calls, `seen_count` for a given signature equals `len(seen_run_ids)` — the number of **distinct** `run_id` values ever processed. A→B→A replays produce `seen_count=2`, not 3.
 
 ---
 

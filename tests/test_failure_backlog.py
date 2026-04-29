@@ -83,6 +83,7 @@ def test_append_inserts_new_entry(tmp_path: Path) -> None:
     assert entry["seen_count"] == 1
     assert entry["first_seen_run_id"] == "run_A"
     assert entry["last_seen_run_id"] == "run_A"
+    assert entry["seen_run_ids"] == ["run_A"]
     assert entry["status"] == "open"
     assert entry["failure_signature"] == "unsupported_future__refuse_expected_but_answered"
 
@@ -106,6 +107,7 @@ def test_append_same_run_id_does_not_bump_seen_count(tmp_path: Path) -> None:
     entry = reloaded["entries"][0]
     assert entry["seen_count"] == 1  # NOT 2
     assert entry["last_seen_run_id"] == run_id
+    assert entry["seen_run_ids"] == [run_id]
 
 
 def test_append_different_run_id_bumps_seen_count(tmp_path: Path) -> None:
@@ -126,6 +128,7 @@ def test_append_different_run_id_bumps_seen_count(tmp_path: Path) -> None:
     assert entry["seen_count"] == 2
     assert entry["last_seen_run_id"] == "run_second"
     assert entry["first_seen_run_id"] == "run_first"
+    assert entry["seen_run_ids"] == ["run_first", "run_second"]
 
 
 def test_append_three_distinct_runs_seen_count_three(tmp_path: Path) -> None:
@@ -148,6 +151,7 @@ def test_append_three_distinct_runs_seen_count_three(tmp_path: Path) -> None:
     assert entry["seen_count"] == 3
     assert entry["last_seen_run_id"] == "run_3"
     assert entry["first_seen_run_id"] == "run_1"
+    assert entry["seen_run_ids"] == ["run_1", "run_2", "run_3"]
 
 
 def test_append_unions_question_ids(tmp_path: Path) -> None:
@@ -194,6 +198,28 @@ def test_next_id_after_two_entries(tmp_path: Path) -> None:
     append_or_update(backlog, _make_cluster("sig_b__faithfulness", ["SYN_002"]), run_id="run_1")
 
     assert next_id(backlog) == "BACKLOG_003"
+
+
+def test_append_replayed_older_run_id_does_not_bump_seen_count(tmp_path: Path) -> None:
+    """A→B→A replay: replaying run_A after run_B must NOT bump seen_count.
+    seen_count should be 2 (run_A + run_B), not 3.
+    """
+    p = _seed_file(tmp_path)
+    backlog = load_backlog(path=p)
+
+    cluster = _make_cluster("unsupported_future__refuse_expected_but_answered", ["SYN_019"])
+    append_or_update(backlog, cluster, run_id="run_A")   # new entry, seen_count=1
+    append_or_update(backlog, cluster, run_id="run_B")   # distinct → seen_count=2
+    append_or_update(backlog, cluster, run_id="run_A")   # replay — must NOT bump
+    save_backlog(backlog, path=p)
+
+    reloaded = load_backlog(path=p)
+    assert len(reloaded["entries"]) == 1
+    entry = reloaded["entries"][0]
+    assert entry["seen_count"] == 2                          # NOT 3
+    assert entry["first_seen_run_id"] == "run_A"
+    assert entry["last_seen_run_id"] == "run_B"              # unchanged after replay
+    assert set(entry["seen_run_ids"]) == {"run_A", "run_B"}  # exactly two distinct runs
 
 
 def test_load_backlog_raises_on_invalid_schema(tmp_path: Path) -> None:

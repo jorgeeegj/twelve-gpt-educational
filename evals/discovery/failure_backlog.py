@@ -39,22 +39,24 @@ def find_by_signature(backlog: dict, failure_signature: str) -> dict | None:
 def append_or_update(backlog: dict, cluster: dict, run_id: str) -> dict:
     """Idempotent insert/update. Returns the modified backlog (in-place mutation also performed).
 
-    Rules per 11-SPEC.md §3 (counter-idempotent on run_id):
+    Rules per 11-SPEC.md §3 (truly distinct-run idempotent):
       - If cluster.failure_signature exists in backlog:
           * Merge question_ids (set-union, sorted).
           * Append AT MOST one new sample_answer (truncated to 200 chars; skip duplicates).
-          * If run_id != entry['last_seen_run_id']:
-                bump seen_count by 1 AND set last_seen_run_id = run_id.
-          * If run_id == entry['last_seen_run_id']:
+          * Backfill seen_run_ids if missing (conservative: from first/last_seen_run_id).
+          * If run_id NOT in entry['seen_run_ids']:
+                append run_id to seen_run_ids, bump seen_count by 1, set last_seen_run_id = run_id.
+          * If run_id IS in entry['seen_run_ids']:
                 do NOT bump seen_count and do NOT change last_seen_run_id.
-                (Re-processing the same run is counter-idempotent.)
+                (Any previously-seen run_id is counter-idempotent — including A→B→A replays.)
       - If not: insert a new entry with monotonic id BACKLOG_<NNN>,
-        first_seen_run_id=last_seen_run_id=run_id, seen_count=1, status='open',
-        recommended_action=None, promoted_to=None, linked_campaign=None,
+        first_seen_run_id=last_seen_run_id=run_id, seen_run_ids=[run_id], seen_count=1,
+        status='open', recommended_action=None, promoted_to=None, linked_campaign=None,
         diagnosis='', notes=None.
 
     Invariant: seen_count for a given signature equals the number of DISTINCT
     run_id values processed for that signature, not the total number of calls.
+    A→B→A replays produce seen_count=2, not 3.
     """
     sig = cluster["failure_signature"]
     entry = find_by_signature(backlog, sig)
@@ -71,11 +73,20 @@ def append_or_update(backlog: dict, cluster: dict, run_id: str) -> dict:
                 entry["sample_answers"].append(truncated)
                 break  # at most one new sample per call
 
-        # Counter-idempotent run_id check
-        if run_id != entry["last_seen_run_id"]:
+        # Backfill seen_run_ids for entries created before this field existed
+        if "seen_run_ids" not in entry:
+            seeds: list[str] = []
+            for rid in [entry.get("first_seen_run_id"), entry.get("last_seen_run_id")]:
+                if rid and rid not in seeds:
+                    seeds.append(rid)
+            entry["seen_run_ids"] = seeds
+
+        # True distinct-run idempotency: check the full history, not just last_seen_run_id
+        if run_id not in entry["seen_run_ids"]:
+            entry["seen_run_ids"].append(run_id)
             entry["seen_count"] += 1
             entry["last_seen_run_id"] = run_id
-        # else: same run_id — do nothing (counter-idempotent)
+        # else: run_id already in history — do nothing (counter-idempotent)
 
     else:
         # Insert new entry
@@ -83,6 +94,7 @@ def append_or_update(backlog: dict, cluster: dict, run_id: str) -> dict:
             "id": next_id(backlog),
             "first_seen_run_id": run_id,
             "last_seen_run_id": run_id,
+            "seen_run_ids": [run_id],
             "seen_count": 1,
             "category": cluster.get("category", ""),
             "failure_signature": sig,

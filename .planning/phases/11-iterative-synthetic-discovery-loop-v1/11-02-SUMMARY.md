@@ -92,6 +92,8 @@ None — plan executed exactly as written. All 7 required test functions present
 
 Minor: the test file docstring originally contained the phrase "No imports from src.basic_stats.*" which matched the acceptance-criterion grep `grep -q 'from src\.basic_stats'`. Rewrote the docstring to "Zero imports from src/basic_stats or duckdb" to eliminate the false positive. Not a code bug — a phrasing adjustment.
 
+**Post-completion edge-case fix (2026-04-30):** The original `append_or_update` checked `run_id != entry["last_seen_run_id"]` to decide whether to bump `seen_count`. This is insufficient for true distinct-run idempotency: an A→B→A replay would bump `seen_count` to 3 even though only two distinct run_ids appeared. Fixed by adding a durable `seen_run_ids: list[str]` field to entries. The check is now `run_id not in entry["seen_run_ids"]`. Old entries without the field are backfilled conservatively from `first_seen_run_id`/`last_seen_run_id`. 11-SPEC.md §3 schema and field semantics updated accordingly. New test `test_append_replayed_older_run_id_does_not_bump_seen_count` (A→B→A) added. Total test count: 11.
+
 ## Known Stubs
 
 None. All functions are fully implemented; the seed JSON `failure_backlog.json` is intentionally empty (correct initial state per spec).

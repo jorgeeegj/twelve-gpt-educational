@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Milestones
 status: unknown
-last_updated: "2026-04-29T08:14:53.478Z"
+last_updated: "2026-04-29T22:13:12.791Z"
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 6
+  total_plans: 14
+  completed_plans: 8
 ---
 
 # STATE.md
@@ -241,15 +241,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 *Last updated: 2026-04-29 — Phase 10 complete: live synthetic run executed; 24 questions, 22 passed, 2 failures clustered under `unsupported_future__refuse_expected_but_answered`; 173/173 tests green.*
 
-**Phase 11 — Iterative Synthetic Discovery Loop v1** ◆ In Progress (1/7 plans executed) — added & planned 2026-04-29; execution started 2026-04-29
+**Phase 11 — Iterative Synthetic Discovery Loop v1** ◆ In Progress (2/7 plans executed) — added & planned 2026-04-29; execution started 2026-04-29
 
 - Goal: turn Phase 10's synthetic UAT infrastructure into a repeatable iterative discovery loop (campaign generation → live/dry execution → clustering → diagnosis → triage → backlog/regression/fix/tool/context recommendation → targeted re-run).
 - The `unsupported_future__refuse_expected_but_answered` cluster from the Phase 10 live run is the first seed for the loop, not the focus of the phase.
 - "Learning" = the ecosystem around the LLM learns (campaigns, failure memory, context, tool/helper recommendations, regression coverage, triage decisions) — not weight updates.
 - Read-only constraint on `src/basic_stats/*` enforced for all 7 plans by default (no checkpoint authorizes a production code change in v1).
 - Plan structure: 7 waves, one plan per wave. Plans 11-02..11-06 are autonomous; Plan 11-07 (live verification run) is checkpointed.
-  - Wave 1 → 11-01: Phase 11 SPEC (LOOP-01)
-  - Wave 2 → 11-02: Failure Memory / Discovery Backlog (LOOP-02)
+  - Wave 1 → 11-01: Phase 11 SPEC (LOOP-01) ✓
+  - Wave 2 → 11-02: Failure Memory / Discovery Backlog (LOOP-02) ✓
   - Wave 3 → 11-03: Cluster Triage Rubric (LOOP-03)
   - Wave 4 → 11-04: Targeted Campaign Generator (LOOP-04)
   - Wave 5 → 11-05: Iteration Runner / Compare Runs (LOOP-05)
@@ -257,7 +257,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - Wave 7 → 11-07: Verification + Documentation (LOOP-07, checkpointed live run)
 - Planning artefacts authored: `11-CONTEXT.md`, `11-SPEC.md`, `11-01-PLAN.md` through `11-07-PLAN.md`.
 - Plan 11-01 ✓ complete (Wave 1 — SPEC verified, all 13 sections present, patched contracts confirmed, committed in bc95044).
-- Next step: `/gsd:execute-phase 11 --wave 2` to execute Plans 11-02..11-06 (autonomous), then 11-07 (checkpointed).
+- Plan 11-02 ✓ complete (Wave 2 — failure_backlog.py + failure_backlog.json + 10 tests; 183/183 passing; commits 060b131, 9f56460, 1961978).
+- Next step: execute Plan 11-03 (Cluster Triage Rubric, Wave 3).
 
 ---
 

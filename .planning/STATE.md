@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Milestones
 status: unknown
-last_updated: "2026-04-29T00:05:00.000Z"
+last_updated: "2026-04-29T07:30:52.319Z"
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # STATE.md
@@ -217,7 +217,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
 - ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
 
-**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–04 complete 2026-04-29)
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–05 complete 2026-04-29)
 
 - Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
 - Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
@@ -233,9 +233,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - `evals/runs/` added to `.gitignore`
   - `--dry-run --label dry_test_v1` verified: exits 0, writes `summary.json` with `"dry_run": true`
 - ✓ Plan 04 (clusterer): `evals/synthetic_clusterer.py` + `tests/test_synthetic_clusterer.py` — `cluster_failures()` groups by (category, failure_category); `write_report()` writes Markdown; lazy-wired into `run()` after dry-run branch; 172/172 tests green (SYNTH-04 complete, commits `f752b2a`, `ca70b4b`)
-- Pending: Plan 05 (regression scaffold), Plan 06 (verification + STATE)
+- ✓ Plan 05 (regression scaffold): `tests/test_synthetic_regressions.py` authored — module docstring with 5-step workflow from 10-SPEC.md section 7, commented xfail template, `_ask_agent` lazy-import helper, placeholder passing test; 173/173 tests green (SYNTH-05 complete, commit `4d0730b`)
+- Pending: Plan 06 (full synthetic run + verification + STATE)
 
-*Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24q, 12 categories, SYNTH-02 satisfied).*
+*Last updated: 2026-04-29 — Phase 10 Plan 05 complete: regression scaffold committed; 173/173 tests green; SYNTH-05 satisfied. Plan 06 (full run) is next.*
 
 ---
 

@@ -168,14 +168,14 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | SYNTH-01 | Phase 10 | Complete ✓ (2026-04-28) |
 | SYNTH-02 | Phase 10 | Complete ✓ (2026-04-28) |
 | SYNTH-03 | Phase 10 | Complete ✓ (2026-04-29) |
-| SYNTH-04 | Phase 10 | Pending |
-| SYNTH-05 | Phase 10 | Complete |
-| SYNTH-06 | Phase 10 | Pending |
+| SYNTH-04 | Phase 10 | Complete ✓ (2026-04-29) |
+| SYNTH-05 | Phase 10 | Complete ✓ (2026-04-29) |
+| SYNTH-06 | Phase 10 | Complete ✓ (2026-04-29) |
 
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
 - v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
-- Phase 10 requirements: 6 total — 3 complete (SYNTH-01, SYNTH-02, SYNTH-03), 3 pending
+- Phase 10 requirements: 6 total — all complete ✓ (SYNTH-01 through SYNTH-06)
 - Mapped to phases: 36/36 ✓
 
 ---
@@ -186,3 +186,4 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 *FUNC-01/03/04 marked complete: 2026-04-13 — FUNC-02 in progress at 51/61*
 *NLP-01/02/03 marked complete: 2026-04-27 — 61/61 raw-key clean, contextual framing, goals vs xG insight rule; faithfulness 59/61 (0.967)*
 *SYNTH-01 marked complete: 2026-04-28 — 10-SPEC.md authored with 12-category taxonomy, runner contract, cluster schema, 7 exit gates*
+*SYNTH-04/05/06 marked complete: 2026-04-29 — clusterer, regression scaffold, live run evidence all delivered*

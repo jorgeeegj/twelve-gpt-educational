@@ -218,7 +218,7 @@
 | 7 | Conversation Memory | 0/4 | Complete | 2026-04-21 |
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
-| 10 | Self-Generated Robustness / Synthetic UAT | 5/6 | In Progress|  |
+| 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete | 2026-04-29 |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -249,7 +249,7 @@
 6. Live synthetic run produces 4 output files; baseline tests preserved; STATE.md updated (SYNTH-06)
 7. `src/basic_stats/*` has zero diff (read-only constraint enforced throughout)
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans executed
 
 **UI hint:** no
 
@@ -264,3 +264,4 @@
 *Phase 7 marked complete: 2026-04-21 — Client-side history, Agust's 4-turn chain passes end-to-end*
 *Phase 8 marked complete: 2026-04-21 — Dynamic league context paragraph, 6/6 context questions, no hardcoded labels*
 *Phase 9 marked complete: 2026-04-27 — NLP polish: 61/61 raw-key clean, goals vs xG insight rule, contextual framing; faithfulness 59/61 (0.967 ≥ 0.95 gate)*
+*Phase 10 marked complete: 2026-04-29 — Synthetic UAT: runner + clusterer + regression scaffold; live run 24 questions, 2 failures (1 cluster: unsupported_future__refuse_expected_but_answered)*

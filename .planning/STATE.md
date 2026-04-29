@@ -217,24 +217,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
 - ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
 
-**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–05 complete 2026-04-29)
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ✓ Complete (2026-04-29)
 
-- Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
-- Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
-- Scope: direct stats, rankings, comparisons, follow-ups, top 6 vs Big Six, Champions League routes, p90, home/away, ES/EN, unsupported/future, ambiguous phrasing, demo-style randoms.
-- Non-goals: visualizations, qualities integration, production agent refactor, auto-code self-modification.
-- ✓ Plan 01 (SPEC): `10-SPEC.md` authored — 12-category taxonomy, runner contract, cluster schema, regression workflow, 7 exit gates (SYNTH-01 complete, commit `88ecb4b`)
-- ✓ SYNTH-01..06 requirements added to REQUIREMENTS.md; ROADMAP.md Phase 10 entry finalized (commit `03e0872`)
-- ✓ Plan 02 (fixture): `evals/synthetic/` package created — `__init__.py` + 24-question `seed_questions.json` covering all 12 taxonomy categories + `README.md` (SYNTH-02 complete, commits `1a350c8`, `e596a00`)
-  - Edge cases locked in: Tottenham Europa League CL (SYN_011/SYN_012), Top6 vs Big Six (SYN_009/SYN_010), contextual p90 (SYN_014), Spanish away-wins (SYN_017)
-- ✓ Plan 03 (runner): `evals/synthetic_runner.py` implemented — `run()`, CLI, `--dry-run`, multi-turn `|` separator, `_classify_failure`, fixture validation (SYNTH-03 complete, commits `98edd3e`, `b79f00e`)
-  - 20 tests in `tests/test_synthetic_runner.py` — all passing, no live LLM
-  - 161/161 total test suite green (160 baseline + 1 net new)
-  - `evals/runs/` added to `.gitignore`
-  - `--dry-run --label dry_test_v1` verified: exits 0, writes `summary.json` with `"dry_run": true`
-- ✓ Plan 04 (clusterer): `evals/synthetic_clusterer.py` + `tests/test_synthetic_clusterer.py` — `cluster_failures()` groups by (category, failure_category); `write_report()` writes Markdown; lazy-wired into `run()` after dry-run branch; 172/172 tests green (SYNTH-04 complete, commits `f752b2a`, `ca70b4b`)
-- ✓ Plan 05 (regression scaffold): `tests/test_synthetic_regressions.py` authored — module docstring with 5-step workflow from 10-SPEC.md section 7, commented xfail template, `_ask_agent` lazy-import helper, placeholder passing test; 173/173 tests green (SYNTH-05 complete, commit `4d0730b`)
-- Pending: Plan 06 (full synthetic run + verification + STATE)
+- ✓ Gate 1 (SPEC): `.planning/phases/10-self-generated-robustness-synthetic-uat/10-SPEC.md` authored — 12-category failure taxonomy, runner contract, cluster schema, regression workflow.
+- ✓ Gate 2 (Fixture): `evals/synthetic/seed_questions.json` — 24 entries spanning all 12 categories; Tottenham CL edge case + Top6/Big6 distinction + contextual p90 + Spanish phrasing included.
+- ✓ Gate 3 (Runner): `evals/synthetic_runner.py` reuses BasicStatsAgent, find_violations, judge_faithfulness, _ask_with_retry pattern. CLI exposes `--dry-run`, `--skip-judges`, `--workers`, `--label`.
+- ✓ Gate 4 (Clustering): `evals/synthetic_clusterer.py` — heuristic (category, guard_evidence) clustering; `failure_clusters.json` + `REPORT.md` produced on every live run.
+- ✓ Gate 5 (Regression scaffold): `tests/test_synthetic_regressions.py` ships with workflow doc-block + xfail example; no real regressions added pre-emptively.
+- ✓ Gate 6 (Baseline preserved): `uv run pytest tests/ -q --ignore=tests/test_fuzzy_resolve.py` exits 0 with 173 tests passing (160 baseline + 13 Phase 10 tests).
+- ✓ Gate 7 (Evidence): live run `2026-04-29_09-51-54__synthetic_phase10_first` — total_questions=24, total_failures=2, cluster_count=1. Run output gitignored under `evals/runs/`; not staged.
+- Read-only constraint honoured: `git diff --name-only src/basic_stats/` reports zero files.
+- Next steps (out of Phase 10 scope): triage the surfaced cluster (`unsupported_future__refuse_expected_but_answered`, SYN_019/020), decide whether to add regression test in `tests/test_synthetic_regressions.py`, and whether fix opens as a hotfix or follow-on phase.
 
 *Last updated: 2026-04-29 — Phase 10 Plan 05 complete: regression scaffold committed; 173/173 tests green; SYNTH-05 satisfied. Plan 06 (full run) is next.*
 
@@ -299,7 +292,7 @@ Saved outputs:
 | 7 | Memory ⬆️ | ✓ Complete | Agust's 4-turn chain passes end-to-end |
 | 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
 | 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
-| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (4/6 plans done) | 10-SPEC.md + fixture + runner + clusterer committed; 172 tests green |
+| 10 | Self-Generated Robustness / Synthetic UAT | ✓ Complete | All 7 SPEC exit gates met; live run `2026-04-29_09-51-54__synthetic_phase10_first` produced 4 output files |
 
 ---
 
@@ -353,4 +346,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-29 — Phase 10 Plan 04 complete: synthetic_clusterer.py + test_synthetic_clusterer.py committed; 172/172 tests green; SYNTH-04 satisfied. Plan 05 (regression scaffold) is next.*
+*Last updated: 2026-04-29 — Phase 10 (Self-Generated Robustness / Synthetic UAT) complete. Synthetic UAT runner + clusterer + regression scaffold shipped; live run `2026-04-29_09-51-54__synthetic_phase10_first` produced summary.json + results.json + failure_clusters.json + REPORT.md (24 questions, 2 failures, 1 cluster: unsupported_future__refuse_expected_but_answered).*

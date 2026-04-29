@@ -241,7 +241,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 *Last updated: 2026-04-29 — Phase 10 complete: live synthetic run executed; 24 questions, 22 passed, 2 failures clustered under `unsupported_future__refuse_expected_but_answered`; 173/173 tests green.*
 
-**Phase 11 — Iterative Synthetic Discovery Loop v1** ◆ Planned (0/7 plans executed) — added & planned 2026-04-29
+**Phase 11 — Iterative Synthetic Discovery Loop v1** ◆ In Progress (1/7 plans executed) — added & planned 2026-04-29; execution started 2026-04-29
 
 - Goal: turn Phase 10's synthetic UAT infrastructure into a repeatable iterative discovery loop (campaign generation → live/dry execution → clustering → diagnosis → triage → backlog/regression/fix/tool/context recommendation → targeted re-run).
 - The `unsupported_future__refuse_expected_but_answered` cluster from the Phase 10 live run is the first seed for the loop, not the focus of the phase.
@@ -256,7 +256,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - Wave 6 → 11-06: Promotion Rules (LOOP-06)
   - Wave 7 → 11-07: Verification + Documentation (LOOP-07, checkpointed live run)
 - Planning artefacts authored: `11-CONTEXT.md`, `11-SPEC.md`, `11-01-PLAN.md` through `11-07-PLAN.md`.
-- Next step: `/gsd:execute-phase 11` (or `/gsd:execute-phase 11 --wave 1` to start with the SPEC plan).
+- Plan 11-01 ✓ complete (Wave 1 — SPEC verified, all 13 sections present, patched contracts confirmed, committed in bc95044).
+- Next step: `/gsd:execute-phase 11 --wave 2` to execute Plans 11-02..11-06 (autonomous), then 11-07 (checkpointed).
 
 ---
 
@@ -320,7 +321,7 @@ Saved outputs:
 | 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
 | 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
 | 10 | Self-Generated Robustness / Synthetic UAT | ✓ Complete | All 7 SPEC exit gates met; live run `2026-04-29_09-51-54__synthetic_phase10_first` produced 4 output files |
-| 11 | Iterative Synthetic Discovery Loop v1 | ◆ Planned (0/7) | LOOP-01..LOOP-07 satisfied; live verification campaign seeded from `unsupported_future__refuse_expected_but_answered` runs end-to-end; src/basic_stats/ zero diff |
+| 11 | Iterative Synthetic Discovery Loop v1 | ◆ In Progress (1/7) | LOOP-01..LOOP-07 satisfied; live verification campaign seeded from `unsupported_future__refuse_expected_but_answered` runs end-to-end; src/basic_stats/ zero diff |
 
 ---
 
@@ -374,4 +375,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-29 — Phase 10 (Self-Generated Robustness / Synthetic UAT) complete. Synthetic UAT runner + clusterer + regression scaffold shipped; live run `2026-04-29_09-51-54__synthetic_phase10_first` produced summary.json + results.json + failure_clusters.json + REPORT.md (24 questions, 2 failures, 1 cluster: unsupported_future__refuse_expected_but_answered). Phase 11 (Iterative Synthetic Discovery Loop v1) added; not planned yet — run `/gsd:plan-phase 11` to draft the wave structure.*
+*Last updated: 2026-04-29 — Phase 11 execution started. Wave 1 (Plan 11-01: SPEC) complete. 11-SPEC.md (364 lines, 13 sections) verified and locked as single authoritative contract. Plans 11-02..11-07 pending. Run `/gsd:execute-phase 11 --wave 2` to continue.*

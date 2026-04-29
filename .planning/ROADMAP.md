@@ -249,7 +249,7 @@
 6. Live synthetic run produces 4 output files; baseline tests preserved; STATE.md updated (SYNTH-06)
 7. `src/basic_stats/*` has zero diff (read-only constraint enforced throughout)
 
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 **UI hint:** no
 

@@ -8,7 +8,7 @@ progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # STATE.md
@@ -217,7 +217,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 - ✓ Benchmark (phase9_post_fix_v4): faithfulness **0.967** (59/61, gate 0.95 PASS) | raw_keys **0** violations (gate 0 PASS)
 - ✓ 98/98 unit tests passing (pre-Phase-9 baseline)
 
-**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–03 complete 2026-04-29)
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** ◑ In Progress (Plans 01–04 complete 2026-04-29)
 
 - Follow-on hardening phase opened after v2.0 completion. Inspired by David's feedback.
 - Intent: LLM-generated adversarial/synthetic NL questions → BasicStatsAgent → existing guards → failure clustering → regression tests + small verified fixes.
@@ -232,7 +232,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
   - 161/161 total test suite green (160 baseline + 1 net new)
   - `evals/runs/` added to `.gitignore`
   - `--dry-run --label dry_test_v1` verified: exits 0, writes `summary.json` with `"dry_run": true`
-- Pending: Plan 04 (clusterer), Plan 05 (regression scaffold), Plan 06 (verification + STATE)
+- ✓ Plan 04 (clusterer): `evals/synthetic_clusterer.py` + `tests/test_synthetic_clusterer.py` — `cluster_failures()` groups by (category, failure_category); `write_report()` writes Markdown; lazy-wired into `run()` after dry-run branch; 172/172 tests green (SYNTH-04 complete, commits `f752b2a`, `ca70b4b`)
+- Pending: Plan 05 (regression scaffold), Plan 06 (verification + STATE)
 
 *Last updated: 2026-04-28 — Phase 10 Plan 02 complete: seed fixture committed (24q, 12 categories, SYNTH-02 satisfied).*
 
@@ -297,7 +298,7 @@ Saved outputs:
 | 7 | Memory ⬆️ | ✓ Complete | Agust's 4-turn chain passes end-to-end |
 | 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
 | 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
-| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (3/6 plans done) | 10-SPEC.md + fixture + runner committed; 161 tests green |
+| 10 | Self-Generated Robustness / Synthetic UAT | ◑ In Progress (4/6 plans done) | 10-SPEC.md + fixture + runner + clusterer committed; 172 tests green |
 
 ---
 
@@ -351,4 +352,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-29 — Phase 10 Plan 03 complete: synthetic runner committed; --dry-run verified; 161/161 tests green; SYNTH-03 satisfied. Plan 04 (clusterer) is next.*
+*Last updated: 2026-04-29 — Phase 10 Plan 04 complete: synthetic_clusterer.py + test_synthetic_clusterer.py committed; 172/172 tests green; SYNTH-04 satisfied. Plan 05 (regression scaffold) is next.*

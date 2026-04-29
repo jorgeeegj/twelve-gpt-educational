@@ -219,6 +219,7 @@
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
 | 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete    | 2026-04-29 |
+| 11 | Iterative Synthetic Discovery Loop v1 | 0/7 | Planned | — |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -253,6 +254,27 @@
 
 **UI hint:** no
 
+### Phase 11: Iterative Synthetic Discovery Loop v1
+
+**Goal:** Turn Phase 10's synthetic UAT infrastructure (runner + clusterer + regression scaffold) into a repeatable iterative discovery loop: campaign generation → live/dry execution → clustering → diagnosis → triage → backlog/regression/fix/tool/context recommendation → targeted re-run → compare-against-prior-runs. The loop's "learning" is in the ecosystem around the LLM (campaigns, failure memory, context, tool/helper recommendations, regression coverage, triage decisions) — not in model weights. This is v1 of the loop, not a fully autonomous self-improving system.
+
+**Depends on:** Phase 10
+
+**Requirements:** LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05, LOOP-06, LOOP-07
+
+**Success Criteria:**
+1. `11-SPEC.md` authored with backlog schema + 7-action-type triage rubric + campaign-generator contract + compare-runs semantics + promotion rules + verification campaign contract + exit gates (LOOP-01)
+2. `evals/discovery/failure_backlog.json` + helper module exist with idempotent append/update; unit tests pass (LOOP-02)
+3. `evals/discovery/triage_rubric.md` + `triage_rubric.py` deterministic classifier exist; unit tests cover all 7 action types (LOOP-03)
+4. `evals/discovery/campaign_generator.py` + `campaigns/` directory exist; default mode is template-only / zero OpenAI cost; LLM-assisted mode opt-in (LOOP-04)
+5. `evals/discovery/iteration_runner.py` exists with `run_campaign()` and `compare_runs()`; diff JSON written to newer run directory; tests use stub directories (LOOP-05)
+6. `evals/discovery/promote.py` exists; emits proposal artefacts only (commented xfail stubs, `docs/review/*.md` proposals, fixture diffs); never enables xfail; never edits `src/basic_stats/` (LOOP-06)
+7. One small targeted campaign (4–8 questions) seeded from `unsupported_future__refuse_expected_but_answered` is run live; backlog updated; promotion proposal emitted; STATE.md / ROADMAP.md / REQUIREMENTS.md updated; `src/basic_stats/` zero diff confirmed; 11-07-SUMMARY.md authored (LOOP-07)
+
+**Plans:** 7 plans (run `/gsd:execute-phase 11` once planned)
+
+**UI hint:** no
+
 ---
 
 *v1 roadmap created: 2026-03-26*
@@ -265,3 +287,5 @@
 *Phase 8 marked complete: 2026-04-21 — Dynamic league context paragraph, 6/6 context questions, no hardcoded labels*
 *Phase 9 marked complete: 2026-04-27 — NLP polish: 61/61 raw-key clean, goals vs xG insight rule, contextual framing; faithfulness 59/61 (0.967 ≥ 0.95 gate)*
 *Phase 10 marked complete: 2026-04-29 — Synthetic UAT: runner + clusterer + regression scaffold; live run 24 questions, 2 failures (1 cluster: unsupported_future__refuse_expected_but_answered)*
+*Phase 11 added: 2026-04-29 — Iterative Synthetic Discovery Loop v1 (turns Phase 10 infrastructure into a repeatable discovery cycle).*
+*Phase 11 planned: 2026-04-29 — 7 plans across 7 waves; LOOP-01..LOOP-07 added to REQUIREMENTS.md; 11-CONTEXT.md + 11-SPEC.md + seven 11-NN-PLAN.md files authored; src/basic_stats/ zero diff verified.*

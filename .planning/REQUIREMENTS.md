@@ -130,6 +130,45 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 
 ---
 
+## Phase 11 — Iterative Synthetic Discovery Loop v1
+
+### LOOP-01 — Phase 11 Specification
+
+**Phase:** 11
+**Asserts:** A `11-SPEC.md` document exists in `.planning/phases/11-iterative-synthetic-discovery-loop-v1/` that locks: artefact paths under `evals/discovery/`, the failure-memory backlog schema (with `id`, `first_seen_run_id`, `last_seen_run_id`, `seen_count`, `category`, `failure_signature`, `guard_evidence`, `question_ids`, `sample_answers`, `diagnosis`, `status`, `recommended_action`, `promoted_to`, `linked_campaign`, `notes` fields), the 7-action-type triage rubric enum, the campaign-generator contract, the iteration-runner compare-run semantics (repeated/disappeared/mutated/new), the promotion rules, the verification campaign contract, the exit gates, and the non-goals. SPEC is the single authoritative contract for Plans 11-02..11-07. Inherits the 12-category taxonomy and question schema from `10-SPEC.md` (does not redefine them).
+
+### LOOP-02 — Failure Memory / Discovery Backlog
+
+**Phase:** 11
+**Asserts:** `evals/discovery/failure_backlog.json` exists with the schema declared in `11-SPEC.md` (`backlog_version: 1`, `entries: []`). A helper module (e.g. `evals/discovery/failure_backlog.py`) provides `load_backlog(path)`, `append_or_update(backlog, cluster, run_id) -> backlog`, and `find_by_signature(backlog, signature) -> entry|None`. Idempotent updates: re-running on the same cluster does NOT duplicate entries; it bumps `seen_count` and updates `last_seen_run_id`. Unit tests cover load/append/idempotent-update/find-by-signature. No production code touched.
+
+### LOOP-03 — Cluster Triage Rubric
+
+**Phase:** 11
+**Asserts:** `evals/discovery/triage_rubric.md` (human-readable) and `evals/discovery/triage_rubric.py` (deterministic) exist. The rubric document explains each of the 7 action types (`regression_test_needed`, `agent_behavior_fix_needed`, `context_missing`, `helper_tool_needed`, `fixture_issue`, `non_actionable`, `deferred`) with at least one Phase-10-grounded example each. The classifier exposes `classify(cluster: dict, hints: dict | None = None) -> str` returning one of the 7 enum values; logic is small, transparent, and uses NO LLM call. Unit tests cover all 7 outcomes plus the default-fallthrough case.
+
+### LOOP-04 — Targeted Campaign Generator
+
+**Phase:** 11
+**Asserts:** `evals/discovery/campaign_generator.py` exists. Exposes `generate_from_cluster(backlog_entry, count) -> dict[]`, `generate_from_category(category, count) -> dict[]`, and `write_campaign(questions, name) -> Path` writing `evals/discovery/campaigns/<name>.json`. Output entries conform to `seed_questions.json` schema so `synthetic_runner` consumes them unchanged. Default mode is template-based (zero OpenAI cost); LLM-assisted mode is opt-in via an explicit `use_llm=True` flag. Unit tests cover both modes (LLM path mocked). `evals/discovery/campaigns/.gitkeep` exists.
+
+### LOOP-05 — Iteration Runner / Compare Runs
+
+**Phase:** 11
+**Asserts:** `evals/discovery/iteration_runner.py` exists. Exposes `run_campaign(campaign_path, label) -> Path` (wraps `synthetic_runner.run()`) and `compare_runs(older_dir: Path, newer_dir: Path) -> dict` returning `{repeated: [...], disappeared: [...], mutated: [...], new: [...]}` lists keyed by `failure_signature` and/or `question_id`. `compare_runs` writes `diff_against_<older>.json` to the newer run directory. Unit tests use two stub run directories (no live runner invocation). No production code touched.
+
+### LOOP-06 — Promotion Rules
+
+**Phase:** 11
+**Asserts:** `evals/discovery/promote.py` exists. Exposes `promote(backlog_entry_id, action_type, backlog_path) -> Path|None` that, gated on `seen_count >= 2`, emits the appropriate proposal artefact: `regression_test_needed` → commented-xfail stub appended to `tests/test_synthetic_regressions.py`; `agent_behavior_fix_needed` / `context_missing` / `helper_tool_needed` → `docs/review/<follow_on|context_gap|tool_proposal>_<signature>.md`; `fixture_issue` → `evals/discovery/fixture_fixes/<signature>.diff`; `non_actionable` / `deferred` → backlog status update only. NEVER enables xfail tests. NEVER edits `src/basic_stats/`. Unit tests cover all 7 emission paths.
+
+### LOOP-07 — Verification + Documentation
+
+**Phase:** 11
+**Asserts:** A small targeted campaign (4–8 questions) is generated from the Phase 10 backlog seed `unsupported_future__refuse_expected_but_answered` (SYN_019/SYN_020), saved under `evals/discovery/campaigns/`, and run live via `iteration_runner.run_campaign()`. The run produces `summary.json` + `results.json` + `failure_clusters.json` + `REPORT.md` under `evals/runs/` (gitignored, NOT staged). `failure_backlog.json` is updated with at least one entry. At least one promotion proposal artefact is emitted under `docs/review/` or `tests/test_synthetic_regressions.py` (commented stub). `.planning/STATE.md`, `.planning/ROADMAP.md`, and `.planning/REQUIREMENTS.md` are updated with Phase 11 completion evidence. `git diff --name-only src/basic_stats/` returns zero files. `11-07-SUMMARY.md` documents the live-run dir name, evidence table, and pending follow-on items.
+
+---
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -171,12 +210,20 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | SYNTH-04 | Phase 10 | Complete ✓ (2026-04-29) |
 | SYNTH-05 | Phase 10 | Complete ✓ (2026-04-29) |
 | SYNTH-06 | Phase 10 | Complete ✓ (2026-04-29) |
+| LOOP-01 | Phase 11 | Pending |
+| LOOP-02 | Phase 11 | Pending |
+| LOOP-03 | Phase 11 | Pending |
+| LOOP-04 | Phase 11 | Pending |
+| LOOP-05 | Phase 11 | Pending |
+| LOOP-06 | Phase 11 | Pending |
+| LOOP-07 | Phase 11 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
 - v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
 - Phase 10 requirements: 6 total — all complete ✓ (SYNTH-01 through SYNTH-06)
-- Mapped to phases: 36/36 ✓
+- Phase 11 requirements: 7 total — all pending (LOOP-01 through LOOP-07)
+- Mapped to phases: 43/43 ✓
 
 ---
 
@@ -187,3 +234,4 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 *NLP-01/02/03 marked complete: 2026-04-27 — 61/61 raw-key clean, contextual framing, goals vs xG insight rule; faithfulness 59/61 (0.967)*
 *SYNTH-01 marked complete: 2026-04-28 — 10-SPEC.md authored with 12-category taxonomy, runner contract, cluster schema, 7 exit gates*
 *SYNTH-04/05/06 marked complete: 2026-04-29 — clusterer, regression scaffold, live run evidence all delivered*
+*Phase 11 requirements added: 2026-04-29 — LOOP-01..LOOP-07 (iterative discovery loop v1: SPEC, backlog, triage rubric, campaign generator, iteration runner, promotion rules, verification)*

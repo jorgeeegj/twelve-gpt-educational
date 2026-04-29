@@ -219,7 +219,7 @@
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
 | 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete    | 2026-04-29 |
-| 11 | Iterative Synthetic Discovery Loop v1 | 3/7 | In Progress|  |
+| 11 | Iterative Synthetic Discovery Loop v1 | 4/7 | In Progress|  |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -271,7 +271,7 @@
 6. `evals/discovery/promote.py` exists; emits proposal artefacts only (commented xfail stubs, `docs/review/*.md` proposals, fixture diffs); never enables xfail; never edits `src/basic_stats/` (LOOP-06)
 7. One small targeted campaign (4–8 questions) seeded from `unsupported_future__refuse_expected_but_answered` is run live; backlog updated; promotion proposal emitted; STATE.md / ROADMAP.md / REQUIREMENTS.md updated; `src/basic_stats/` zero diff confirmed; 11-07-SUMMARY.md authored (LOOP-07)
 
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 
 **UI hint:** no
 

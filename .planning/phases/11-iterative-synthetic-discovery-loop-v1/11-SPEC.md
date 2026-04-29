@@ -90,7 +90,7 @@ tests/
 
 - `id`: monotonic `BACKLOG_<NNN>`. Never reused.
 - `first_seen_run_id` / `last_seen_run_id`: directory names under `evals/runs/`.
-- `seen_count`: incremented on every reappearance of the same `failure_signature`.
+- `seen_count`: **distinct-run** appearance counter. Incremented when `run_id` differs from the entry's current `last_seen_run_id`; NOT incremented when the same `run_id` is processed again. Eligibility for promotion (§8) is `seen_count >= 2` — the cluster must have appeared in at least two distinct runs.
 - `category` / `failure_signature` / `guard_evidence` / `question_ids` / `sample_answers`: copied from the originating cluster in `failure_clusters.json`. Sample answers are truncated to ≤200 chars (matches `synthetic_clusterer._SAMPLE_TRUNC`).
 - `diagnosis`: free-text — set by humans during triage; default `""` on insert.
 - `status`: lifecycle — see §5 for transitions.
@@ -102,9 +102,16 @@ tests/
 ### Idempotent updates
 
 `append_or_update(backlog, cluster, run_id)` MUST:
+
 1. Look up an existing entry by `failure_signature`.
-2. If found: bump `seen_count`, set `last_seen_run_id = run_id`, merge `question_ids` (set-union), append at most one new sample answer.
-3. If not found: insert a new entry with monotonic `id` and `first_seen_run_id = last_seen_run_id = run_id`, `seen_count = 1`, `status = "open"`, `recommended_action = null`.
+2. If found:
+   - Merge `question_ids` (set-union, sorted).
+   - Append at most one new sample answer (truncated ≤200 chars; skip if it duplicates an existing one).
+   - **If `run_id != entry["last_seen_run_id"]`:** bump `seen_count` by 1 AND set `last_seen_run_id = run_id`.
+   - **If `run_id == entry["last_seen_run_id"]`:** do NOT bump `seen_count` and do NOT change `last_seen_run_id` (re-processing the same run is counter-idempotent).
+3. If not found: insert a new entry with monotonic `id` and `first_seen_run_id = last_seen_run_id = run_id`, `seen_count = 1`, `status = "open"`, `recommended_action = null`, `promoted_to = null`, `linked_campaign = null`, `diagnosis = ""`, `notes = null`.
+
+**Counter-idempotency invariant:** for any sequence of `append_or_update` calls, `seen_count` for a given signature equals the number of **distinct** `run_id` values processed for that signature, not the total number of calls.
 
 ---
 
@@ -227,14 +234,28 @@ No additional state is persisted outside the runs directory.
 
 ### Eligibility
 
-A backlog entry is eligible for promotion when `seen_count >= 2`. This matches `10-SPEC.md` §7 (regression test added only after a failure is reproduced across two consecutive runs).
+A backlog entry is eligible for promotion when `seen_count >= 2` (i.e. the cluster has appeared in at least **two distinct runs** per §3). This matches `10-SPEC.md` §7 (regression test added only after a failure is reproduced across two consecutive runs).
 
-### Public API
+### Public API (canonical — backlog-driven)
 
 ```python
-def promote(backlog_entry_id: str, action_type: str, backlog_path: Path) -> Path | None:
-    """Emit the proposal artefact for the given entry. Returns the artefact path, or None for status-only updates."""
+def promote(backlog_entry_id: str, backlog_path: Path = DEFAULT_BACKLOG_PATH) -> Path | None:
+    """Emit the proposal artefact for the entry's recommended_action.
+
+    The action type is NOT a parameter — it is read from the backlog entry's
+    `recommended_action` field (set by `triage_rubric.classify(...)` during triage).
+
+    Returns the artefact Path, or None for status-only updates (`non_actionable`,
+    `deferred`).
+
+    Raises PromotionError when:
+      - the entry id is not found in the backlog
+      - the entry's seen_count < 2 (eligibility threshold)
+      - the entry's recommended_action is None or not in the 7-action-type enum
+    """
 ```
+
+**API stability rule:** Plans 11-06 and 11-07 MUST conform to this signature. Any plan that introduces an `action_type` parameter to `promote()` is a contract violation.
 
 ### Per-action emission
 

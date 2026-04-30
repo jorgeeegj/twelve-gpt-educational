@@ -13,14 +13,26 @@ python evals/agent_benchmark.py --workers 1 --label my_fix && git add ... && git
 
 ## ¿Dónde estamos?
 
-**Milestone:** v2.0 — Function Calling Architecture  
-**Estado actual:** Pre-Phase-9 closeout completado; siguiente fase = **Phase 9 — Natural Language Polish**  
-**Benchmark 61 preguntas:** **59/61 faithfulness — gate PASS** — run `post_residual_closeout_final` (2026-04-23)  
-**Benchmark random questions:** 19/21 faithfulness — run `phase6_postfix` (2026-04-20)  
-**Multi-turn:** Cadena de 4 turnos de Agust validada y preservada tras hotfixes / WI-1 / WI-2
+**Milestone:** v2.0 — Function Calling Architecture
+**Estado actual:** **Phase 11 completa** — iterative synthetic discovery loop v1 cerrado (2026-04-30)
+**Rama activa:** `feature/refactor-v2`
+**Último commit:** `d6d0199` — feat(11): close Phase 11 — iterative discovery loop v1
+**Test suite:** **231/231 passing** (3 warnings no bloqueantes — permisos `.pytest_cache` en Windows)
+**Benchmark 61 preguntas:** **59/61 faithfulness — gate PASS** — run `post_residual_closeout_final` (2026-04-23)
+**Benchmark random questions:** 19/21 faithfulness — run `phase6_postfix` (2026-04-20)
+**Multi-turn:** Cadena de 4 turnos de Agust validada y preservada
+**`src/basic_stats/` diff:** cero — sin cambios de producción desde Phase 9
 
-Para ver el estado completo: [STATE.md](./STATE.md)  
+Para ver el estado completo: [STATE.md](./STATE.md)
 Para ver la hoja de ruta: [ROADMAP.md](./ROADMAP.md)
+
+### Próximo paso recomendado
+
+1. Abrir `docs/review/context_gap_unsupported_future__refuse_expected_but_answered.md` y rellenar los stubs `## Summary` y `## Proposed action` (el archivo existe pero tiene TODOs).
+2. Añadir una regla de rechazo de predicciones futuras en `src/basic_stats/prompts/agent_system.yaml` (HOW TO USE TOOLS).
+3. Reejecutar `evals/discovery/campaigns/unsupported_future_v1.json` para verificar que el cluster se cierra.
+
+> **Aviso:** no modificar `src/basic_stats/` sin un plan de fase explícito. Phase 11 cerró con zero diff en ese directorio — esa garantía debe preservarse.
 
 ---
 
@@ -56,6 +68,35 @@ Esto no es solo un refactor técnico — es un cambio de responsabilidades:
 | Estado de conversación en memoria local | `previous_response_id` — el servidor lleva el contexto |
 
 ### Las fases completadas
+
+**Phase 10 — Self-Generated Robustness / Synthetic UAT** (2026-04-29)
+
+Infraestructura de UAT sintética: `evals/synthetic_runner.py` corre `BasicStatsAgent`
+contra `evals/synthetic/seed_questions.json` (24 preguntas en 12 categorías), evalúa
+con `raw_key_guard` + `faithfulness_judge`, y produce `failure_clusters.json` + `REPORT.md`.
+Live run: 24 preguntas, 2 fallos, 1 cluster — `unsupported_future__refuse_expected_but_answered`
+(SYN_019/020). Scaffold de regression tests añadido en `tests/test_synthetic_regressions.py`.
+
+**Phase 11 — Iterative Synthetic Discovery Loop v1** (2026-04-30)
+
+Convierte la infraestructura de Phase 10 en un loop repetible:
+
+| Componente | Archivo | Qué hace |
+|---|---|---|
+| Failure backlog | `evals/discovery/failure_backlog.py` | Persistencia de clusters con seen_count, idempotente |
+| Triage rubric | `evals/discovery/triage_rubric.py` | Clasifica cluster en 7 action types (sin LLM) |
+| Campaign generator | `evals/discovery/campaign_generator.py` | Genera preguntas por categoría/cluster |
+| Iteration runner | `evals/discovery/iteration_runner.py` | Wrappa synthetic_runner; compare_runs() diff |
+| Promotion rules | `evals/discovery/promote.py` | Emite artefactos de propuesta por action type |
+
+Live run Phase 11 (`unsupported_future_v1`, 6 preguntas): 6 fallos, 1 cluster reproducido
+→ `BACKLOG_001` con `seen_count=2` → clasificado `context_missing` → promovido a
+`docs/review/context_gap_unsupported_future__refuse_expected_but_answered.md`.
+
+Commits relevantes de Phase 11:
+- `d8e1c7e` — feat(11): add promotion rules executor (LOOP-06)
+- `817a209` — docs(11-06): SUMMARY + roadmap/requirements/state for LOOP-06
+- `d6d0199` — feat(11): close Phase 11 — iterative discovery loop v1
 
 **Phase 5 — Function Calling Core**
 
@@ -125,30 +166,37 @@ estrictamente necesario.**
 
 ### Lo que queda para cerrar v2.0
 
-### Lo que queda para cerrar v2.0
-
 **Phase 8 — League Context** ✓ completada a nivel de milestone
 
-La fase quedó cerrada funcionalmente, con contexto de liga integrado y benchmark gate superado tras el closeout previo a Phase 9.  
-Aun así, persisten algunos gaps no bloqueantes de consistencia semántica en definiciones de grupos
-(por ejemplo, ciertos usos de “Champions League teams” o follow-ups conversacionales donde un desglose puede no mantenerse perfectamente estable entre turnos).  
-Eso no bloquea el milestone, pero debe tenerse en cuenta para polish y hardening posterior.
+La fase quedó cerrada funcionalmente, con contexto de liga integrado y benchmark gate superado.
+Persisten algunos gaps no bloqueantes de consistencia semántica (follow-ups conversacionales,
+“Champions League teams”), que no bloquean el milestone.
 
 **Pre-Phase-9 Robustness Closeout** ✓ completado
 
-Trabajo cerrado antes de entrar en Phase 9:
-- hotfix de truthfulness para appearances/minutes
+- hotfix truthfulness appearances/minutes
 - WI-1 subject exclusion + postfix semántico
 - WI-2 event-stat `*_p90` con match context
-- residual closeout para los últimos casos benchmark críticos previos a polish
+- residual closeout (QV4_13, QV6_56, QV6_61)
 
-**Phase 9 — Natural Language Polish** *(siguiente)*
+**Phase 9 — Natural Language Polish** ✓ completada (2026-04-27)
 
-Objetivo:
-- respuestas más fluidas
-- menos claves crudas en surface text
-- mejor consistencia verbal en comparaciones y buckets
-- mejor continuidad semántica en follow-ups
+61/61 raw-key clean; faithfulness 59/61 (0.967 ≥ gate 0.95). Regla de insight goals vs xG implementada.
+
+**Phase 10 — Synthetic UAT** ✓ completada (2026-04-29)
+
+Runner + clusterer + regression scaffold. Live run: 24 preguntas, 2 fallos, 1 cluster.
+
+**Phase 11 — Iterative Discovery Loop v1** ✓ completada (2026-04-30)
+
+9/9 exit gates. Live run: 6 preguntas, 6 fallos, 1 cluster reproducido, backlog promovido.
+
+**Trabajo pendiente post-Phase 11 (no iniciado)**
+
+- Rellenar `docs/review/context_gap_unsupported_future__refuse_expected_but_answered.md` (tiene stubs TODO).
+- Añadir regla de rechazo de predicciones futuras en `agent_system.yaml`.
+- Reejecutar `unsupported_future_v1` para verificar el cierre del cluster.
+- WI-3, WI-4, WI-5 (robustness items) — pendientes, no bloqueantes.
 
 
 ### Cómo probar lo que tenemos ahora
@@ -243,12 +291,37 @@ evals/
   questions_benchmark.json   ← 61 preguntas preparadas
   random_questions.json      ← 21 preguntas inéditas (Phase 6)
   agent_benchmark.py         ← benchmark del agente ← USAR ESTE
+  synthetic_runner.py        ← runner de UAT sintética (Phase 10)
+  synthetic_clusterer.py     ← agrupa fallos en clusters (Phase 10)
+  synthetic/
+    seed_questions.json      ← 24 preguntas sintéticas, 12 categorías
+  discovery/                 ← loop de discovery (Phase 11)
+    failure_backlog.py       ← persistencia de clusters con seen_count
+    failure_backlog.json     ← backlog actual (BACKLOG_001 promovido)
+    triage_rubric.py         ← clasificador determinista, 7 action types
+    triage_rubric.md         ← guía humana de triage
+    campaign_generator.py   ← genera campañas por categoría/cluster
+    iteration_runner.py      ← wrappa synthetic_runner; compare_runs()
+    promote.py               ← emite artefactos de propuesta
+    campaigns/
+      unsupported_future_v1.json  ← campaña Phase 11 (6 preguntas)
+    fixture_fixes/           ← placeholder para diffs de fixture
+  runs/                      ← outputs gitignoreados (NUNCA stagear)
   judges/
     faithfulness_judge.py    ← juez: verifica que los números estén en la respuesta
+
+docs/review/                 ← propuestas de seguimiento emitidas por promote.py
+  context_gap_unsupported_future__refuse_expected_but_answered.md  ← TODO stubs
 
 tests/
   test_fuzzy_resolve.py      ← resolución de entidades (19 casos, sin LLM)
   test_duckdb_vss_stubs.py   ← stubs Phase 5 (3 fallos conocidos, pendiente limpieza)
+  test_failure_backlog.py    ← tests failure backlog (Phase 11)
+  test_triage_rubric.py      ← tests rubric classifier (Phase 11)
+  test_campaign_generator.py ← tests campaign generator (Phase 11)
+  test_iteration_runner.py   ← tests compare_runs (Phase 11)
+  test_promote.py            ← tests promotion rules (Phase 11)
+  test_synthetic_regressions.py  ← scaffold de regresiones (Phase 10)
 
 pages/
   basic_stats.py             ← página Streamlit
@@ -278,3 +351,27 @@ python evals/smoke_test.py
 
 **Última ejecución (random):** `evals/runs/2026-04-20_00-15-16__phase6_postfix` → 19/21 faithfulness
 (RQ_12 corregido en postfix, RQ_17 deferido a Phase 8)
+
+---
+
+## Commit safety — archivos a NUNCA stagear
+
+Los siguientes archivos están sucios de forma permanente o son outputs de ejecución — no stagear nunca:
+
+| Archivo / Patrón | Motivo |
+|---|---|
+| `.claude/settings.local.json` | Settings locales de Claude Code — no pertenece al repo |
+| `.planning/config.json` | Config local de GSD — no pertenece al repo |
+| `db/basic_stats.duckdb` | Base de datos binaria con embeddings — nunca se commitea |
+| `evals/runs/*` | Outputs de runs gitignoreados — confirmar con `git check-ignore` antes de commitear |
+| `docs/review/*` | Artefactos de promote.py — stagear solo cuando el usuario los aprueba explícitamente |
+
+Verificación antes de cualquier commit:
+
+```bash
+git diff --cached --name-only   # revisar lo que vas a commitear
+git diff --name-only src/basic_stats/ | wc -l   # debe devolver 0
+git check-ignore evals/runs/    # debe confirmar gitignored
+```
+
+**Nunca usar `git add .` o `git add -A`** — siempre stagear por ruta explícita.

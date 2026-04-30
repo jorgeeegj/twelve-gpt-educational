@@ -210,19 +210,19 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | SYNTH-04 | Phase 10 | Complete ✓ (2026-04-29) |
 | SYNTH-05 | Phase 10 | Complete ✓ (2026-04-29) |
 | SYNTH-06 | Phase 10 | Complete ✓ (2026-04-29) |
-| LOOP-01 | Phase 11 | Pending |
-| LOOP-02 | Phase 11 | Complete |
-| LOOP-03 | Phase 11 | Complete |
-| LOOP-04 | Phase 11 | Complete |
-| LOOP-05 | Phase 11 | Complete |
-| LOOP-06 | Phase 11 | Complete |
-| LOOP-07 | Phase 11 | Pending |
+| LOOP-01 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-02 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-03 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-04 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-05 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-06 | Phase 11 | Complete ✓ (2026-04-30) |
+| LOOP-07 | Phase 11 | Complete ✓ (2026-04-30) |
 
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
 - v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
 - Phase 10 requirements: 6 total — all complete ✓ (SYNTH-01 through SYNTH-06)
-- Phase 11 requirements: 7 total — all pending (LOOP-01 through LOOP-07)
+- Phase 11 requirements: 7 total — all complete ✓ (LOOP-01 through LOOP-07)
 - Mapped to phases: 43/43 ✓
 
 ---
@@ -235,3 +235,4 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 *SYNTH-01 marked complete: 2026-04-28 — 10-SPEC.md authored with 12-category taxonomy, runner contract, cluster schema, 7 exit gates*
 *SYNTH-04/05/06 marked complete: 2026-04-29 — clusterer, regression scaffold, live run evidence all delivered*
 *Phase 11 requirements added: 2026-04-29 — LOOP-01..LOOP-07 (iterative discovery loop v1: SPEC, backlog, triage rubric, campaign generator, iteration runner, promotion rules, verification)*
+*Phase 11 marked complete: 2026-04-30 — LOOP-01..LOOP-07 all complete ✓; live run 2026-04-30_09-37-53__synthetic_unsupported_future_v1; context_gap proposal emitted for unsupported_future__refuse_expected_but_answered*

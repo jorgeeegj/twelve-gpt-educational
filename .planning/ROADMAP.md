@@ -219,7 +219,7 @@
 | 8 | League Context | 0/5 | Complete | 2026-04-21 |
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
 | 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete    | 2026-04-29 |
-| 11 | Iterative Synthetic Discovery Loop v1 | 6/7 | In Progress|  |
+| 11 | Iterative Synthetic Discovery Loop v1 | 7/7 | Complete | 2026-04-30 |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -271,7 +271,7 @@
 6. `evals/discovery/promote.py` exists; emits proposal artefacts only (commented xfail stubs, `docs/review/*.md` proposals, fixture diffs); never enables xfail; never edits `src/basic_stats/` (LOOP-06)
 7. One small targeted campaign (4–8 questions) seeded from `unsupported_future__refuse_expected_but_answered` is run live; backlog updated; promotion proposal emitted; STATE.md / ROADMAP.md / REQUIREMENTS.md updated; `src/basic_stats/` zero diff confirmed; 11-07-SUMMARY.md authored (LOOP-07)
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 **UI hint:** no
 
@@ -289,3 +289,4 @@
 *Phase 10 marked complete: 2026-04-29 — Synthetic UAT: runner + clusterer + regression scaffold; live run 24 questions, 2 failures (1 cluster: unsupported_future__refuse_expected_but_answered)*
 *Phase 11 added: 2026-04-29 — Iterative Synthetic Discovery Loop v1 (turns Phase 10 infrastructure into a repeatable discovery cycle).*
 *Phase 11 planned: 2026-04-29 — 7 plans across 7 waves; LOOP-01..LOOP-07 added to REQUIREMENTS.md; 11-CONTEXT.md + 11-SPEC.md + seven 11-NN-PLAN.md files authored; src/basic_stats/ zero diff verified.*
+*Phase 11 marked complete: 2026-04-30 — All 9 SPEC exit gates met; live run 2026-04-30_09-37-53__synthetic_unsupported_future_v1 (6 questions, 6 failures, 1 cluster); backlog seeded + promoted; context_gap proposal emitted; 231/231 tests passing; src/basic_stats/ zero diff.*

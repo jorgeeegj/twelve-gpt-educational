@@ -8,7 +8,7 @@ progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # STATE.md
@@ -241,24 +241,41 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 *Last updated: 2026-04-29 — Phase 10 complete: live synthetic run executed; 24 questions, 22 passed, 2 failures clustered under `unsupported_future__refuse_expected_but_answered`; 173/173 tests green.*
 
-**Phase 11 — Iterative Synthetic Discovery Loop v1** ◆ In Progress (2/7 plans executed) — added & planned 2026-04-29; execution started 2026-04-29
+**Phase 11 — Iterative Synthetic Discovery Loop v1** ✓ Complete (7/7) — completed 2026-04-30
 
 - Goal: turn Phase 10's synthetic UAT infrastructure into a repeatable iterative discovery loop (campaign generation → live/dry execution → clustering → diagnosis → triage → backlog/regression/fix/tool/context recommendation → targeted re-run).
 - The `unsupported_future__refuse_expected_but_answered` cluster from the Phase 10 live run is the first seed for the loop, not the focus of the phase.
 - "Learning" = the ecosystem around the LLM learns (campaigns, failure memory, context, tool/helper recommendations, regression coverage, triage decisions) — not weight updates.
-- Read-only constraint on `src/basic_stats/*` enforced for all 7 plans by default (no checkpoint authorizes a production code change in v1).
-- Plan structure: 7 waves, one plan per wave. Plans 11-02..11-06 are autonomous; Plan 11-07 (live verification run) is checkpointed.
+- Read-only constraint on `src/basic_stats/*` enforced for all 7 plans. Zero diff confirmed throughout.
+- Plan structure: 7 waves, one plan per wave. Plans 11-02..11-06 autonomous; Plan 11-07 checkpointed (live run + human approval gates).
   - Wave 1 → 11-01: Phase 11 SPEC (LOOP-01) ✓
   - Wave 2 → 11-02: Failure Memory / Discovery Backlog (LOOP-02) ✓
-  - Wave 3 → 11-03: Cluster Triage Rubric (LOOP-03)
-  - Wave 4 → 11-04: Targeted Campaign Generator (LOOP-04)
-  - Wave 5 → 11-05: Iteration Runner / Compare Runs (LOOP-05)
-  - Wave 6 → 11-06: Promotion Rules (LOOP-06)
-  - Wave 7 → 11-07: Verification + Documentation (LOOP-07, checkpointed live run)
-- Planning artefacts authored: `11-CONTEXT.md`, `11-SPEC.md`, `11-01-PLAN.md` through `11-07-PLAN.md`.
-- Plan 11-01 ✓ complete (Wave 1 — SPEC verified, all 13 sections present, patched contracts confirmed, committed in bc95044).
-- Plan 11-02 ✓ complete (Wave 2 — failure_backlog.py + failure_backlog.json + 10 tests; 183/183 passing; commits 060b131, 9f56460, 1961978).
-- Next step: execute Plan 11-03 (Cluster Triage Rubric, Wave 3).
+  - Wave 3 → 11-03: Cluster Triage Rubric (LOOP-03) ✓
+  - Wave 4 → 11-04: Targeted Campaign Generator (LOOP-04) ✓
+  - Wave 5 → 11-05: Iteration Runner / Compare Runs (LOOP-05) ✓
+  - Wave 6 → 11-06: Promotion Rules (LOOP-06) ✓
+  - Wave 7 → 11-07: Verification + Documentation (LOOP-07) ✓
+
+**Phase 11 Exit Gate Evidence (9/9 gates):**
+
+| Gate | Description | Status |
+|------|-------------|--------|
+| 1 | `11-SPEC.md` exists — artefact layout, schemas, action-type enum, exit gates locked | ✓ |
+| 2 | `failure_backlog.json` + helper module + tests | ✓ |
+| 3 | Triage rubric document + classifier + tests (all 7 action types) | ✓ |
+| 4 | Campaign generator + `campaigns/` dir + tests | ✓ |
+| 5 | Iteration runner + `compare_runs` + diff writer + tests | ✓ |
+| 6 | `promote.py` + per-action proposal templates + tests (all 7 paths) | ✓ |
+| 7 | Live verification campaign + backlog/promotion evidence + tracking files updated + SUMMARY | ✓ |
+| 8 | `src/basic_stats/*` zero diff throughout phase | ✓ |
+| 9 | Phase 10 baseline (173/173) preserved + Phase 11 tests pass (231/231 total) | ✓ |
+
+**Live Run:** `evals/runs/2026-04-30_09-37-53__synthetic_unsupported_future_v1` (gitignored)
+- Campaign: `evals/discovery/campaigns/unsupported_future_v1.json` (6 UNSUPPORTED_FUTURE/refuse questions)
+- Results: 6 questions, 6 failures, 1 cluster (`unsupported_future__refuse_expected_but_answered`), 0 errors, 189.3s
+- Backlog: BACKLOG_001 seen_count=2 (seeded from Phase 10 + new run) → classified `context_missing` → promoted
+- Promotion: `docs/review/context_gap_unsupported_future__refuse_expected_but_answered.md` emitted (TODO stubs, human fill-in required)
+- Pending follow-on: add future-question refusal rule to `agent_system.yaml` to close the cluster
 
 ---
 
@@ -322,7 +339,7 @@ Saved outputs:
 | 8 | League Context ⬆️ | ✓ Complete | 6/6 context questions + no hardcoded labels |
 | 9 | NLP Polish | ✓ Complete | 61/61 raw-key clean; faithfulness 0.967 (59/61) |
 | 10 | Self-Generated Robustness / Synthetic UAT | ✓ Complete | All 7 SPEC exit gates met; live run `2026-04-29_09-51-54__synthetic_phase10_first` produced 4 output files |
-| 11 | Iterative Synthetic Discovery Loop v1 | ◆ In Progress (1/7) | LOOP-01..LOOP-07 satisfied; live verification campaign seeded from `unsupported_future__refuse_expected_but_answered` runs end-to-end; src/basic_stats/ zero diff |
+| 11 | Iterative Synthetic Discovery Loop v1 | ✓ Complete (7/7) | All 9 SPEC exit gates met; live run `2026-04-30_09-37-53__synthetic_unsupported_future_v1` produced 4 output files; backlog seeded + promoted; context_gap proposal emitted; 231/231 tests; src/basic_stats/ zero diff |
 
 ---
 
@@ -376,4 +393,4 @@ Saved outputs:
   - Remaining 2 failures: QV4_31 (ordinal ranking non-determinism), QV5_49 (hallucinated total, pre-existing) — both out of scope
 - WI-3, WI-4, WI-5 — pendientes
 
-*Last updated: 2026-04-29 — Phase 11 execution started. Wave 1 (Plan 11-01: SPEC) complete. 11-SPEC.md (364 lines, 13 sections) verified and locked as single authoritative contract. Plans 11-02..11-07 pending. Run `/gsd:execute-phase 11 --wave 2` to continue.*
+*Last updated: 2026-04-30 — Phase 11 complete. All 7 plans executed across 7 waves. Live run `2026-04-30_09-37-53__synthetic_unsupported_future_v1`: 6 questions, 6 failures, 1 cluster (`unsupported_future__refuse_expected_but_answered`). Backlog entry BACKLOG_001 promoted (context_missing → context_gap proposal emitted). 231/231 tests passing. src/basic_stats/ zero diff.*

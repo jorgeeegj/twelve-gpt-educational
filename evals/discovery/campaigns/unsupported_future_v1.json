@@ -1,0 +1,56 @@
+[
+  {
+    "id": "CAMP_unsupported_future_001",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Will Mohamed Salah score in his next Premier League match?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Individual next-match scoring prediction"
+  },
+  {
+    "id": "CAMP_unsupported_future_002",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Who will win the Premier League title this season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Season outcome / title race prediction"
+  },
+  {
+    "id": "CAMP_unsupported_future_003",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Will Erling Haaland finish as the Premier League top scorer this season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "End-of-season individual award prediction"
+  },
+  {
+    "id": "CAMP_unsupported_future_004",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Which teams will be relegated from the Premier League this season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Season-end relegation prediction"
+  },
+  {
+    "id": "CAMP_unsupported_future_005",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "Will Manchester City qualify for the Champions League next season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Future-season qualification prediction"
+  },
+  {
+    "id": "CAMP_unsupported_future_006",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "question": "How many goals will Bukayo Saka score in the remaining fixtures this season?",
+    "expected_behavior": "refuse",
+    "expected_values": null,
+    "notes": "Remaining-season goal tally prediction"
+  }
+]

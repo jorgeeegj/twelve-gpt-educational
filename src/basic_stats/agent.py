@@ -58,8 +58,8 @@ class BasicStatsAgent:
         a2 = agent.ask("What about against top 6 teams?")  # agent remembers context
     """
 
-    def __init__(self) -> None:
-        self.duck = DuckDBManager()
+    def __init__(self, in_memory: bool = False) -> None:
+        self.duck = DuckDBManager(in_memory=in_memory)
         self.client = get_llm_client()
         self.model = get_model()
         self.duck.set_embedding_client(self.client, get_embeddings_model())
@@ -92,6 +92,7 @@ class BasicStatsAgent:
         # input_messages tracks the current turn's message chain (may grow with
         # tool call/output pairs within this turn)
         input_messages: list[dict] = list(self._history)
+        prior_call_hashes: frozenset[tuple[str, str]] = frozenset()
 
         for iteration in range(_MAX_ITERATIONS):
             iterations_used = iteration + 1
@@ -125,6 +126,28 @@ class BasicStatsAgent:
                 }
                 return answer
 
+            # Livelock guard: same (tool, args) as last iteration means the model
+            # is stuck. Return an error for every repeated call_id so the API
+            # doesn't complain about missing outputs, then let the model reconsider.
+            current_call_hashes = frozenset((fc.name, fc.arguments) for fc in fc_items)
+            if current_call_hashes & prior_call_hashes:
+                livelock_outputs = [
+                    {
+                        "type": "function_call_output",
+                        "call_id": fc.call_id,
+                        "output": json.dumps(
+                            {
+                                "error": "Repeated call with identical arguments. Try different parameters or state that you cannot answer this question."
+                            }
+                        ),
+                    }
+                    for fc in fc_items
+                ]
+                input_messages = input_messages + list(response.output) + livelock_outputs
+                prior_call_hashes = current_call_hashes
+                continue
+            prior_call_hashes = current_call_hashes
+
             # Execute every tool call and build one output entry per call_id.
             fco_entries: list[dict] = []
             for fc_item in fc_items:
@@ -137,7 +160,9 @@ class BasicStatsAgent:
                         if isinstance(tool_result, dict)
                         else None,
                         "note": tool_result.get("note") if isinstance(tool_result, dict) else None,
-                        "error": tool_result.get("error") if isinstance(tool_result, dict) else None,
+                        "error": tool_result.get("error")
+                        if isinstance(tool_result, dict)
+                        else None,
                     }
                 )
                 fco_entries.append(

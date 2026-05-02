@@ -101,7 +101,7 @@ async def evaluate_one(
     # Each question gets its own agent instance — sharing one instance across
     # parallel workers corrupts _last_response_id and causes 400 errors.
     def _run() -> tuple[str, dict]:
-        agent = BasicStatsAgent()
+        agent = BasicStatsAgent(in_memory=True)
         return _ask_with_retry(agent, question)
 
     answer, telemetry = await loop.run_in_executor(executor, _run)

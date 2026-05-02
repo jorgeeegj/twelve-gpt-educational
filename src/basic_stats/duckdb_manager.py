@@ -131,6 +131,8 @@ class DuckDBManager:
         self._embedding_client = None
         self._embedding_model: str | None = None
         self._register_base_views()
+        if in_memory:
+            self._copy_embeddings_from_file()
 
     def set_embedding_client(self, client, model: str) -> None:
         """Store the OpenAI client + model so fuzzy_resolve_entity can be called without args."""
@@ -148,6 +150,21 @@ class DuckDBManager:
 
     def close(self) -> None:
         self.con.close()
+
+    def _copy_embeddings_from_file(self) -> None:
+        """Copy entity_embeddings from the file DB into this in-memory connection."""
+        self.con.execute("INSTALL vss; LOAD vss;")
+        self.con.execute(f"ATTACH '{self.db_path}' AS _src (READ_ONLY)")
+        self.con.execute("""
+            CREATE TABLE entity_embeddings AS
+            SELECT * FROM _src.entity_embeddings
+        """)
+        self.con.execute("""
+            CREATE INDEX entity_embeddings_hnsw
+            ON entity_embeddings USING HNSW (embedding)
+            WITH (metric = 'cosine')
+        """)
+        self.con.execute("DETACH _src")
 
     def _register_base_views(self) -> None:
         self.con.execute(f"""
@@ -701,9 +718,7 @@ class DuckDBManager:
 
         # p90 requires minutes from player_match_stats; add join and override expr.
         if agg == "p90":
-            value_expr = (
-                f"SUM(pmes.{metric}) / NULLIF(SUM(pms_mins.minutes_played), 0) * 90"
-            )
+            value_expr = f"SUM(pmes.{metric}) / NULLIF(SUM(pms_mins.minutes_played), 0) * 90"
             minutes_join = """
         LEFT JOIN player_match_stats pms_mins
             ON pmes.player_id = pms_mins.player_id

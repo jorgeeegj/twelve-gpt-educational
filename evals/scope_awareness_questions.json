@@ -1,0 +1,98 @@
+[
+  {
+    "id": "SCOPE_M01",
+    "question": "How many tackles per 90 has Saliba made this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "metric_not_in_schema — expects refusal with nearest alternative (interceptions, recoveries)"
+  },
+  {
+    "id": "SCOPE_M02",
+    "question": "What is Liverpool's xGA this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "metric_not_in_schema — expects refusal with nearest alternative (xg_total or total_goals_against)"
+  },
+  {
+    "id": "SCOPE_M03",
+    "question": "How many kilometers has Salah run this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "metric_not_in_schema — expects refusal; carry_meters_gained is closest but not distance"
+  },
+  {
+    "id": "SCOPE_M04",
+    "question": "How many expected assists does Bruno Fernandes have?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "metric_not_in_schema — expects refusal with nearest alternative (shot_assists or key_passes)"
+  },
+  {
+    "id": "SCOPE_E01",
+    "question": "How many goals has Lamine Yamal scored in the Premier League this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "entity_not_in_dataset — non-PL player; must not return stats for a similarly-named player"
+  },
+  {
+    "id": "SCOPE_E02",
+    "question": "How many points did Real Madrid finish with this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "entity_not_in_dataset — non-PL club; must not fabricate or substitute"
+  },
+  {
+    "id": "SCOPE_E03",
+    "question": "Who is the top scorer in La Liga this season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "entity_not_in_dataset — different league; must not answer from training knowledge"
+  },
+  {
+    "id": "SCOPE_E04",
+    "question": "How many Premier League goals has Mbappé scored?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "entity_not_in_dataset — non-PL player; must not return 0 or fabricate"
+  },
+  {
+    "id": "SCOPE_S01",
+    "question": "How does Haaland's goal tally this season compare to last season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "multi_season — only 2024-25 data available; must refuse cleanly"
+  },
+  {
+    "id": "SCOPE_S02",
+    "question": "Which team scored the most goals in the 2023-24 Premier League season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "multi_season — different season; must not answer from training knowledge"
+  },
+  {
+    "id": "SCOPE_S03",
+    "question": "What happened in matchweek 40?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "out_of_window — season only has 38 gameweeks; must refuse cleanly"
+  },
+  {
+    "id": "SCOPE_S04",
+    "question": "Who will be the top scorer in the Premier League next season?",
+    "expected_behavior": "refuse",
+    "category": "UNSUPPORTED_FUTURE",
+    "language": "en",
+    "notes": "future_prediction — must refuse in 1 sentence, no historical stats appended"
+  }
+]

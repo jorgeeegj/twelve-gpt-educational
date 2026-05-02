@@ -115,6 +115,10 @@ class BasicStatsAgent:
                 # tool call/output pairs) to history so the next turn's input
                 # remains consistent with Responses-API call_id tracking.
                 answer = (response.output_text or "").strip()
+                # Strip internal INTENT: classification line — never expose to user.
+                answer = "\n".join(
+                    line for line in answer.splitlines() if not line.strip().startswith("INTENT:")
+                ).strip()
                 if not answer:
                     logger.warning("Agent returned empty content on iteration %d", iteration)
                     return _FALLBACK_MESSAGE

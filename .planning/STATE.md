@@ -5,10 +5,10 @@ milestone_name: Milestones
 status: active
 last_updated: "2026-05-02T00:00:00Z"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 14
-  completed_plans: 13
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # STATE.md
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 12 complete — next: Phase 13 Scope Awareness
+**Current focus:** Phase 13 complete — eval consolidation (Phase 14) next
 
 ---
 
@@ -408,8 +408,17 @@ Saved outputs:
   - BACKLOG_001 cluster confirmed closed.
 - `src/basic_stats/` diff: zero — only `prompts/agent_system.yaml` touched
 
+**Phase 13 — Scope Awareness** ✓ Complete (2026-05-02)
+
+- 13.1 SCOPE-01: `METRIC AVAILABILITY` rule added to `agent_system.yaml`; `agent_tools.py` returns `metric_not_available` error for unknown stats. 4/4 metric-not-in-schema questions pass.
+- 13.2 SCOPE-02: `BEFORE CALLING A TOOL` intent classification block added to `agent_system.yaml`; `agent.py` strips `INTENT:` line before returning to user. 229/229 tests pass.
+- 13.3 SCOPE-03: `evals/scope_awareness_questions.json` — 12 questions across 3 gap categories (metric-not-in-schema, entity-not-in-dataset, multi-season). 11/12 pass with `refuse_judge`; 12th fixed by adding "kilometers run" to METRIC AVAILABILITY examples and `metric_not_available` error handling instruction.
+- `evals/judges/refuse_judge.py` added — LLM judge replacing `_looks_like_refusal` phrase list in `synthetic_runner.py`. Consistent with `faithfulness_judge` and `naturalness_judge` pattern.
+- `src/basic_stats/` changes: `agent_system.yaml` (2 new rule blocks + 1 example fix), `agent_tools.py` (~20 lines defensive backstop), `agent.py` (~5 lines INTENT strip).
+
 | Phase | Name | Status | Exit Gate |
 |-------|------|--------|-----------|
 | 12 | Refusal Hard-Stop | ✓ Complete | BACKLOG_001 closed; campaign verified 2026-05-02 |
+| 13 | Scope Awareness | ✓ Complete | 12/12 scope questions pass; 229/229 tests; refuse_judge shipped |
 
-*Last updated: 2026-05-02 — Phase 12 verified. Campaign re-run confirms BACKLOG_001 closed. 4/6 refusals clean; 2 "non-refusals" are correct behavior (season-complete questions). Next: Phase 13 — Scope Awareness.*
+*Last updated: 2026-05-02 — Phase 13 complete. Agent knows the boundaries of its dataset. Eval stack upgraded: refuse_judge replaces phrase list. Next: Phase 14 — eval consolidation (one runner, one schema, three judges).*

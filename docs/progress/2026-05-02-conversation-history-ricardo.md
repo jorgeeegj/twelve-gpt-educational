@@ -109,3 +109,187 @@ Implemented in `evals/`:
 1. Re-run regression benchmark with livelock fix to verify 56 → >=59
 2. If benchmark passes → commit all changes and the project is done
 3. If new failure class appears → scope the intent-classifier tool against those specific failures; do not build it speculatively
+
+---
+
+## Session Continuation — Phase 13 + Eval Architecture
+
+### Strategic Assessment (Opus session)
+
+Ricardo asked for an honest senior engineering read on what's actually missing from the agent given the success criteria:
+- Use tools correctly → largely there
+- Identify out-of-scope, no invention → fixed by Phase 12
+- Memory / multi-turn → works for short chains
+- Thinks before responding → partial gap
+
+Key conclusion: the three structural failure modes — silent metric substitution, wrong entity coercion, multi-season hallucination — all share one root cause: the agent goes from "user said something" to "fetch data" without classifying what kind of question it is.
+
+### BACKLOG_001 Verification
+
+Before planning Phase 13, ran the refusal campaign to confirm Phase 12 actually closed the cluster:
+
+```bash
+uv run python -m evals.synthetic_runner \
+  --fixture evals/discovery/campaigns/unsupported_future_v1.json \
+  --label backlog_001_verify --skip-judges --workers 1
+```
+
+**Result:** 4/6 clean refusals. The 2 "non-refusals" (003, 004) are correct behavior — the season is complete, so "Will Haaland finish as top scorer?" and "Which teams will be relegated?" are factually answerable from the data. The agent answered them correctly. BACKLOG_001 confirmed closed.
+
+STATE.md and TEAM.md updated to reflect verified status. Committed and pushed to Jorge's fork.
+
+### Phase 13 — Scope Awareness (planned + executed)
+
+Named "Scope Awareness" (rejected "Question Hygiene" as jargon). Planned as a lightweight single PLAN.md with three sub-phases — no GSD heavy machinery.
+
+**13.1 — Closed Metric Contract (SCOPE-01) ✓**
+
+Added `METRIC AVAILABILITY` block to `agent_system.yaml` after the AVAILABLE STATS section:
+> "The AVAILABLE STATS list is exhaustive. If the user asks for a metric not on the list, do NOT call a tool. Answer in one sentence: 'I don't have [metric]. The closest I can offer is [alternative].'"
+
+Added defensive backstop in `agent_tools.py`: `query_player_stats` and `query_team_stats` now return `{"error": "metric_not_available", "requested": stat, "scope": scope}` when a stat fails `column_exists()` on all relevant tables.
+
+Exit gate passed — 4/4 metric-not-in-schema questions return refusal-with-alternative:
+- "Tackles per 90 for Saliba?" → refuses, offers recoveries per 90 ✅
+- "Liverpool's xGA?" → refuses, offers xg_total or goals_against ✅
+- "Kilometers Salah ran?" → refuses, offers carry_meters_gained ✅
+- "Expected assists for Bruno?" → refuses, offers key passes ✅
+
+**13.2 — Pre-Tool Intent Classification (SCOPE-02) ✓**
+
+Added `BEFORE CALLING A TOOL` block to `agent_system.yaml` requiring the LLM to write one line before any tool call:
+```
+INTENT: in_scope_lookup | out_of_scope_future | out_of_scope_data | ambiguous
+```
+
+Added 4-line strip in `agent.py` to remove the `INTENT:` line before returning the answer to the user — it's an internal trace, never user-visible.
+
+229/229 tests passing. INTENT line confirmed never leaking to user across manual smoke.
+
+**13.3 — Scope Awareness Question Set (SCOPE-03) ✓**
+
+Authored `evals/scope_awareness_questions.json` — 12 questions across 3 gap categories:
+- 4 metric-not-in-schema (tackles, xGA, distance, expected assists)
+- 4 entity-not-in-dataset (Lamine Yamal, Real Madrid, La Liga, Mbappé)
+- 4 multi-season/out-of-window (last season comparison, 2023-24, matchweek 40, next season prediction)
+
+All 12 answers are correct — the runner's phrase-list judge (`_looks_like_refusal`) was producing false negatives on valid refusals like "isn't included in this dataset."
+
+### Eval Architecture Discovery
+
+Running Phase 13 exposed a deeper problem with the eval stack:
+
+**The runner has 5 incompatible question formats across 5 JSON files.** `agent_benchmark.py` only reads `questions_benchmark.json` and `random_questions.json`. `synthetic_runner.py` only reads the seed/campaign format. You can never run everything through one command.
+
+**`_looks_like_refusal` is the wrong tool for the job.** It's a hardcoded phrase list inside the runner — the same anti-pattern as the Python heuristics that were removed in v2.0. It will always be incomplete because the LLM finds new phrasings. The fix is an LLM judge (`refuse_judge.py`), consistent with how `faithfulness_judge` and `naturalness_judge` work.
+
+**The correct architecture (agreed, to be built next):**
+
+One question schema:
+```json
+{ "id", "question", "language", "expected_behavior", "expected_values" }
+```
+
+One runner (`evals/run_evals.py`) that selects judges based on `expected_behavior`:
+- `answer` → `faithfulness_judge` + `naturalness_judge`
+- `refuse` → `refuse_judge`
+- `clarify` → `refuse_judge`
+
+Three judges in `evals/judges/`, all LLM-based or deterministic — no phrase lists.
+
+`agent_benchmark.py` and `synthetic_runner.py` deleted. Question files migrated to unified schema.
+
+This is not a rewrite — it's a consolidation. ~200 lines new, ~700 lines deleted. Production agent untouched.
+
+### Current State
+
+| What | Status |
+|------|--------|
+| Phase 13 sub-phases 13.1, 13.2 | ✓ Complete — prompt + tool changes shipped |
+| Phase 13 sub-phase 13.3 | ✓ Questions authored, answers correct, runner judge is the blocker |
+| `_looks_like_refusal` fix | Partial — added phrases for basic cases, reverted Jorge-style expansion |
+| `raw_key_guard` on refuse answers | Fixed — no longer penalises refusals that name an alternative stat |
+| Eval consolidation | Designed, not yet built |
+| Phase 13 committed | Not yet — waiting for eval consolidation + refuse_judge |
+
+### What's Next
+
+Build the consolidated eval stack:
+1. `evals/judges/refuse_judge.py` — LLM judge for refuse/clarify questions
+2. `evals/run_evals.py` — single runner replacing agent_benchmark + synthetic_runner
+3. Migrate all 5 question JSON files to unified schema without deleting agent_benchmark.py and synthetic_runner.py
+4. Update tests that reference synthetic_runner
+5. Run Phase 13 exit gate through the new runner
+6. Commit Phase 13 + eval consolidation together
+
+---
+
+## Phase 13 Execution — Complete (same session)
+
+### refuse_judge.py
+
+Built `evals/judges/refuse_judge.py` — an LLM-as-judge replacing the `_looks_like_refusal` phrase list in `synthetic_runner.py`. Follows the exact same pattern as `faithfulness_judge.py` and `naturalness_judge.py`: calls `chat.completions.create` with `response_format={"type": "json_object"}`, parses with Pydantic.
+
+Signature:
+```python
+judge_refuse(question, answer, expected_behavior, client, model) -> RefuseResult
+RefuseResult(passed: bool, reason: str, raw_response: str, error: str | None)
+```
+
+`passed=True` means: the agent behaved correctly given `expected_behavior`. For `refuse` questions, `passed=True` means the agent refused. For `answerable` questions, `passed=True` means the agent did NOT refuse.
+
+### synthetic_runner.py cleanup
+
+- Removed `_REFUSAL_PHRASES` tuple and `_looks_like_refusal()` function entirely
+- Added `from evals.judges.refuse_judge import judge_refuse`
+- Updated `_classify_failure()`: uses `row.get("refuse_passed")` instead of phrase matching
+- Updated `_evaluate_entry()`: added `judge_client` and `judge_model` params; calls `judge_refuse` for `refuse`/`ambiguous_clarify` questions; adds `refuse_passed` and `refuse_reason` to result row
+- Fixed `raw_key` check: only penalises `answerable` questions (a refusal naming an alternative stat is not a raw_key violation)
+- Updated `run()`: initialises `judge_client` and `judge_model` when not `skip_judges`
+
+### Phase 13 exit gate — 12/12 passing
+
+Re-ran `evals/scope_awareness_questions.json` (12 questions) through the updated runner. All 12 pass with the LLM refuse_judge:
+- 4/4 metric-not-in-schema: tackles, xGA, kilometers run, expected assists → all refuse with nearest alternative
+- 4/4 entity-not-in-dataset: Lamine Yamal, Real Madrid, La Liga, Mbappé → all refuse cleanly
+- 4/4 multi-season/out-of-window: last season, 2023-24, matchweek 40, next season → all refuse cleanly
+
+### Tests fixed
+
+Two unit tests in `tests/test_synthetic_runner.py` broke after removing `_looks_like_refusal`. Updated to use the new `refuse_passed` field in the mock row:
+```python
+def test_classify_failure_refuse_expected_but_answered():
+    r = _row(refuse_passed=False)
+    assert sr._classify_failure(r, "refuse") == "refuse_expected_but_answered"
+
+def test_classify_failure_answer_expected_but_refused():
+    r = _row(refuse_passed=True)
+    assert sr._classify_failure(r, "answerable") == "answer_expected_but_refused"
+```
+
+229/229 tests passing.
+
+### State After Phase 13
+
+| What | Status |
+|------|--------|
+| Phase 13 — all 3 sub-phases | ✓ Complete |
+| 12/12 scope questions | ✓ All passing with refuse_judge |
+| `_looks_like_refusal` removed | ✓ Replaced with LLM judge |
+| Tests | 229/229 passing |
+| Documentation | ROADMAP.md, STATE.md, TEAM.md, progress log — all updated |
+| Committed | Pending — ready to commit |
+
+### What's Next
+
+**Phase 14 — Eval Consolidation.**
+
+The eval stack has 5 incompatible question formats and 2 overlapping runners. Now that `refuse_judge` exists and Phase 13 is done, the path is clear:
+
+1. Define one unified question schema: `{ id, question, language, expected_behavior, expected_values }`
+2. Migrate all 5 question JSON files to that schema
+3. Write `evals/run_evals.py` — one runner, selects judges by `expected_behavior`
+4. Delete `agent_benchmark.py` and `synthetic_runner.py`
+5. Update 8 test files that reference synthetic_runner
+
+~200 lines new, ~700 lines deleted. Production agent untouched throughout.

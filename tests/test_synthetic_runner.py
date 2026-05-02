@@ -2,6 +2,7 @@
 
 No live LLM, no DuckDB. Validates pure helpers + dry-run path.
 """
+
 from __future__ import annotations
 
 import json
@@ -11,8 +12,8 @@ import pytest
 
 from evals import synthetic_runner as sr
 
-
 # --- _load_fixture ---------------------------------------------------------
+
 
 def test_load_fixture_returns_list(tmp_path):
     p = tmp_path / "fix.json"
@@ -68,6 +69,7 @@ def test_validate_fixture_flags_invalid_language():
 
 # --- _split_turns ----------------------------------------------------------
 
+
 def test_split_turns_single():
     assert sr._split_turns("hello") == ["hello"]
 
@@ -85,6 +87,7 @@ def test_split_turns_drops_empty():
 
 
 # --- _classify_failure -----------------------------------------------------
+
 
 def _row(**overrides):
     base = {
@@ -107,11 +110,14 @@ def test_classify_failure_raw_key():
 
 
 def test_classify_failure_refuse_expected_but_answered():
-    assert sr._classify_failure(_row(), "refuse") == "refuse_expected_but_answered"
+    # refuse_passed=False means judge said the agent did NOT refuse correctly
+    r = _row(refuse_passed=False)
+    assert sr._classify_failure(r, "refuse") == "refuse_expected_but_answered"
 
 
 def test_classify_failure_answer_expected_but_refused():
-    r = _row(answer="I couldn't find that data.")
+    # refuse_passed=True on an answerable question means agent refused when it shouldn't have
+    r = _row(refuse_passed=True)
     assert sr._classify_failure(r, "answerable") == "answer_expected_but_refused"
 
 
@@ -126,6 +132,7 @@ def test_classify_failure_faithfulness_fails():
 
 
 # --- run() --dry-run -------------------------------------------------------
+
 
 def test_run_dry_run_creates_summary(tmp_path, monkeypatch):
     # Redirect RUNS_DIR to tmp_path so we don't pollute evals/runs/
@@ -149,6 +156,7 @@ def test_run_raises_on_validation_error(tmp_path, monkeypatch):
 
 
 # --- Real seed fixture validates ------------------------------------------
+
 
 def test_real_seed_fixture_passes_validation():
     """Guards the seed fixture in evals/synthetic/seed_questions.json."""

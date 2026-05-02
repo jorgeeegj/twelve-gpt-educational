@@ -67,9 +67,14 @@ _PLAYER_MATCH_EVENT_P90_MAP: dict[str, str] = {
 # Summary-level "goals against" stat names → the match-level column for goals conceded.
 # When the LLM uses these with a match-context filter (e.g. opponent_team),
 # the effective metric must be opponent_score, not the team_score fallback.
-_TEAM_CONCEDED_ALIASES: frozenset[str] = frozenset({
-    "total_goals_against", "goals_against", "goals_conceded", "conceded",
-})
+_TEAM_CONCEDED_ALIASES: frozenset[str] = frozenset(
+    {
+        "total_goals_against",
+        "goals_against",
+        "goals_conceded",
+        "conceded",
+    }
+)
 
 
 def _r(result: list[dict], note: str | None = None) -> dict[str, Any]:
@@ -699,9 +704,7 @@ def get_stat_vs_opponent_group(
     excluded_note = None
     if entity_type in ("player", "team"):
         own_teams = (
-            _lookup_player_teams(duck, entity_name)
-            if entity_type == "player"
-            else {entity_name}
+            _lookup_player_teams(duck, entity_name) if entity_type == "player" else {entity_name}
         )
         if own_teams:
             filtered = [t for t in opponent_teams if not any(_same_team(t, ot) for ot in own_teams)]
@@ -721,10 +724,10 @@ def get_stat_vs_opponent_group(
                     placeholders = ", ".join("?" for _ in all_skip)
                     order_dir = "DESC" if fill_descending else "ASC"
                     fill_rows = duck.query_dicts(
-                        f'SELECT team_name FROM teams_summary '
-                        f'WHERE lower(team_name) NOT IN ({placeholders}) '
+                        f"SELECT team_name FROM teams_summary "
+                        f"WHERE lower(team_name) NOT IN ({placeholders}) "
                         f'ORDER BY "{fill_stat}" {order_dir}, team_name ASC '
-                        f'LIMIT {needed}',
+                        f"LIMIT {needed}",
                         all_skip,
                     )
                     added = [r["team_name"] for r in fill_rows]
@@ -783,9 +786,7 @@ def get_stat_vs_opponent_group(
         rows = duck.query_dicts(sql, [entity_name.lower()] + params_lower)
 
     # Compute total from the same rows so total == sum(breakdown) by construction.
-    total_metric_value = sum(
-        r["metric_value"] for r in rows if r.get("metric_value") is not None
-    )
+    total_metric_value = sum(r["metric_value"] for r in rows if r.get("metric_value") is not None)
     agg_note = f"Aggregated {stat} vs opponents: {', '.join(opponent_teams)}"
     final_note = " | ".join(n for n in [excluded_note, agg_note] if n)
     result = _r(rows, note=final_note)
@@ -837,6 +838,16 @@ def query_player_stats(
     opponent_teams_fill_descending: bool = True,
 ) -> dict:
     """Mother tool: look up, count, or aggregate a stat for a single named player."""
+    if stat is not None and not match_conditions:
+        in_any = (
+            duck.column_exists("players_summary", stat)
+            or duck.column_exists("players_summary", stat.removesuffix("_p90"))
+            or stat in PLAYER_MATCH_ALLOWED_METRICS
+            or stat in PLAYER_MATCH_EVENT_ALLOWED_METRICS
+        )
+        if not in_any:
+            return {"error": "metric_not_available", "requested": stat, "scope": "player"}
+
     resolved_log: list[dict] = []
     player_name, entry = _fuzzy_primary(duck, player_name, "player", "player_name")
     resolved_log.append(entry)
@@ -897,6 +908,14 @@ def query_team_stats(
     exclude_teams: list[str] | None = None,
 ) -> dict:
     """Mother tool: look up or rank a stat for one or all teams."""
+    in_any = (
+        duck.column_exists("teams_summary", stat)
+        or duck.column_exists("teams_summary", stat.removesuffix("_p90"))
+        or stat in TEAM_MATCH_ALLOWED_METRICS
+    )
+    if not in_any:
+        return {"error": "metric_not_available", "requested": stat, "scope": "team"}
+
     resolved_log: list[dict] = []
     if team_name is not None:
         team_name, entry = _fuzzy_primary(duck, team_name, "team", "team_name")
@@ -920,7 +939,11 @@ def query_team_stats(
         )
     elif rank_mode:
         result = rank_teams(
-            duck, stat=stat, filters=filters, limit=limit, descending=descending,
+            duck,
+            stat=stat,
+            filters=filters,
+            limit=limit,
+            descending=descending,
             exclude_teams=exclude_teams,
         )
     else:

@@ -14,15 +14,15 @@ uv run python evals/agent_benchmark.py --workers 1 --label my_fix
 ## Where We Are (2026-05-02)
 
 **Branch:** `feature/refactor-v2`
-**Status:** Production-quality agent. Phases 5–12 complete. Refusal verification confirmed 2026-05-02.
+**Status:** Production-quality agent. Phases 5–13 complete. Scope Awareness + eval consolidation (refuse_judge) shipped 2026-05-02.
 
 | What | Number |
 |------|--------|
 | Benchmark (61 prepared questions) | **59/61** faithfulness — gate PASS (≥0.95) |
 | Benchmark (21 random questions) | **19/21** faithfulness |
-| Test suite | **231/231** passing |
+| Test suite | **229/229** passing |
 | Multi-turn (4-turn follow-up chain) | Validated end-to-end |
-| `src/basic_stats/` diff | **zero** — no production code changes since Phase 9 |
+| Scope Awareness (12 questions) | **12/12** — metric/entity/season refusals correct |
 | Refusal bug (BACKLOG_001) | **Fixed and verified** — Phase 12, 2026-05-02 |
 
 ---
@@ -65,6 +65,7 @@ Run questions → Cluster failures → Identify root cause → Fix prompt → Re
 Implemented in `evals/`:
 - `agent_benchmark.py` — 61 prepared + 21 random questions, faithfulness judge
 - `synthetic_runner.py` — runs any question batch through the agent
+- `judges/faithfulness_judge.py`, `judges/naturalness_judge.py`, `judges/refuse_judge.py` — LLM judges, no phrase lists
 - `discovery/failure_backlog.json` — known failure clusters with history
 - `discovery/campaigns/` — targeted question sets for specific failure types
 
@@ -83,7 +84,7 @@ This loop is the mechanism for finding and closing bugs without guessing.
 
 ## Immediate Next Step
 
-**Phase 13 — Scope Awareness.** Teach the agent to know the boundaries of its own dataset: which metrics exist, which entities are in scope, which seasons it covers. When something is outside those boundaries, it says so cleanly instead of guessing or silently substituting.
+**Phase 14 — Eval Consolidation.** The eval stack has 5 incompatible question formats and 2 overlapping runners. The fix: one unified schema, one runner (`evals/run_evals.py`), three LLM judges (`faithfulness`, `naturalness`, `refuse`). No phrase lists, no hardcoded heuristics. `agent_benchmark.py` and `synthetic_runner.py` get deleted once all question files are migrated. Production agent untouched throughout.
 
 ---
 
@@ -155,7 +156,7 @@ The rule: **don't put heuristics in Python if the agentic architecture (tool des
 | 10 — Synthetic UAT | Self-generated test runner + failure clusterer | 2026-04-29 |
 | 11 — Discovery Loop v1 | Automated failure backlog, triage, campaign generator, promotion | 2026-04-30 |
 | 12 — Refusal Hard-Stop | Fixed `agent_system.yaml` OOS rule — clean refusal, no trailing stats | 2026-05-02 |
-| 13 — Scope Awareness | In progress | — |
+| 13 — Scope Awareness | Intent classification + metric backstop + refuse_judge | 2026-05-02 |
 
 ---
 

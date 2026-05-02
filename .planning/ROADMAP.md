@@ -221,7 +221,7 @@
 | 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete    | 2026-04-29 |
 | 11 | Iterative Synthetic Discovery Loop v1 | 7/7 | Complete | 2026-04-30 |
 | 12 | Refusal Hard-Stop | 1/1 | Complete | 2026-05-02 |
-| 13 | Scope Awareness | 0/3 | Planned | — |
+| 13 | Scope Awareness | 3/3 | Complete | 2026-05-02 |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -311,3 +311,4 @@
 *Phase 11 marked complete: 2026-04-30 — All 9 SPEC exit gates met; live run 2026-04-30_09-37-53__synthetic_unsupported_future_v1 (6 questions, 6 failures, 1 cluster); backlog seeded + promoted; context_gap proposal emitted; 231/231 tests passing; src/basic_stats/ zero diff.*
 *Phase 12 added + completed: 2026-05-02 — Refusal Hard-Stop. agent_system.yaml OUT OF SCOPE rule rewritten; backlog_001_verify campaign confirms BACKLOG_001 cluster closed (4/6 clean refusals; 2 "non-refusals" are correct behavior on completed-season questions).*
 *Phase 13 added + planned: 2026-05-02 — Scope Awareness. SCOPE-01..SCOPE-03 added to REQUIREMENTS.md; single PLAN.md with three sub-phases under .planning/phases/13-scope-awareness/.*
+*Phase 13 marked complete: 2026-05-02 — SCOPE-01..SCOPE-03 all met. Metric contract, intent classification, 12-question scope set, refuse_judge. 229/229 tests. src/basic_stats/ changes: agent_system.yaml + agent_tools.py + agent.py only.*

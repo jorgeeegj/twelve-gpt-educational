@@ -220,6 +220,8 @@
 | 9 | Natural Language Polish | 0/5 | Complete | 2026-04-27 |
 | 10 | Self-Generated Robustness / Synthetic UAT | 6/6 | Complete    | 2026-04-29 |
 | 11 | Iterative Synthetic Discovery Loop v1 | 7/7 | Complete | 2026-04-30 |
+| 12 | Refusal Hard-Stop | 1/1 | Complete | 2026-05-02 |
+| 13 | Scope Awareness | 0/3 | Planned | — |
 
 > Phase order revised 2026-04-16 per Agust feedback: Robustness (was Phase 8) → Phase 6, Memory (was Phase 6) → Phase 7, League Context (was Phase 7) → Phase 8.
 
@@ -275,6 +277,23 @@
 
 **UI hint:** no
 
+### Phase 13: Scope Awareness
+
+**Goal:** Teach the agent the boundaries of its dataset (which metrics, which entities, which season) so it refuses cleanly with the closest available alternative instead of silently substituting, coercing wrong entities, or hallucinating across seasons.
+
+**Depends on:** Phase 12
+
+**Requirements:** SCOPE-01, SCOPE-02, SCOPE-03
+
+**Success Criteria:**
+1. METRIC AVAILABILITY rule added to `agent_system.yaml`; `agent_tools.py` returns `metric_not_available` error for stats outside the documented list; 4/4 metric-not-in-schema questions pass (SCOPE-01)
+2. `BEFORE CALLING A TOOL` intent classification block added to `agent_system.yaml`; `agent.py` strips `INTENT:` line from user answer; 61 + 21 benchmarks preserved at ≥59/61 and ≥19/21 (SCOPE-02)
+3. `evals/scope_awareness_questions.json` ships with 12 questions across 3 gap categories (metric-not-in-schema, entity-not-in-dataset, multi-season); 12/12 produce refusal-with-alternative, refusal-explicit, or clarifying question; benchmarks preserved (SCOPE-03)
+
+**Plans:** 0/3 (single PLAN.md, three sub-phases)
+
+**UI hint:** no
+
 ---
 
 *v1 roadmap created: 2026-03-26*
@@ -290,3 +309,5 @@
 *Phase 11 added: 2026-04-29 — Iterative Synthetic Discovery Loop v1 (turns Phase 10 infrastructure into a repeatable discovery cycle).*
 *Phase 11 planned: 2026-04-29 — 7 plans across 7 waves; LOOP-01..LOOP-07 added to REQUIREMENTS.md; 11-CONTEXT.md + 11-SPEC.md + seven 11-NN-PLAN.md files authored; src/basic_stats/ zero diff verified.*
 *Phase 11 marked complete: 2026-04-30 — All 9 SPEC exit gates met; live run 2026-04-30_09-37-53__synthetic_unsupported_future_v1 (6 questions, 6 failures, 1 cluster); backlog seeded + promoted; context_gap proposal emitted; 231/231 tests passing; src/basic_stats/ zero diff.*
+*Phase 12 added + completed: 2026-05-02 — Refusal Hard-Stop. agent_system.yaml OUT OF SCOPE rule rewritten; backlog_001_verify campaign confirms BACKLOG_001 cluster closed (4/6 clean refusals; 2 "non-refusals" are correct behavior on completed-season questions).*
+*Phase 13 added + planned: 2026-05-02 — Scope Awareness. SCOPE-01..SCOPE-03 added to REQUIREMENTS.md; single PLAN.md with three sub-phases under .planning/phases/13-scope-awareness/.*

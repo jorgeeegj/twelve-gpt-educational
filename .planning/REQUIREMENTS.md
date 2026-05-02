@@ -167,6 +167,21 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 **Phase:** 11
 **Asserts:** A small targeted campaign (4–8 questions) is generated from the Phase 10 backlog seed `unsupported_future__refuse_expected_but_answered` (SYN_019/SYN_020), saved under `evals/discovery/campaigns/`, and run live via `iteration_runner.run_campaign()`. The run produces `summary.json` + `results.json` + `failure_clusters.json` + `REPORT.md` under `evals/runs/` (gitignored, NOT staged). `failure_backlog.json` is updated with at least one entry. At least one promotion proposal artefact is emitted under `docs/review/` or `tests/test_synthetic_regressions.py` (commented stub). `.planning/STATE.md`, `.planning/ROADMAP.md`, and `.planning/REQUIREMENTS.md` are updated with Phase 11 completion evidence. `git diff --name-only src/basic_stats/` returns zero files. `11-07-SUMMARY.md` documents the live-run dir name, evidence table, and pending follow-on items.
 
+### SCOPE-01 — Closed Metric Contract
+
+**Phase:** 13
+**Asserts:** `agent_system.yaml` includes a `METRIC AVAILABILITY` block declaring the AVAILABLE STATS list exhaustive and instructing one-sentence refusal-with-alternative for any metric not on the list. `agent_tools.py` returns `{"error": "metric_not_available", "requested": <stat>, "scope": <scope>}` when a requested stat fails `column_exists()`. Verified by 4 manual questions (tackles_per_90, xGA, distance_covered, expected_assists) all returning refusal-with-alternative — no zeros, no fabricated numbers, no silent substitution.
+
+### SCOPE-02 — Pre-Tool Intent Classification
+
+**Phase:** 13
+**Asserts:** `agent_system.yaml` includes a `BEFORE CALLING A TOOL` block requiring the LLM to write a one-line classification prefixed `INTENT:` into one of {in_scope_lookup, out_of_scope_future, out_of_scope_data, ambiguous} before any tool call. `agent.py` strips any leading `INTENT:` line from the assistant's final user-facing answer. 61-question prepared benchmark preserved at ≥59/61; 21-question random benchmark preserved at ≥19/21; INTENT line never visible to the user across a 5-question manual smoke.
+
+### SCOPE-03 — Scope Awareness Question Set
+
+**Phase:** 13
+**Asserts:** `evals/scope_awareness_questions.json` ships with 12 questions (4 metric-not-in-schema, 4 entity-not-in-dataset, 4 multi-season/out-of-window), each annotated with `expected_behavior ∈ {refuse_with_alternative, refuse_explicit, clarify}`. Live run via `synthetic_runner.py --workers 1`: 12/12 produce one of the three expected behaviors. Zero fabricated numbers; zero silent substitutions; zero non-PL entities answered as PL entities. 61 + 21 benchmarks remain at ≥59/61 and ≥19/21 after any prompt edits surfaced by this set.
+
 ---
 
 ## Traceability
@@ -217,13 +232,17 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 | LOOP-05 | Phase 11 | Complete ✓ (2026-04-30) |
 | LOOP-06 | Phase 11 | Complete ✓ (2026-04-30) |
 | LOOP-07 | Phase 11 | Complete ✓ (2026-04-30) |
+| SCOPE-01 | Phase 13 | Pending |
+| SCOPE-02 | Phase 13 | Pending |
+| SCOPE-03 | Phase 13 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total — all complete ✓
 - v2 requirements: 19 total — 11 complete, 1 in progress (FUNC-02), 7 pending
 - Phase 10 requirements: 6 total — all complete ✓ (SYNTH-01 through SYNTH-06)
 - Phase 11 requirements: 7 total — all complete ✓ (LOOP-01 through LOOP-07)
-- Mapped to phases: 43/43 ✓
+- Phase 13 requirements: 3 total — all pending (SCOPE-01 through SCOPE-03)
+- Mapped to phases: 46/46 ✓
 
 ---
 
@@ -236,3 +255,4 @@ Milestone v2.0: Function Calling Architecture + Feature Completeness
 *SYNTH-04/05/06 marked complete: 2026-04-29 — clusterer, regression scaffold, live run evidence all delivered*
 *Phase 11 requirements added: 2026-04-29 — LOOP-01..LOOP-07 (iterative discovery loop v1: SPEC, backlog, triage rubric, campaign generator, iteration runner, promotion rules, verification)*
 *Phase 11 marked complete: 2026-04-30 — LOOP-01..LOOP-07 all complete ✓; live run 2026-04-30_09-37-53__synthetic_unsupported_future_v1; context_gap proposal emitted for unsupported_future__refuse_expected_but_answered*
+*Phase 13 requirements added: 2026-05-02 — SCOPE-01..SCOPE-03 (closed metric contract, pre-tool intent classification, scope-awareness question set)*

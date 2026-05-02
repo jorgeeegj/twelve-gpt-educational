@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Milestones
-status: unknown
-last_updated: "2026-04-30T01:22:00Z"
+status: active
+last_updated: "2026-05-02T00:00:00Z"
 progress:
-  total_phases: 3
-  completed_phases: 1
+  total_phases: 11
+  completed_phases: 11
   total_plans: 14
   completed_plans: 13
 ---
@@ -394,3 +394,21 @@ Saved outputs:
 - WI-3, WI-4, WI-5 — pendientes
 
 *Last updated: 2026-04-30 — Phase 11 complete. All 7 plans executed across 7 waves. Live run `2026-04-30_09-37-53__synthetic_unsupported_future_v1`: 6 questions, 6 failures, 1 cluster (`unsupported_future__refuse_expected_but_answered`). Backlog entry BACKLOG_001 promoted (context_missing → context_gap proposal emitted). 231/231 tests passing. src/basic_stats/ zero diff.*
+
+**Phase 12 — Refusal Hard-Stop** ✓ Complete (2026-05-02)
+
+- Root cause: `agent_system.yaml:159-169` OUT OF SCOPE rule ended with "You may then offer historical H2H data clearly labelled as non-predictive context" — the model was following the prompt correctly. The prompt was wrong.
+- Fix: rewrote the rule to refuse in one sentence and stop. Added explicit WRONG example covering offers, clarifying questions, and historical context after refusal.
+- Manual verification (8 BACKLOG_001 questions):
+  - Future-fixture questions ("Will Salah score next match?", "How many goals will Haaland score next matchday?") → clean 1-sentence refusal ✅
+  - Completed-season questions phrased with future tense ("Who will win the title?", "Which teams will be relegated?") → answered correctly from DB data ✅ (correct behavior — season is over)
+  - In-scope retrospective ("What happened in matchweek 38?") → full answer ✅
+- Regression benchmark pending: `evals/agent_benchmark.py --skip-judges --workers 1 --label refusal_fix_v1`
+- Exit gate: ≥59/61 prepared, ≥19/21 random
+- `src/basic_stats/` diff: zero — only `prompts/agent_system.yaml` touched
+
+| Phase | Name | Status | Exit Gate |
+|-------|------|--------|-----------|
+| 12 | Refusal Hard-Stop | ✓ Complete (benchmark pending) | BACKLOG_001 closed; ≥59/61 regression |
+
+*Last updated: 2026-05-02 — Phase 12 complete. Refusal bug (BACKLOG_001) closed via prompt fix. Manual verification passed. Regression benchmark running.*

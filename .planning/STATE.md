@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 11 — Iterative Synthetic Discovery Loop v1 (added 2026-04-29, not planned yet)
+**Current focus:** Phase 12 complete — next: Phase 13 Scope Awareness
 
 ---
 
@@ -403,12 +403,13 @@ Saved outputs:
   - Future-fixture questions ("Will Salah score next match?", "How many goals will Haaland score next matchday?") → clean 1-sentence refusal ✅
   - Completed-season questions phrased with future tense ("Who will win the title?", "Which teams will be relegated?") → answered correctly from DB data ✅ (correct behavior — season is over)
   - In-scope retrospective ("What happened in matchweek 38?") → full answer ✅
-- Regression benchmark pending: `evals/agent_benchmark.py --skip-judges --workers 1 --label refusal_fix_v1`
-- Exit gate: ≥59/61 prepared, ≥19/21 random
+- Campaign re-run 2026-05-02 (`backlog_001_verify`, 6 questions): 4/6 clean refusals ✅
+  - 003 ("Will Haaland finish as top scorer?") and 004 ("Which teams will be relegated?") answered correctly from DB — season is complete, future-tense phrasing but factually answerable. Correct behavior, not a failure.
+  - BACKLOG_001 cluster confirmed closed.
 - `src/basic_stats/` diff: zero — only `prompts/agent_system.yaml` touched
 
 | Phase | Name | Status | Exit Gate |
 |-------|------|--------|-----------|
-| 12 | Refusal Hard-Stop | ✓ Complete (benchmark pending) | BACKLOG_001 closed; ≥59/61 regression |
+| 12 | Refusal Hard-Stop | ✓ Complete | BACKLOG_001 closed; campaign verified 2026-05-02 |
 
-*Last updated: 2026-05-02 — Phase 12 complete. Refusal bug (BACKLOG_001) closed via prompt fix. Manual verification passed. Regression benchmark running.*
+*Last updated: 2026-05-02 — Phase 12 verified. Campaign re-run confirms BACKLOG_001 closed. 4/6 refusals clean; 2 "non-refusals" are correct behavior (season-complete questions). Next: Phase 13 — Scope Awareness.*

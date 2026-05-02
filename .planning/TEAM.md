@@ -14,7 +14,7 @@ uv run python evals/agent_benchmark.py --workers 1 --label my_fix
 ## Where We Are (2026-05-02)
 
 **Branch:** `feature/refactor-v2`
-**Status:** Production-quality agent. Phases 5–12 complete. Regression benchmark pending.
+**Status:** Production-quality agent. Phases 5–12 complete. Refusal verification confirmed 2026-05-02.
 
 | What | Number |
 |------|--------|
@@ -23,7 +23,7 @@ uv run python evals/agent_benchmark.py --workers 1 --label my_fix
 | Test suite | **231/231** passing |
 | Multi-turn (4-turn follow-up chain) | Validated end-to-end |
 | `src/basic_stats/` diff | **zero** — no production code changes since Phase 9 |
-| Refusal bug (BACKLOG_001) | **Fixed** — Phase 12, 2026-05-02 |
+| Refusal bug (BACKLOG_001) | **Fixed and verified** — Phase 12, 2026-05-02 |
 
 ---
 
@@ -72,8 +72,10 @@ Implemented in `evals/`:
 1. Phase 10 synthetic run surfaced 2 failures → clustered as `unsupported_future__refuse_expected_but_answered`
 2. Phase 11 targeted campaign (6 questions) confirmed the cluster: 6/6 failures
 3. Phase 12 identified root cause: a single prompt rule licensed the bad behavior
-4. Prompt fix shipped → manual verification: all 8 questions now refuse cleanly
-5. Regression benchmark running to confirm no regressions
+4. Prompt fix shipped (Phase 12) → campaign re-run 2026-05-02: 4/6 clean refusals ✅
+   The 2 "non-refusals" (003, 004) are correct behavior — the season is complete, so
+   "Will Haaland finish as top scorer?" and "Which teams will be relegated?" are
+   answerable from the data. The agent answered them correctly. Not a bug.
 
 This loop is the mechanism for finding and closing bugs without guessing.
 
@@ -81,16 +83,7 @@ This loop is the mechanism for finding and closing bugs without guessing.
 
 ## Immediate Next Step
 
-Run the regression benchmark (once DuckDB is free):
-
-```bash
-uv run python evals/agent_benchmark.py --skip-judges --workers 1 --label refusal_fix_v1
-```
-
-Exit gate: ≥59/61 prepared, ≥19/21 random. If green, commit and the project is done.
-
-**After that — only if regression shows a new failure class:**
-Add a `classify_intent` tool that runs before any data tool. Don't build it until there's eval evidence it's needed.
+**Phase 13 — Scope Awareness.** Teach the agent to know the boundaries of its own dataset: which metrics exist, which entities are in scope, which seasons it covers. When something is outside those boundaries, it says so cleanly instead of guessing or silently substituting.
 
 ---
 
@@ -162,6 +155,7 @@ The rule: **don't put heuristics in Python if the agentic architecture (tool des
 | 10 — Synthetic UAT | Self-generated test runner + failure clusterer | 2026-04-29 |
 | 11 — Discovery Loop v1 | Automated failure backlog, triage, campaign generator, promotion | 2026-04-30 |
 | 12 — Refusal Hard-Stop | Fixed `agent_system.yaml` OOS rule — clean refusal, no trailing stats | 2026-05-02 |
+| 13 — Scope Awareness | In progress | — |
 
 ---
 

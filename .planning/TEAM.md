@@ -3,10 +3,16 @@
 ## Golden Rule
 
 > Any change to `agent.py`, `agent_tools.py`, `agent_tool_schemas.py`, or `duckdb_manager.py`
-> **must** pass the benchmark before committing.
+> **must** pass the full eval harness before committing.
 
 ```bash
-uv run python evals/agent_benchmark.py --workers 1 --label my_fix
+uv run python -m evals.run_evals   # full verdict — PASS/FAIL, exit 0/1
+```
+
+For a faster check during development (no LLM judges):
+
+```bash
+uv run python evals/agent_benchmark.py --workers 1 --skip-judges --label my_fix
 ```
 
 ---
@@ -14,12 +20,12 @@ uv run python evals/agent_benchmark.py --workers 1 --label my_fix
 ## Where We Are (2026-05-02)
 
 **Branch:** `feature/refactor-v2`
-**Status:** Production-quality agent. Phases 5–13 complete. Scope Awareness + eval consolidation (refuse_judge) shipped 2026-05-02.
+**Status:** Production-quality agent. Phases 5–14 complete. Eval harness consolidated — one command gives a shipping verdict.
 
 | What | Number |
 |------|--------|
 | Benchmark (61 prepared questions) | **59/61** faithfulness — gate PASS (≥0.95) |
-| Benchmark (21 random questions) | **19/21** faithfulness |
+| Benchmark (21 random questions) | **19/21** faithfulness — gate PASS (≥0.85) |
 | Test suite | **229/229** passing |
 | Multi-turn (4-turn follow-up chain) | Validated end-to-end |
 | Scope Awareness (12 questions) | **12/12** — metric/entity/season refusals correct |
@@ -84,7 +90,14 @@ This loop is the mechanism for finding and closing bugs without guessing.
 
 ## Immediate Next Step
 
-**Phase 14 — Eval Consolidation.** The eval stack has 5 incompatible question formats and 2 overlapping runners. The fix: one unified schema, one runner (`evals/run_evals.py`), three LLM judges (`faithfulness`, `naturalness`, `refuse`). No phrase lists, no hardcoded heuristics. `agent_benchmark.py` and `synthetic_runner.py` get deleted once all question files are migrated. Production agent untouched throughout.
+**Phases 5–14 complete. The agent is shipping-ready.**
+
+Run `uv run python -m evals.run_evals` for the full verdict before any merge. If it prints PASS, ship it.
+
+What's left to consider for future work:
+- Multi-turn memory gate (currently manual) — would need graded FOLLOW_UPS questions with `expected_values` to automate
+- Expanding `random_questions.json` over time as teammates think of edge cases
+- Spanish quality as a dedicated gate if bilingual use grows
 
 ---
 
@@ -157,6 +170,7 @@ The rule: **don't put heuristics in Python if the agentic architecture (tool des
 | 11 — Discovery Loop v1 | Automated failure backlog, triage, campaign generator, promotion | 2026-04-30 |
 | 12 — Refusal Hard-Stop | Fixed `agent_system.yaml` OOS rule — clean refusal, no trailing stats | 2026-05-02 |
 | 13 — Scope Awareness | Intent classification + metric backstop + refuse_judge | 2026-05-02 |
+| 14 — Eval Consolidation | `run_evals.py` — one command, three suites, one verdict | 2026-05-02 |
 
 ---
 

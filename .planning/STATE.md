@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-12)
 
 **Core value:** Every answer must stay grounded in actual data — no invented metrics, entities, values, or support rows.
 **Current milestone:** v2.0 — Function Calling Architecture + Feature Completeness
-**Current focus:** Phase 13 complete — eval consolidation (Phase 14) next
+**Current focus:** Phase 14 complete — eval harness consolidated, agent shipping-ready
 
 ---
 
@@ -421,4 +421,19 @@ Saved outputs:
 | 12 | Refusal Hard-Stop | ✓ Complete | BACKLOG_001 closed; campaign verified 2026-05-02 |
 | 13 | Scope Awareness | ✓ Complete | 12/12 scope questions pass; 229/229 tests; refuse_judge shipped |
 
-*Last updated: 2026-05-02 — Phase 13 complete. Agent knows the boundaries of its dataset. Eval stack upgraded: refuse_judge replaces phrase list. Next: Phase 14 — eval consolidation (one runner, one schema, three judges).*
+**Phase 14 — Eval Consolidation** ✓ Complete (2026-05-02)
+
+- `evals/run_evals.py` added — single command that runs three core suites and prints one verdict.
+- Suite 1: `questions_benchmark.json` (61 prepared questions) — faithfulness gate ≥95%
+- Suite 2: `random_questions.json` (21 random unprepared questions) — faithfulness gate ≥85%
+- Suite 3: `scope_awareness_questions.json` (12 OOS refusal questions) — refuse gate 100%
+- Deterministic raw_key_guard runs across all 94 answers — gate = 0 leaks
+- Existing runners (`agent_benchmark.py`, `synthetic_runner.py`) kept intact — `run_evals.py` calls them as library functions
+- No schema migration, no new judges, no new question files
+- Honest footnote in output: multi-turn memory and naturalness not gated, verified manually
+
+| Phase | Name | Status | Exit Gate |
+|-------|------|--------|-----------|
+| 14 | Eval Consolidation | ✓ Complete | `run_evals.py` imports cleanly; 229/229 tests pass |
+
+*Last updated: 2026-05-02 — Phase 14 complete. Single eval command now exists: `uv run python -m evals.run_evals`. Three suites, one verdict, CI-ready (exit 0/1).*

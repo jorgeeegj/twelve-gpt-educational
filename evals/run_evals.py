@@ -11,32 +11,50 @@ What it does NOT test (verify manually):
   - Naturalness of phrasing (logged but not gated)
 """
 
-import asyncio
 import json
+import subprocess
 import sys
 from pathlib import Path
 
-from evals.agent_benchmark import run_benchmark_async
 from evals.synthetic_runner import run as run_synthetic
 
 BENCHMARK_PATH = Path("evals/questions_benchmark.json")
 RANDOM_PATH = Path("evals/random_questions.json")
 SCOPE_PATH = Path("evals/scope_awareness_questions.json")
+RUNS_DIR = Path("evals/runs")
 
 PREPARED_GATE = 0.95
 RANDOM_GATE = 0.85
 
 
-def _benchmark(path: Path):
-    res = asyncio.run(run_benchmark_async(path, max_workers=4, skip_judges=False))
-    s = res["summary"]
-    pass_, total = s["gates"]["faithfulness"]["score"].split("/")
-    leaks = s["gates"]["raw_keys"]["value"]
+def _benchmark(path: Path, label: str, random: bool = False) -> tuple[int, int, int]:
+    """Run agent_benchmark as a subprocess to avoid asyncio event-loop conflicts."""
+    cmd = [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "evals.agent_benchmark",
+        "--workers",
+        "3",
+        "--skip-judges",
+        "--label",
+        label,
+    ]
+    if random:
+        cmd.append("--random")
+    else:
+        cmd += ["--benchmark", str(path)]
+    subprocess.run(cmd, check=True)
+    run_dirs = sorted(RUNS_DIR.glob(f"*__{label}"), key=lambda p: p.stat().st_mtime)
+    summary = json.loads((run_dirs[-1] / "summary.json").read_text())
+    pass_, total = summary["gates"]["faithfulness"]["score"].split("/")
+    leaks = summary["gates"]["raw_keys"]["value"]
     return int(pass_), int(total), leaks
 
 
-def _scope():
-    run_dir = run_synthetic(SCOPE_PATH, label="scope", max_workers=4, skip_judges=False)
+def _scope() -> tuple[int, int, int]:
+    run_dir = run_synthetic(SCOPE_PATH, label="scope", max_workers=1, skip_judges=False)
     rows = json.loads((run_dir / "results.json").read_text())
     refused = sum(1 for r in rows if r.get("refuse_passed"))
     leaks = sum(1 for r in rows if not r.get("raw_key_passed", True))
@@ -44,8 +62,13 @@ def _scope():
 
 
 def main():
-    prep_pass, prep_total, prep_leaks = _benchmark(BENCHMARK_PATH)
-    rand_pass, rand_total, rand_leaks = _benchmark(RANDOM_PATH)
+    print("Suite 1/3 — prepared questions (61)")
+    prep_pass, prep_total, prep_leaks = _benchmark(BENCHMARK_PATH, "eval_prepared")
+
+    print("\nSuite 2/3 — random questions (21)")
+    rand_pass, rand_total, rand_leaks = _benchmark(RANDOM_PATH, "eval_random", random=True)
+
+    print("\nSuite 3/3 — scope awareness (12)")
     refused, scope_total, scope_leaks = _scope()
 
     prep_rate = prep_pass / prep_total

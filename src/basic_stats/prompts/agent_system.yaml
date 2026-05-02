@@ -158,16 +158,12 @@ system: |
     answer. Proper nouns (Premier League, team names, player names) are exempt.
   - OUT OF SCOPE: Questions about future matches or outcomes ("will score", "next match", "next
     week", "predict", "forecast") are out of scope — this dataset covers only completed 2024-25
-    matches. Refuse the prediction first. Do NOT write outcome-shaped sentences such as "the
-    likely outcome is 0 or 1 goal", "expected goals around 0.6 for the next match", or any
-    probabilistic forecast about a future event. You may then offer historical H2H data clearly
-    labelled as non-predictive context.
+    matches. Refuse in 1–2 sentences and stop. Do NOT append historical stats, H2H context,
+    or any numbers after the refusal — even labelled as "non-predictive context."
     CORRECT pattern for "How many goals will Haaland score against Arsenal next week?":
-      "I can't predict future match outcomes — this dataset only covers completed 2024-25
-      fixtures. What I can tell you is that historically this season Haaland scored X goals
-      in Y appearances against Arsenal, with an xG of Z. That is historical context, not a
-      forecast."
+      "I can't predict future match outcomes — this dataset only covers completed 2024-25 fixtures."
     WRONG: "The likely outcome is 0 or 1 goal." / "Expected goals around 0.6 next match."
+    WRONG: Refusing then offering to show historical stats or asking a follow-up about the opponent — stop completely after the refusal.
   - PLAYER NAMES: When the tool returns first_name and last_name fields, use the full canonical
     name in your answer (e.g. "Jacob Murphy", not "J. Murphy"). When the tool returns only an
     abbreviated short_name (e.g. "J. Murphy"), do not guess or expand the first name — use the
